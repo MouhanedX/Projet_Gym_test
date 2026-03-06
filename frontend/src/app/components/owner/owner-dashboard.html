@@ -1,0 +1,406 @@
+﻿<div class="egym-layout" [attr.data-theme]="darkMode ? 'dark' : 'light'">
+
+  <!-- TOP BAR -->
+  <header class="egym-topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-icon"></div>
+      <span class="topbar-logo-text">E-Gym <span>Manager</span></span>
+    </div>
+
+    <nav class="topbar-nav">
+      <button *ngFor="let tab of tabs" class="topbar-nav-btn" [class.active]="activeTab === tab.key" (click)="setTab(tab.key)">
+        <span class="nav-icon">{{ tab.icon }}</span>
+        {{ tab.label }}
+      </button>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="topbar-metric" *ngIf="totalRevenue > 0">
+        <div class="topbar-metric-label">CA ce mois</div>
+        <div class="topbar-metric-value">{{ totalRevenue | number }}</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" (click)="toggleDark()" title="Toggle dark mode">{{ darkMode ? '🌙' : '☀️' }}</button>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar">{{ user?.name?.charAt(0) || 'O' }}</div>
+        <div class="topbar-user-info">
+          <span class="topbar-user-name">{{ user?.name }}</span>
+          <span class="topbar-user-role">Propriétaire</span>
+        </div>
+      </div>
+      <a class="btn-exit" routerLink="/" title="Retour à l'accueil">
+        <span class="exit-icon">🏠</span>
+        Accueil
+      </a>
+      <button class="icon-btn" (click)="logout()" title="Déconnexion">🚪</button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="egym-main">
+
+    <div class="eg-spinner" *ngIf="loading"><div class="eg-spinner-ring"></div></div>
+
+    <!-- OVERVIEW -->
+    <div *ngIf="activeTab === 'overview' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon"></div> Tableau de Bord</h1>
+          <p class="eg-subtitle">{{ gym ? gym.name + '  Gestion propriétaire' : 'Configurez votre salle pour commencer' }}</p>
+        </div>
+        <button class="btn-eg-primary" *ngIf="!gym" (click)="showGymForm = true; setTab('gym')">+ Créer ma salle</button>
+      </div>
+
+      <div class="eg-stats-grid">
+        <div class="eg-stat-card">
+          <div class="eg-stat-left">
+            <div class="eg-stat-label">Salles actives</div>
+            <div class="eg-stat-value">{{ gym ? 1 : 0 }}</div>
+            <div class="eg-stat-change neutral">+0% ce mois</div>
+          </div>
+          <div class="eg-stat-icon purple"></div>
+        </div>
+        <div class="eg-stat-card">
+          <div class="eg-stat-left">
+            <div class="eg-stat-label">Membres actifs</div>
+            <div class="eg-stat-value">{{ totalEnrolled }}</div>
+            <div class="eg-stat-change up">+8.5% ce mois</div>
+          </div>
+          <div class="eg-stat-icon blue"></div>
+        </div>
+        <div class="eg-stat-card">
+          <div class="eg-stat-left">
+            <div class="eg-stat-label">Revenus ce mois</div>
+            <div class="eg-stat-value">{{ totalRevenue | number }}</div>
+            <div class="eg-stat-change up">+12.5% ce mois</div>
+          </div>
+          <div class="eg-stat-icon green"></div>
+        </div>
+        <div class="eg-stat-card">
+          <div class="eg-stat-left">
+            <div class="eg-stat-label">Programmes</div>
+            <div class="eg-stat-value">{{ programs.length }}</div>
+            <div class="eg-stat-change up">+{{ programs.length }} actifs</div>
+          </div>
+          <div class="eg-stat-icon orange"></div>
+        </div>
+      </div>
+
+      <div class="eg-two-col">
+        <div class="eg-card">
+          <div class="eg-card-header">
+            <div><div class="eg-card-title">Revenus mensuels</div><div class="eg-card-subtitle">Évolution sur 6 mois</div></div>
+          </div>
+          <div class="eg-card-body">
+            <div class="eg-chart-area">
+              <div class="eg-bar-wrap" *ngFor="let m of revenueChart">
+                <div class="eg-bar-value">{{ m.value }}</div>
+                <div class="eg-bar" [style.height.px]="m.height"></div>
+                <div class="eg-bar-label">{{ m.month }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="eg-card">
+          <div class="eg-card-header">
+            <div><div class="eg-card-title">Membres actifs</div><div class="eg-card-subtitle">Croissance de la communauté</div></div>
+          </div>
+          <div class="eg-card-body">
+            <div class="eg-line-chart">
+              <svg viewBox="0 0 300 160" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0,120 C50,100 100,85 150,75 C200,65 250,55 300,40" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M0,120 C50,100 100,85 150,75 C200,65 250,55 300,40 L300,160 L0,160 Z" fill="url(#lineGrad)"/>
+                <circle cx="0" cy="120" r="4" fill="#a78bfa"/>
+                <circle cx="60" cy="100" r="4" fill="#a78bfa"/>
+                <circle cx="120" cy="85" r="4" fill="#a78bfa"/>
+                <circle cx="180" cy="75" r="4" fill="#a78bfa"/>
+                <circle cx="240" cy="56" r="4" fill="#a78bfa"/>
+                <circle cx="300" cy="40" r="4" fill="#a78bfa"/>
+              </svg>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0">
+              <span class="eg-bar-label" *ngFor="let m of ['Sept','Oct','Nov','Déc','Jan','Fév']">{{ m }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="eg-two-col">
+        <div class="eg-card">
+          <div class="eg-card-header"><div class="eg-card-title">Répartition des abonnements</div></div>
+          <div class="eg-card-body">
+            <div class="eg-pie-wrap">
+              <svg viewBox="0 0 120 120" width="120" height="120">
+                <circle cx="60" cy="60" r="45" fill="none" stroke="#3b82f6" stroke-width="28" stroke-dasharray="119 189" stroke-dashoffset="0"/>
+                <circle cx="60" cy="60" r="45" fill="none" stroke="#7c3aed" stroke-width="28" stroke-dasharray="83 225" stroke-dashoffset="-119"/>
+                <circle cx="60" cy="60" r="45" fill="none" stroke="#10b981" stroke-width="28" stroke-dasharray="75 233" stroke-dashoffset="-202"/>
+              </svg>
+              <div class="eg-pie-legend">
+                <div class="eg-pie-legend-item"><div class="eg-pie-dot" style="background:#3b82f6"></div> Mensuel 43%</div>
+                <div class="eg-pie-legend-item"><div class="eg-pie-dot" style="background:#7c3aed"></div> Trimestriel 30%</div>
+                <div class="eg-pie-legend-item"><div class="eg-pie-dot" style="background:#10b981"></div> Annuel 27%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="eg-card">
+          <div class="eg-card-header"><div class="eg-card-title"> Alertes et Relances</div></div>
+          <div class="eg-card-body">
+            <div class="eg-alert-list">
+              <div class="eg-alert warning" *ngIf="pendingBookings.length">
+                <div class="eg-alert-title"> {{ pendingBookings.length }} réservations en attente</div>
+                <div class="eg-alert-desc">Membres à approuver</div>
+                <button class="btn-eg-outline btn-sm" (click)="setTab('bookings')">Voir les réservations</button>
+              </div>
+              <div class="eg-alert danger" *ngIf="programs.length === 0">
+                <div class="eg-alert-title"> Aucun programme actif</div>
+                <div class="eg-alert-desc">Créez des programmes pour attirer des membres</div>
+                <button class="btn-eg-danger btn-sm" (click)="setTab('programs')">Action requise</button>
+              </div>
+              <div class="eg-alert success" *ngIf="totalEnrolled > 0">
+                <div class="eg-alert-title"> {{ totalEnrolled }} membres inscrits !</div>
+                <div class="eg-alert-desc">Excellent engagement </div>
+              </div>
+              <div class="eg-alert warning" *ngIf="!gym">
+                <div class="eg-alert-title"> Salle non configurée</div>
+                <div class="eg-alert-desc">Commencez par créer votre salle</div>
+                <button class="btn-eg-outline btn-sm" (click)="setTab('gym')">Créer ma salle</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="eg-section" *ngIf="programs.length">
+        <div class="eg-section-header">
+          <span class="eg-section-title">Programmes récents</span>
+          <button class="btn-eg-ghost" (click)="setTab('programs')">Voir tout </button>
+        </div>
+        <div class="eg-program-grid">
+          <div class="eg-program-card" *ngFor="let p of programs.slice(0, 4)">
+            <div class="eg-program-card-top">
+              <div class="eg-program-type-icon">{{ getTypeIcon(p.type) }}</div>
+              <span class="eg-badge" [ngClass]="{'confirmed': p.difficulty === 'BEGINNER', 'pending': p.difficulty === 'INTERMEDIATE', 'cancelled': p.difficulty === 'ADVANCED'}">{{ p.difficulty }}</span>
+            </div>
+            <div class="eg-program-card-body">
+              <div class="eg-program-card-title">{{ p.title }}</div>
+              <div class="eg-program-card-desc">{{ p.description }}</div>
+              <div class="eg-program-card-meta">
+                <span> {{ p.coachName || 'Sans coach' }}</span>
+                <span *ngIf="p.startTime"> {{ p.startTime }}  {{ p.endTime }}</span>
+              </div>
+            </div>
+            <div class="eg-program-card-footer">
+              <div class="eg-enroll-bar-wrap">
+                <div class="eg-enroll-bar"><div class="eg-enroll-fill" [style.width.%]="((p.enrolledCount||0)/(p.capacity||1))*100"></div></div>
+                <div class="eg-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity }} inscrits</div>
+              </div>
+              <button class="btn-eg-ghost btn-sm" (click)="openProgramForm(p)"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY GYM -->
+    <div *ngIf="activeTab === 'gym' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon"></div> Ma Salle</h1>
+          <p class="eg-subtitle">{{ gym ? 'Gérez les détails de votre salle' : 'Configurez votre salle' }}</p>
+        </div>
+        <button class="btn-eg-primary" *ngIf="gym && !showGymForm" (click)="editGym()"> Modifier</button>
+        <button class="btn-eg-primary" *ngIf="!gym && !showGymForm" (click)="showGymForm = true">+ Créer</button>
+      </div>
+
+      <div class="eg-gym-detail" *ngIf="gym && !showGymForm">
+        <div class="eg-gym-detail-header">
+          <div class="eg-gym-detail-icon"></div>
+          <div>
+            <div class="eg-gym-detail-name">{{ gym.name }}</div>
+            <div class="eg-gym-detail-loc"> {{ gym.address }}<span *ngIf="gym.city">, {{ gym.city }}</span></div>
+          </div>
+        </div>
+        <p *ngIf="gym.description" style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;">{{ gym.description }}</p>
+        <div class="eg-gym-stats-row">
+          <div class="eg-gym-stat"><div class="eg-gym-stat-val">{{ gym.memberCount || 0 }}</div><div class="eg-gym-stat-label">Membres</div></div>
+          <div class="eg-gym-stat"><div class="eg-gym-stat-val">{{ gym.monthlyPrice || 0 }}</div><div class="eg-gym-stat-label">Mensuel</div></div>
+          <div class="eg-gym-stat"><div class="eg-gym-stat-val">{{ gym.openingHours || 'N/A' }}</div><div class="eg-gym-stat-label">Horaires</div></div>
+          <div class="eg-gym-stat"><div class="eg-gym-stat-val"> {{ gym.rating || 0 }}</div><div class="eg-gym-stat-label">Note</div></div>
+        </div>
+        <div *ngIf="gym.amenities?.length" style="margin-top:18px;">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Équipements</div>
+          <div class="eg-gym-amenities"><span class="eg-amenity-chip" *ngFor="let a of gym.amenities">{{ a }}</span></div>
+        </div>
+      </div>
+
+      <div class="eg-form-card" *ngIf="showGymForm">
+        <h3>{{ gym ? 'Modifier la salle' : 'Créer votre salle' }}</h3>
+        <div class="eg-form-grid">
+          <div class="eg-form-group"><label>Nom de la salle *</label><input type="text" [(ngModel)]="gymName" class="eg-input" placeholder="FitZone Pro"></div>
+          <div class="eg-form-group"><label>Ville</label><input type="text" [(ngModel)]="gymCity" class="eg-input" placeholder="Paris"></div>
+          <div class="eg-form-group"><label>Adresse *</label><input type="text" [(ngModel)]="gymAddress" class="eg-input" placeholder="123 rue Fitness"></div>
+          <div class="eg-form-group"><label>Téléphone</label><input type="tel" [(ngModel)]="gymPhone" class="eg-input"></div>
+          <div class="eg-form-group"><label>Prix mensuel ()</label><input type="number" [(ngModel)]="gymPrice" class="eg-input" min="0"></div>
+          <div class="eg-form-group"><label>Horaires</label><input type="text" [(ngModel)]="gymOpeningHours" class="eg-input" placeholder="06:00 - 22:00"></div>
+          <div class="eg-form-group full"><label>Description</label><textarea [(ngModel)]="gymDescription" class="eg-input" placeholder="Décrivez votre salle..."></textarea></div>
+          <div class="eg-form-group full"><label>Équipements (séparés par virgule)</label><input type="text" [(ngModel)]="gymAmenities" class="eg-input" placeholder="Piscine, Sauna, Parking, WiFi"></div>
+        </div>
+        <div class="eg-form-actions">
+          <button class="btn-eg-outline" (click)="showGymForm = false">Annuler</button>
+          <button class="btn-eg-primary" (click)="saveGym()">{{ gym ? 'Mettre à jour' : 'Créer la salle' }}</button>
+        </div>
+      </div>
+
+      <div class="eg-empty" *ngIf="!gym && !showGymForm">
+        <span class="eg-empty-icon"></span>
+        <p>Vous n'avez pas encore de salle. Créez-en une pour gérer vos programmes et réservations.</p>
+        <button class="btn-eg-primary" (click)="showGymForm = true">Créer ma salle</button>
+      </div>
+    </div>
+
+    <!-- PROGRAMS -->
+    <div *ngIf="activeTab === 'programs' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon"></div> Programmes</h1>
+          <p class="eg-subtitle">Créez et gérez vos programmes d'entraînement</p>
+        </div>
+        <button class="btn-eg-primary" *ngIf="gym && !showProgramForm" (click)="openProgramForm()">+ Nouveau programme</button>
+      </div>
+
+      <div class="eg-form-card" *ngIf="showProgramForm">
+        <h3>{{ editingProgram ? 'Modifier le programme' : 'Nouveau programme' }}</h3>
+        <div class="eg-form-grid">
+          <div class="eg-form-group"><label>Titre *</label><input type="text" [(ngModel)]="progTitle" class="eg-input" placeholder="HIIT Matinal"></div>
+          <div class="eg-form-group"><label>Type</label>
+            <select [(ngModel)]="progType" class="eg-input"><option *ngFor="let t of programTypes" [value]="t">{{ t }}</option></select>
+          </div>
+          <div class="eg-form-group"><label>Niveau</label>
+            <select [(ngModel)]="progDifficulty" class="eg-input"><option *ngFor="let d of difficulties" [value]="d">{{ d }}</option></select>
+          </div>
+          <div class="eg-form-group"><label>Coach</label>
+            <select [(ngModel)]="progCoachId" class="eg-input"><option value="">Aucun coach</option><option *ngFor="let c of coaches" [value]="c.id">{{ c.name }}</option></select>
+          </div>
+          <div class="eg-form-group"><label>Heure début</label><input type="time" [(ngModel)]="progStartTime" class="eg-input"></div>
+          <div class="eg-form-group"><label>Heure fin</label><input type="time" [(ngModel)]="progEndTime" class="eg-input"></div>
+          <div class="eg-form-group"><label>Capacité</label><input type="number" [(ngModel)]="progCapacity" class="eg-input" min="1"></div>
+          <div class="eg-form-group"><label>Prix ()</label><input type="number" [(ngModel)]="progPrice" class="eg-input" min="0"></div>
+          <div class="eg-form-group full"><label>Description</label><textarea [(ngModel)]="progDescription" class="eg-input" placeholder="Décrivez le programme..."></textarea></div>
+          <div class="eg-form-group full">
+            <label>Jours</label>
+            <div class="eg-days-group">
+              <button *ngFor="let d of weekDays" class="eg-day-btn" [class.active]="progDays.includes(d)" (click)="toggleDay(d)">{{ d.slice(0,3) }}</button>
+            </div>
+          </div>
+        </div>
+        <div class="eg-form-actions">
+          <button class="btn-eg-outline" (click)="showProgramForm = false">Annuler</button>
+          <button class="btn-eg-primary" (click)="saveProgram()">{{ editingProgram ? 'Mettre à jour' : 'Créer' }}</button>
+        </div>
+      </div>
+
+      <div class="eg-list" *ngIf="!showProgramForm && programs.length">
+        <div class="eg-list-item" *ngFor="let p of programs">
+          <div class="eg-list-left">
+            <div class="eg-list-icon">{{ getTypeIcon(p.type) }}</div>
+            <div class="eg-list-info">
+              <div class="eg-list-title">{{ p.title }}</div>
+              <div class="eg-list-meta">{{ p.type }}  {{ p.difficulty }}  Coach: {{ p.coachName || 'N/A' }}  {{ p.startTime }}-{{ p.endTime }}</div>
+            </div>
+          </div>
+          <div class="eg-list-right">
+            <span class="eg-badge info">{{ p.enrolledCount || 0 }}/{{ p.capacity }}</span>
+            <span class="eg-badge pending" *ngIf="p.price">{{ p.price }}</span>
+            <button class="btn-eg-ghost btn-sm" (click)="openProgramForm(p)"></button>
+            <button class="btn-eg-danger btn-sm" (click)="deleteProgram(p.id!)"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="eg-empty" *ngIf="!programs.length && !showProgramForm">
+        <span class="eg-empty-icon"></span>
+        <p>{{ gym ? "Aucun programme. Créez votre premier programme !" : "Créez d'abord votre salle, puis ajoutez des programmes." }}</p>
+      </div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div *ngIf="activeTab === 'bookings' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon"></div> Réservations</h1>
+          <p class="eg-subtitle">Gérez les réservations de vos membres</p>
+        </div>
+      </div>
+
+      <div class="eg-filters">
+        <button class="eg-filter-chip" [class.active]="bookingFilter === ''" (click)="bookingFilter = ''">Toutes</button>
+        <button class="eg-filter-chip" [class.active]="bookingFilter === 'PENDING'" (click)="bookingFilter = 'PENDING'"> En attente</button>
+        <button class="eg-filter-chip" [class.active]="bookingFilter === 'CONFIRMED'" (click)="bookingFilter = 'CONFIRMED'"> Confirmées</button>
+        <button class="eg-filter-chip" [class.active]="bookingFilter === 'CANCELLED'" (click)="bookingFilter = 'CANCELLED'"> Annulées</button>
+      </div>
+
+      <div class="eg-list">
+        <div class="eg-list-item" *ngFor="let b of filteredBookings">
+          <div class="eg-list-left">
+            <div class="eg-list-dot" [style.background]="getStatusColor(b.status)"></div>
+            <div class="eg-list-info">
+              <div class="eg-list-title">{{ b.memberName }}</div>
+              <div class="eg-list-meta">{{ b.programTitle }}  {{ b.date }}  {{ b.timeSlot }}</div>
+            </div>
+          </div>
+          <div class="eg-list-right">
+            <span class="eg-badge" [ngClass]="{'pending': b.status === 'PENDING', 'confirmed': b.status === 'CONFIRMED', 'cancelled': b.status === 'CANCELLED'}">{{ b.status }}</span>
+            <ng-container *ngIf="b.status === 'PENDING'">
+              <button class="btn-eg-success btn-sm" (click)="confirmBooking(b.id!)"> Approuver</button>
+              <button class="btn-eg-danger btn-sm" (click)="rejectBooking(b.id!)"> Rejeter</button>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <div class="eg-empty" *ngIf="!bookings.length">
+        <span class="eg-empty-icon"></span>
+        <p>Aucune réservation pour l'instant.</p>
+      </div>
+    </div>
+
+    <!-- COACHES -->
+    <div *ngIf="activeTab === 'coaches' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon"></div> Nos Coachs</h1>
+          <p class="eg-subtitle">Coachs assignés à votre salle</p>
+        </div>
+      </div>
+
+      <div class="eg-coach-grid" *ngIf="coaches.length">
+        <div class="eg-coach-card" *ngFor="let c of coaches">
+          <div class="eg-coach-avatar">{{ c.name.charAt(0) }}</div>
+          <div class="eg-coach-name">{{ c.name }}</div>
+          <div class="eg-coach-email">{{ c.email }}</div>
+          <div class="eg-specialty-chips" *ngIf="c.specialties?.length">
+            <span class="eg-specialty-chip" *ngFor="let s of c.specialties">{{ s }}</span>
+          </div>
+          <div class="eg-coach-stats">
+            <span class="eg-coach-stat" *ngIf="c.experienceYears">{{ c.experienceYears }} ans exp.</span>
+            <span class="eg-coach-stat" *ngIf="c.rating"> {{ c.rating }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="eg-empty" *ngIf="!coaches.length">
+        <span class="eg-empty-icon"></span>
+        <p>Aucun coach assigné à votre salle pour l'instant.</p>
+      </div>
+    </div>
+
+  </main>
+</div>

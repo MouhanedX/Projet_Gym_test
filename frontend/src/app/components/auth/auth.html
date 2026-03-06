@@ -1,0 +1,193 @@
+<!-- Background -->
+<div class="auth-bg">
+  <div class="gradient-orb orb-1"></div>
+  <div class="gradient-orb orb-2"></div>
+  <div class="grid-overlay"></div>
+</div>
+
+<div class="auth-container">
+  <!-- Back Button -->
+  <button class="back-btn" (click)="step === 2 ? prevStep() : goHome()">
+    <span>&#8592;</span> {{ step === 2 ? 'Back' : 'Home' }}
+  </button>
+
+  <div class="auth-card" [class.wide]="step === 2">
+    <!-- Logo -->
+    <div class="auth-logo">
+      <span class="logo-icon">&#9889;</span>
+      <span class="logo-text">GymPro</span>
+    </div>
+
+    <!-- Step indicator for owner registration -->
+    <div class="step-indicator" *ngIf="!isLogin && selectedRole === 'OWNER'">
+      <div class="step-dot" [class.active]="step === 1" [class.done]="step === 2">1</div>
+      <div class="step-line" [class.active]="step === 2"></div>
+      <div class="step-dot" [class.active]="step === 2">2</div>
+    </div>
+
+    <!-- Header -->
+    <h1 class="auth-title">
+      <ng-container *ngIf="isLogin">Welcome Back</ng-container>
+      <ng-container *ngIf="!isLogin && step === 1">Join GymPro</ng-container>
+      <ng-container *ngIf="!isLogin && step === 2">Set Up Your Gym</ng-container>
+    </h1>
+    <p class="auth-subtitle">
+      <ng-container *ngIf="isLogin">Sign in to continue your fitness journey</ng-container>
+      <ng-container *ngIf="!isLogin && step === 1">Create your account and start training</ng-container>
+      <ng-container *ngIf="!isLogin && step === 2">Pin your gym on the map so members can find you</ng-container>
+    </p>
+
+    <!-- Role Selector (Register step 1 only) -->
+    <div class="role-selector" *ngIf="!isLogin && step === 1">
+      <label class="role-label">I am a...</label>
+      <div class="role-options">
+        <div class="role-option"
+             *ngFor="let r of roles"
+             [class.active]="selectedRole === r.value"
+             (click)="selectRole(r.value)">
+          <span class="role-icon">{{ r.icon }}</span>
+          <span class="role-name">{{ r.label }}</span>
+          <span class="role-desc">{{ r.desc }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-message" *ngIf="error">
+      <span>&#9888;&#65039;</span> {{ error }}
+    </div>
+
+    <!-- STEP 1: Account Form -->
+    <form (ngSubmit)="onSubmit()" class="auth-form" *ngIf="step === 1">
+      <div class="form-group" *ngIf="!isLogin">
+        <label for="name">Full Name</label>
+        <div class="input-wrapper">
+          <span class="input-icon">&#128100;</span>
+          <input id="name" type="text" [(ngModel)]="name" name="name" placeholder="John Doe" autocomplete="name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <div class="input-wrapper">
+          <span class="input-icon">&#9993;&#65039;</span>
+          <input id="email" type="email" [(ngModel)]="email" name="email" placeholder="you&#64;example.com" autocomplete="email">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">&#128274;</span>
+          <input id="password" type="password" [(ngModel)]="password" name="password" placeholder="Min 6 characters" autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="!isLogin">
+        <label for="confirm">Confirm Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">&#128274;</span>
+          <input id="confirm" type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Repeat password" autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="!isLogin">
+        <label for="phone">Phone (optional)</label>
+        <div class="input-wrapper">
+          <span class="input-icon">&#128241;</span>
+          <input id="phone" type="tel" [(ngModel)]="phone" name="phone" placeholder="+216 XX XXX XXX" autocomplete="tel">
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" [disabled]="loading">
+        <span class="spinner" *ngIf="loading"></span>
+        <ng-container *ngIf="!loading">
+          <span *ngIf="isLogin">Sign In</span>
+          <span *ngIf="!isLogin && selectedRole !== 'OWNER'">Create Account</span>
+          <span *ngIf="!isLogin && selectedRole === 'OWNER'">Next: Gym Info</span>
+          <span class="btn-arrow">&#8594;</span>
+        </ng-container>
+      </button>
+    </form>
+
+    <!-- STEP 2: Gym Info (Owner only) -->
+    <form (ngSubmit)="onSubmit()" class="auth-form gym-form" *ngIf="step === 2">
+      <div class="gym-form-grid">
+        <div class="gym-form-left">
+          <div class="form-group">
+            <label for="gymName">Gym Name *</label>
+            <div class="input-wrapper">
+              <span class="input-icon">&#127947;&#65039;</span>
+              <input id="gymName" type="text" [(ngModel)]="gymName" name="gymName" placeholder="FitZone Pro">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="gymAddress">Address *</label>
+            <div class="input-wrapper input-with-btn">
+              <span class="input-icon">&#128205;</span>
+              <input id="gymAddress" type="text" [(ngModel)]="gymAddress" name="gymAddress" placeholder="123 Fitness Ave" (keydown.enter)="$event.preventDefault(); searchAddress()">
+              <button type="button" class="search-loc-btn" (click)="searchAddress()">&#128269;</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="gymCity">City</label>
+              <input id="gymCity" type="text" [(ngModel)]="gymCity" name="gymCity" class="form-input-simple" placeholder="Tunis">
+            </div>
+            <div class="form-group">
+              <label for="gymPhone">Gym Phone</label>
+              <input id="gymPhone" type="tel" [(ngModel)]="gymPhone" name="gymPhone" class="form-input-simple" placeholder="+216 XX XXX XXX">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="gymPrice">Monthly Price (DT)</label>
+              <input id="gymPrice" type="number" [(ngModel)]="gymPrice" name="gymPrice" class="form-input-simple" min="0">
+            </div>
+            <div class="form-group">
+              <label for="gymHours">Opening Hours</label>
+              <input id="gymHours" type="text" [(ngModel)]="gymOpeningHours" name="gymHours" class="form-input-simple" placeholder="06:00 - 22:00">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="gymAmenities">Amenities (comma-separated)</label>
+            <input id="gymAmenities" type="text" [(ngModel)]="gymAmenities" name="gymAmenities" class="form-input-simple" placeholder="Pool, Sauna, Parking, WiFi">
+          </div>
+
+          <div class="form-group">
+            <label for="gymDesc">Description</label>
+            <textarea id="gymDesc" [(ngModel)]="gymDescription" name="gymDescription" class="form-input-simple textarea" placeholder="Tell members about your gym..."></textarea>
+          </div>
+        </div>
+
+        <div class="gym-form-right">
+          <label class="map-label">&#128205; Pin Your Gym Location</label>
+          <p class="map-hint">Click the map or drag the pin. You can also type an address above and click &#128269;</p>
+          <div id="gym-map" class="map-container"></div>
+          <div class="coords-display">
+            <span>Lat: {{ gymLat }}</span>
+            <span>Lng: {{ gymLng }}</span>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" [disabled]="loading">
+        <span class="spinner" *ngIf="loading"></span>
+        <span *ngIf="!loading">Create Account & Gym</span>
+        <span class="btn-arrow" *ngIf="!loading">&#8594;</span>
+      </button>
+    </form>
+
+    <!-- Toggle -->
+    <p class="toggle-text">
+      {{ isLogin ? "Don't have an account?" : 'Already have an account?' }}
+      <button class="toggle-btn" type="button" (click)="toggleMode()">
+        {{ isLogin ? 'Sign Up' : 'Sign In' }}
+      </button>
+    </p>
+  </div>
+</div>

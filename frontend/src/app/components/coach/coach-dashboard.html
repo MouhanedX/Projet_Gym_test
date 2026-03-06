@@ -1,0 +1,312 @@
+﻿<div class="egym-layout" [attr.data-theme]="darkMode ? 'dark' : 'light'">
+
+  <!-- TOPBAR -->
+  <header class="egym-topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-icon"></div>
+      <span class="topbar-logo-text">E-Gym <span>Manager</span></span>
+    </div>
+    <nav class="topbar-nav">
+      <button *ngFor="let tab of tabs" class="topbar-nav-btn" [class.active]="activeTab === tab.key" (click)="setTab(tab.key)">
+        <span class="nav-icon">{{ tab.icon }}</span>{{ tab.label }}
+      </button>
+    </nav>
+    <div class="topbar-right">
+      <div class="topbar-actions">
+        <button class="icon-btn" (click)="toggleDark()">{{ darkMode ? '🌙' : '☀️' }}</button>
+      </div>
+      <div class="topbar-user">
+        <div class="topbar-avatar" style="background:linear-gradient(135deg,#10b981,#059669)">{{ user?.name?.charAt(0) || 'C' }}</div>
+        <div class="topbar-user-info">
+          <span class="topbar-user-name">{{ user?.name }}</span>
+          <span class="topbar-user-role" style="color:var(--accent-green)">Coach</span>
+        </div>
+      </div>
+      <a class="btn-exit" routerLink="/" title="Retour à l'accueil">
+        <span class="exit-icon">🏠</span>
+        Accueil
+      </a>
+      <button class="icon-btn" (click)="logout()" title="Déconnexion">🚪</button>
+    </div>
+  </header>
+
+  <main class="egym-main">
+    <div class="eg-spinner" *ngIf="loading"><div class="eg-spinner-ring"></div></div>
+
+    <!-- OVERVIEW -->
+    <div *ngIf="activeTab === 'overview' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Tableau de Bord</h1>
+          <p class="eg-subtitle">Bienvenue, {{ user?.name }}   Votre espace coach</p>
+        </div>
+      </div>
+
+      <div class="eg-stats-grid">
+        <div class="eg-stat-card">
+          <div class="eg-stat-left">
+            <div class="eg-stat-label">Programmes actifs</div>
+            <div class="eg-stat-value">{{ activePrograms.length }}</div>
+            <div class="eg-stat-change up">En cours</div>
+          </div>
+          <div class="eg-stat-icon green"></div>
+        </div>
+        <div class="eg-stat-card">
+          <div class="eg-stat-left">
+            <div class="eg-stat-label">Étudiants inscrits</div>
+            <div class="eg-stat-value">{{ totalClients }}</div>
+            <div class="eg-stat-change up">Total</div>
+          </div>
+          <div class="eg-stat-icon blue"></div>
+        </div>
+        <div class="eg-stat-card">
+          <div class="eg-stat-left">
+            <div class="eg-stat-label">Sessions à venir</div>
+            <div class="eg-stat-value">{{ upcomingBookings.length }}</div>
+            <div class="eg-stat-change up">Aujourd'hui</div>
+          </div>
+          <div class="eg-stat-icon orange"></div>
+        </div>
+        <div class="eg-stat-card">
+          <div class="eg-stat-left">
+            <div class="eg-stat-label">Ma Note</div>
+            <div class="eg-stat-value">{{ user?.rating || 'N/A' }}</div>
+            <div class="eg-stat-change up" *ngIf="user?.rating"> Excellent</div>
+          </div>
+          <div class="eg-stat-icon green"></div>
+        </div>
+      </div>
+
+      <div class="eg-two-col">
+        <div class="eg-section">
+          <div class="eg-section-header">
+            <span class="eg-section-title">Planning de la semaine</span>
+            <button class="btn-eg-ghost" (click)="setTab('schedule')">Voir tout </button>
+          </div>
+          <div *ngIf="scheduleByDay.length; else noSchedule">
+            <div class="eg-schedule-grid" style="grid-template-columns:1fr">
+              <div class="eg-schedule-day" *ngFor="let d of scheduleByDay.slice(0, 3)">
+                <div class="eg-schedule-day-header">{{ d.day }}</div>
+                <div class="eg-schedule-item" *ngFor="let p of d.programs">
+                  <div class="eg-schedule-time">{{ p.startTime }}  {{ p.endTime }}</div>
+                  <div class="eg-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
+                  <div class="eg-schedule-meta">{{ p.gymName }}  {{ p.enrolledCount || 0 }} étudiants</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noSchedule>
+            <div class="eg-empty" style="padding:24px"><span class="eg-empty-icon"></span><p>Aucun programme planifié.</p></div>
+          </ng-template>
+        </div>
+
+        <div class="eg-section">
+          <div class="eg-section-header">
+            <span class="eg-section-title">Sessions à venir</span>
+          </div>
+          <div *ngIf="upcomingBookings.length; else noSessions">
+            <div class="eg-list">
+              <div class="eg-list-item" *ngFor="let b of upcomingBookings.slice(0, 5)">
+                <div class="eg-list-left">
+                  <div class="eg-list-dot" [style.background]="getStatusColor(b.status)"></div>
+                  <div class="eg-list-info">
+                    <div class="eg-list-title">{{ b.memberName }}</div>
+                    <div class="eg-list-meta">{{ b.programTitle }}  {{ b.date }}  {{ b.timeSlot }}</div>
+                  </div>
+                </div>
+                <span class="eg-badge" [ngClass]="{'pending': b.status==='PENDING','confirmed': b.status==='CONFIRMED','cancelled': b.status==='CANCELLED'}">{{ b.status }}</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noSessions>
+            <div class="eg-empty" style="padding:24px"><span class="eg-empty-icon"></span><p>Aucune session à venir.</p></div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Quick Alerts -->
+      <div class="eg-card">
+        <div class="eg-card-header"><div class="eg-card-title"> Alertes</div></div>
+        <div class="eg-card-body">
+          <div class="eg-alert-list">
+            <div class="eg-alert success" *ngIf="totalClients > 0">
+              <div class="eg-alert-title"> {{ totalClients }} étudiants inscrits à vos programmes</div>
+              <div class="eg-alert-desc">Excellent engagement de vos élèves </div>
+            </div>
+            <div class="eg-alert warning" *ngIf="upcomingBookings.length">
+              <div class="eg-alert-title"> {{ upcomingBookings.length }} session(s) à venir</div>
+              <div class="eg-alert-desc">Préparez vos séances d'entraînement</div>
+              <button class="btn-eg-outline btn-sm" (click)="setTab('clients')">Voir les clients</button>
+            </div>
+            <div class="eg-alert warning" *ngIf="!programs.length">
+              <div class="eg-alert-title">ℹ Aucun programme assigné</div>
+              <div class="eg-alert-desc">Contactez le propriétaire de la salle pour être assigné à des programmes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRAMS -->
+    <div *ngIf="activeTab === 'programs' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Mes Programmes</h1>
+          <p class="eg-subtitle">Programmes qui vous sont assignés</p>
+        </div>
+      </div>
+
+      <div class="eg-program-grid" *ngIf="programs.length">
+        <div class="eg-program-card" *ngFor="let p of programs">
+          <div class="eg-program-card-top">
+            <div class="eg-program-type-icon">{{ getTypeIcon(p.type) }}</div>
+            <span class="eg-badge" [ngClass]="{'confirmed': p.difficulty === 'BEGINNER', 'pending': p.difficulty === 'INTERMEDIATE', 'cancelled': p.difficulty === 'ADVANCED'}">{{ p.difficulty }}</span>
+          </div>
+          <div class="eg-program-card-body">
+            <div class="eg-program-card-title">{{ p.title }}</div>
+            <div class="eg-program-card-desc">{{ p.description }}</div>
+            <div class="eg-program-card-meta">
+              <span> {{ p.gymName || 'Salle' }}</span>
+              <span> {{ p.startTime }} - {{ p.endTime }}</span>
+              <span *ngIf="p.daysOfWeek?.length"> {{ p.daysOfWeek?.join(', ') }}</span>
+            </div>
+          </div>
+          <div class="eg-program-card-footer">
+            <div class="eg-enroll-bar-wrap">
+              <div class="eg-enroll-bar"><div class="eg-enroll-fill" [style.width.%]="((p.enrolledCount||0)/(p.capacity||1))*100"></div></div>
+              <div class="eg-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity }} inscrits</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="eg-empty" *ngIf="!programs.length">
+        <span class="eg-empty-icon"></span>
+        <p>Aucun programme assigné. Contactez le propriétaire de la salle.</p>
+      </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div *ngIf="activeTab === 'schedule' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Planning Hebdo</h1>
+          <p class="eg-subtitle">Votre emploi du temps d'entraînement</p>
+        </div>
+      </div>
+
+      <div class="eg-schedule-grid" *ngIf="scheduleByDay.length">
+        <div class="eg-schedule-day" *ngFor="let d of scheduleByDay">
+          <div class="eg-schedule-day-header">{{ d.day }}</div>
+          <div class="eg-schedule-item" *ngFor="let p of d.programs">
+            <div class="eg-schedule-time">{{ p.startTime }}  {{ p.endTime }}</div>
+            <div class="eg-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
+            <div class="eg-schedule-meta">{{ p.gymName }}  {{ p.enrolledCount || 0 }} étudiants</div>
+          </div>
+        </div>
+      </div>
+      <div class="eg-empty" *ngIf="!scheduleByDay.length">
+        <span class="eg-empty-icon"></span>
+        <p>Aucun planning disponible.</p>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div *ngIf="activeTab === 'clients' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Mes Clients</h1>
+          <p class="eg-subtitle">Membres inscrits à vos programmes</p>
+        </div>
+      </div>
+
+      <div class="eg-two-col">
+        <div class="eg-section">
+          <div class="eg-section-header"><span class="eg-section-title">Liste des clients</span></div>
+          <div class="eg-coach-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+            <div class="eg-coach-card" *ngFor="let name of uniqueClients">
+              <div class="eg-coach-avatar" style="background:linear-gradient(135deg,#10b981,#059669);width:46px;height:46px;font-size:1.2rem">{{ name.charAt(0) }}</div>
+              <div class="eg-coach-name" style="font-size:0.85rem">{{ name }}</div>
+            </div>
+          </div>
+          <div class="eg-empty" style="padding:24px" *ngIf="!uniqueClients.length">
+            <span class="eg-empty-icon"></span><p>Aucun client pour l'instant.</p>
+          </div>
+        </div>
+
+        <div class="eg-section">
+          <div class="eg-section-header"><span class="eg-section-title">Toutes les réservations</span></div>
+          <div class="eg-list">
+            <div class="eg-list-item" *ngFor="let b of bookings">
+              <div class="eg-list-left">
+                <div class="eg-list-dot" [style.background]="getStatusColor(b.status)"></div>
+                <div class="eg-list-info">
+                  <div class="eg-list-title">{{ b.memberName }}</div>
+                  <div class="eg-list-meta">{{ b.programTitle }}  {{ b.date }}  {{ b.timeSlot }}</div>
+                </div>
+              </div>
+              <span class="eg-badge" [ngClass]="{'pending': b.status==='PENDING','confirmed': b.status==='CONFIRMED','cancelled': b.status==='CANCELLED'}">{{ b.status }}</span>
+            </div>
+          </div>
+          <div class="eg-empty" style="padding:16px" *ngIf="!bookings.length">
+            <p>Aucune réservation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div *ngIf="activeTab === 'profile' && !loading" class="tab-content">
+      <div class="eg-page-header">
+        <div>
+          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Mon Profil</h1>
+          <p class="eg-subtitle">Gérez votre profil de coach</p>
+        </div>
+        <button class="btn-eg-primary" style="background:linear-gradient(135deg,#10b981,#059669)" *ngIf="!editingProfile" (click)="startEditProfile()"> Modifier</button>
+      </div>
+
+      <div class="eg-profile-card" *ngIf="!editingProfile">
+        <div class="eg-profile-header">
+          <div class="eg-profile-avatar-big" style="background:linear-gradient(135deg,#10b981,#059669)">{{ user?.name?.charAt(0) || 'C' }}</div>
+          <div>
+            <h2 style="font-size:1.4rem;font-weight:800;color:var(--text)">{{ user?.name }}</h2>
+            <p style="color:var(--text-2);font-size:0.88rem">{{ user?.email }}</p>
+            <span class="eg-badge success" style="margin-top:6px">Coach Certifié </span>
+          </div>
+        </div>
+        <div class="eg-profile-grid">
+          <div class="eg-profile-item"><div class="eg-profile-label">Téléphone</div><div class="eg-profile-value">{{ user?.phone || 'N/A' }}</div></div>
+          <div class="eg-profile-item"><div class="eg-profile-label">Ville</div><div class="eg-profile-value">{{ user?.city || 'N/A' }}</div></div>
+          <div class="eg-profile-item"><div class="eg-profile-label">Expérience</div><div class="eg-profile-value">{{ user?.experienceYears || 0 }} ans</div></div>
+          <div class="eg-profile-item"><div class="eg-profile-label">Note</div><div class="eg-profile-value"> {{ user?.rating || 'N/A' }}</div></div>
+        </div>
+        <div *ngIf="user?.bio" style="margin-top:16px">
+          <div class="eg-profile-label" style="margin-bottom:6px">Bio</div>
+          <p style="font-size:0.9rem;color:var(--text);line-height:1.6">{{ user?.bio }}</p>
+        </div>
+        <div *ngIf="user?.specialties?.length" style="margin-top:16px">
+          <div class="eg-profile-label" style="margin-bottom:8px">Spécialités</div>
+          <div class="eg-specialty-chips">
+            <span class="eg-specialty-chip" *ngFor="let s of user?.specialties">{{ s }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="eg-form-card" *ngIf="editingProfile">
+        <h3>Modifier mon profil</h3>
+        <div class="eg-form-grid">
+          <div class="eg-form-group"><label>Nom *</label><input type="text" [(ngModel)]="profileName" class="eg-input"></div>
+          <div class="eg-form-group"><label>Téléphone</label><input type="tel" [(ngModel)]="profilePhone" class="eg-input"></div>
+          <div class="eg-form-group"><label>Ville</label><input type="text" [(ngModel)]="profileCity" class="eg-input"></div>
+          <div class="eg-form-group"><label>Années d'expérience</label><input type="number" [(ngModel)]="profileExperience" class="eg-input" min="0"></div>
+          <div class="eg-form-group full"><label>Bio</label><textarea [(ngModel)]="profileBio" class="eg-input" placeholder="Présentez-vous à vos clients..."></textarea></div>
+          <div class="eg-form-group full"><label>Spécialités (séparées par virgule)</label><input type="text" [(ngModel)]="profileSpecialties" class="eg-input" placeholder="HIIT, Force, Boxe"></div>
+        </div>
+        <div class="eg-form-actions">
+          <button class="btn-eg-outline" (click)="editingProfile = false">Annuler</button>
+          <button class="btn-eg-primary" style="background:linear-gradient(135deg,#10b981,#059669)" (click)="saveProfile()">Sauvegarder</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
