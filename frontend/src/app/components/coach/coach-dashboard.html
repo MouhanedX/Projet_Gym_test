@@ -1,146 +1,248 @@
-﻿<div class="egym-layout" [attr.data-theme]="darkMode ? 'dark' : 'light'">
+﻿<div class="coach-layout" [attr.data-theme]="darkMode ? 'dark' : 'light'">
 
   <!-- TOPBAR -->
-  <header class="egym-topbar">
-    <div class="topbar-logo">
-      <div class="topbar-logo-icon"></div>
-      <span class="topbar-logo-text">E-Gym <span>Manager</span></span>
+  <header class="coach-topbar">
+    <!-- Row 1: Brand + Right section -->
+    <div class="topbar-main-row">
+      <div class="topbar-brand">
+        <div class="brand-icon">
+          <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+            <rect width="38" height="38" rx="10" fill="url(#coachGrad)"/>
+            <path d="M10 24l5-7 4 5 4-8 5 10" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <defs>
+              <linearGradient id="coachGrad" x1="0" y1="0" x2="38" y2="38">
+                <stop stop-color="#10b981"/><stop offset="1" stop-color="#059669"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="brand-text">E-Gym <span>Coach</span></span>
+      </div>
+
+      <div class="topbar-right-section">
+        <!-- Sessions badge -->
+        <div class="sessions-badge">
+          <svg class="sessions-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <div class="sessions-info">
+            <span class="sessions-label">Sessions</span>
+            <span class="sessions-value">{{ upcomingBookings.length }}</span>
+          </div>
+        </div>
+
+        <!-- Dark mode toggle -->
+        <button class="icon-action-btn" (click)="toggleDark()" [title]="darkMode ? 'Mode clair' : 'Mode sombre'">
+          <svg *ngIf="!darkMode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg *ngIf="darkMode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
+          </svg>
+        </button>
+
+        <!-- User profile -->
+        <div class="user-profile-section">
+          <div class="user-avatar-circle">{{ user?.name?.charAt(0) || 'C' }}</div>
+          <div class="user-identity">
+            <span class="user-display-name">{{ user?.name }}</span>
+            <span class="user-role-badge">Coach</span>
+          </div>
+        </div>
+
+        <!-- Home -->
+        <button class="icon-action-btn" routerLink="/" title="Accueil">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+            <polyline points="9,21 9,12 15,12 15,21"/>
+          </svg>
+        </button>
+
+        <!-- Logout -->
+        <button class="icon-action-btn" (click)="logout()" title="Déconnexion">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
     </div>
-    <nav class="topbar-nav">
-      <button *ngFor="let tab of tabs" class="topbar-nav-btn" [class.active]="activeTab === tab.key" (click)="setTab(tab.key)">
-        <span class="nav-icon">{{ tab.icon }}</span>{{ tab.label }}
+
+    <!-- Row 2: Nav -->
+    <nav class="coach-nav">
+      <button class="coach-nav-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
+      </button>
+      <button class="coach-nav-btn" [class.active]="activeTab === 'programs'" (click)="setTab('programs')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/>
+        </svg>
+        Programmes
+      </button>
+      <button class="coach-nav-btn" [class.active]="activeTab === 'schedule'" (click)="setTab('schedule')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Planning
+      </button>
+      <button class="coach-nav-btn" [class.active]="activeTab === 'clients'" (click)="setTab('clients')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        Clients
+        <span class="coach-nav-badge" *ngIf="upcomingBookings.length > 0">{{ upcomingBookings.length }}</span>
+      </button>
+      <button class="coach-nav-btn" [class.active]="activeTab === 'profile'" (click)="setTab('profile')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        Profil
       </button>
     </nav>
-    <div class="topbar-right">
-      <div class="topbar-actions">
-        <button class="icon-btn" (click)="toggleDark()">{{ darkMode ? '🌙' : '☀️' }}</button>
-      </div>
-      <div class="topbar-user">
-        <div class="topbar-avatar" style="background:linear-gradient(135deg,#10b981,#059669)">{{ user?.name?.charAt(0) || 'C' }}</div>
-        <div class="topbar-user-info">
-          <span class="topbar-user-name">{{ user?.name }}</span>
-          <span class="topbar-user-role" style="color:var(--accent-green)">Coach</span>
-        </div>
-      </div>
-      <a class="btn-exit" routerLink="/" title="Retour à l'accueil">
-        <span class="exit-icon">🏠</span>
-        Accueil
-      </a>
-      <button class="icon-btn" (click)="logout()" title="Déconnexion">🚪</button>
-    </div>
   </header>
 
-  <main class="egym-main">
-    <div class="eg-spinner" *ngIf="loading"><div class="eg-spinner-ring"></div></div>
+  <main class="coach-main">
+    <div class="coach-spinner" *ngIf="loading"><div class="coach-spinner-ring"></div></div>
 
     <!-- OVERVIEW -->
-    <div *ngIf="activeTab === 'overview' && !loading" class="tab-content">
-      <div class="eg-page-header">
+    <div *ngIf="activeTab === 'overview' && !loading">
+      <div class="coach-page-header">
         <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Tableau de Bord</h1>
-          <p class="eg-subtitle">Bienvenue, {{ user?.name }}   Votre espace coach</p>
+          <h1 class="coach-page-title">Tableau de Bord</h1>
+          <p class="coach-subtitle">Bienvenue, {{ user?.name }} — Votre espace coach</p>
         </div>
       </div>
 
-      <div class="eg-stats-grid">
-        <div class="eg-stat-card">
-          <div class="eg-stat-left">
-            <div class="eg-stat-label">Programmes actifs</div>
-            <div class="eg-stat-value">{{ activePrograms.length }}</div>
-            <div class="eg-stat-change up">En cours</div>
+      <div class="coach-stats-grid">
+        <div class="coach-stat-card">
+          <div>
+            <div class="coach-stat-label">Programmes actifs</div>
+            <div class="coach-stat-value">{{ activePrograms.length }}</div>
+            <div class="coach-stat-sub">En cours</div>
           </div>
-          <div class="eg-stat-icon green"></div>
+          <div class="coach-stat-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/>
+            </svg>
+          </div>
         </div>
-        <div class="eg-stat-card">
-          <div class="eg-stat-left">
-            <div class="eg-stat-label">Étudiants inscrits</div>
-            <div class="eg-stat-value">{{ totalClients }}</div>
-            <div class="eg-stat-change up">Total</div>
+        <div class="coach-stat-card">
+          <div>
+            <div class="coach-stat-label">Étudiants inscrits</div>
+            <div class="coach-stat-value">{{ totalClients }}</div>
+            <div class="coach-stat-sub">Total</div>
           </div>
-          <div class="eg-stat-icon blue"></div>
+          <div class="coach-stat-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            </svg>
+          </div>
         </div>
-        <div class="eg-stat-card">
-          <div class="eg-stat-left">
-            <div class="eg-stat-label">Sessions à venir</div>
-            <div class="eg-stat-value">{{ upcomingBookings.length }}</div>
-            <div class="eg-stat-change up">Aujourd'hui</div>
+        <div class="coach-stat-card">
+          <div>
+            <div class="coach-stat-label">Sessions à venir</div>
+            <div class="coach-stat-value">{{ upcomingBookings.length }}</div>
+            <div class="coach-stat-sub">Aujourd'hui</div>
           </div>
-          <div class="eg-stat-icon orange"></div>
+          <div class="coach-stat-icon orange">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
         </div>
-        <div class="eg-stat-card">
-          <div class="eg-stat-left">
-            <div class="eg-stat-label">Ma Note</div>
-            <div class="eg-stat-value">{{ user?.rating || 'N/A' }}</div>
-            <div class="eg-stat-change up" *ngIf="user?.rating"> Excellent</div>
+        <div class="coach-stat-card">
+          <div>
+            <div class="coach-stat-label">Ma Note</div>
+            <div class="coach-stat-value">{{ user?.rating || 'N/A' }}</div>
+            <div class="coach-stat-sub" *ngIf="user?.rating">Excellent</div>
           </div>
-          <div class="eg-stat-icon green"></div>
+          <div class="coach-stat-icon purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
         </div>
       </div>
 
-      <div class="eg-two-col">
-        <div class="eg-section">
-          <div class="eg-section-header">
-            <span class="eg-section-title">Planning de la semaine</span>
-            <button class="btn-eg-ghost" (click)="setTab('schedule')">Voir tout </button>
+      <div class="coach-two-col">
+        <div class="coach-section">
+          <div class="coach-section-header">
+            <span class="coach-section-title">Planning de la semaine</span>
+            <button class="btn-coach-ghost" (click)="setTab('schedule')">Voir tout</button>
           </div>
-          <div *ngIf="scheduleByDay.length; else noSchedule">
-            <div class="eg-schedule-grid" style="grid-template-columns:1fr">
-              <div class="eg-schedule-day" *ngFor="let d of scheduleByDay.slice(0, 3)">
-                <div class="eg-schedule-day-header">{{ d.day }}</div>
-                <div class="eg-schedule-item" *ngFor="let p of d.programs">
-                  <div class="eg-schedule-time">{{ p.startTime }}  {{ p.endTime }}</div>
-                  <div class="eg-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
-                  <div class="eg-schedule-meta">{{ p.gymName }}  {{ p.enrolledCount || 0 }} étudiants</div>
+          <div class="coach-section-body" *ngIf="scheduleByDay.length; else noSchedule">
+            <div class="coach-schedule-grid" style="grid-template-columns:1fr">
+              <div class="coach-schedule-day" *ngFor="let d of scheduleByDay.slice(0, 3)">
+                <div class="coach-schedule-day-header">{{ d.day }}</div>
+                <div class="coach-schedule-item" *ngFor="let p of d.programs">
+                  <div class="coach-schedule-time">{{ p.startTime }} — {{ p.endTime }}</div>
+                  <div class="coach-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
+                  <div class="coach-schedule-meta">{{ p.gymName }} · {{ p.enrolledCount || 0 }} étudiants</div>
                 </div>
               </div>
             </div>
           </div>
           <ng-template #noSchedule>
-            <div class="eg-empty" style="padding:24px"><span class="eg-empty-icon"></span><p>Aucun programme planifié.</p></div>
+            <div class="coach-empty" style="padding:24px">
+              <span class="coach-empty-icon">📅</span>
+              <p>Aucun programme planifié.</p>
+            </div>
           </ng-template>
         </div>
 
-        <div class="eg-section">
-          <div class="eg-section-header">
-            <span class="eg-section-title">Sessions à venir</span>
+        <div class="coach-section">
+          <div class="coach-section-header">
+            <span class="coach-section-title">Sessions à venir</span>
           </div>
           <div *ngIf="upcomingBookings.length; else noSessions">
-            <div class="eg-list">
-              <div class="eg-list-item" *ngFor="let b of upcomingBookings.slice(0, 5)">
-                <div class="eg-list-left">
-                  <div class="eg-list-dot" [style.background]="getStatusColor(b.status)"></div>
-                  <div class="eg-list-info">
-                    <div class="eg-list-title">{{ b.memberName }}</div>
-                    <div class="eg-list-meta">{{ b.programTitle }}  {{ b.date }}  {{ b.timeSlot }}</div>
+            <div class="coach-list">
+              <div class="coach-list-item" *ngFor="let b of upcomingBookings.slice(0, 5)">
+                <div class="coach-list-left">
+                  <div class="coach-list-dot" [style.background]="getStatusColor(b.status)"></div>
+                  <div class="coach-list-info">
+                    <div class="coach-list-title">{{ b.memberName }}</div>
+                    <div class="coach-list-meta">{{ b.programTitle }} · {{ b.date }} · {{ b.timeSlot }}</div>
                   </div>
                 </div>
-                <span class="eg-badge" [ngClass]="{'pending': b.status==='PENDING','confirmed': b.status==='CONFIRMED','cancelled': b.status==='CANCELLED'}">{{ b.status }}</span>
+                <span class="coach-badge" [ngClass]="{'pending': b.status==='PENDING','confirmed': b.status==='CONFIRMED','cancelled': b.status==='CANCELLED'}">{{ b.status }}</span>
               </div>
             </div>
           </div>
           <ng-template #noSessions>
-            <div class="eg-empty" style="padding:24px"><span class="eg-empty-icon"></span><p>Aucune session à venir.</p></div>
+            <div class="coach-empty" style="padding:24px">
+              <span class="coach-empty-icon">🗓️</span>
+              <p>Aucune session à venir.</p>
+            </div>
           </ng-template>
         </div>
       </div>
 
-      <!-- Quick Alerts -->
-      <div class="eg-card">
-        <div class="eg-card-header"><div class="eg-card-title"> Alertes</div></div>
-        <div class="eg-card-body">
-          <div class="eg-alert-list">
-            <div class="eg-alert success" *ngIf="totalClients > 0">
-              <div class="eg-alert-title"> {{ totalClients }} étudiants inscrits à vos programmes</div>
-              <div class="eg-alert-desc">Excellent engagement de vos élèves </div>
+      <!-- Alertes -->
+      <div class="coach-card">
+        <div class="coach-card-header"><span class="coach-card-title">Alertes</span></div>
+        <div class="coach-card-body">
+          <div class="coach-alert-list">
+            <div class="coach-alert success" *ngIf="totalClients > 0">
+              <div class="coach-alert-title">{{ totalClients }} étudiants inscrits à vos programmes</div>
+              <div class="coach-alert-desc">Excellent engagement de vos élèves</div>
             </div>
-            <div class="eg-alert warning" *ngIf="upcomingBookings.length">
-              <div class="eg-alert-title"> {{ upcomingBookings.length }} session(s) à venir</div>
-              <div class="eg-alert-desc">Préparez vos séances d'entraînement</div>
-              <button class="btn-eg-outline btn-sm" (click)="setTab('clients')">Voir les clients</button>
+            <div class="coach-alert warning" *ngIf="upcomingBookings.length">
+              <div class="coach-alert-title">{{ upcomingBookings.length }} session(s) à venir</div>
+              <div class="coach-alert-desc">Préparez vos séances d'entraînement</div>
+              <button class="btn-coach-outline btn-sm" style="margin-top:8px" (click)="setTab('clients')">Voir les clients</button>
             </div>
-            <div class="eg-alert warning" *ngIf="!programs.length">
-              <div class="eg-alert-title">ℹ Aucun programme assigné</div>
-              <div class="eg-alert-desc">Contactez le propriétaire de la salle pour être assigné à des programmes</div>
+            <div class="coach-alert info" *ngIf="!programs.length">
+              <div class="coach-alert-title">Aucun programme assigné</div>
+              <div class="coach-alert-desc">Contactez le propriétaire de la salle pour être assigné à des programmes</div>
             </div>
           </div>
         </div>
@@ -148,162 +250,278 @@
     </div>
 
     <!-- PROGRAMS -->
-    <div *ngIf="activeTab === 'programs' && !loading" class="tab-content">
-      <div class="eg-page-header">
+    <div *ngIf="activeTab === 'programs' && !loading">
+      <div class="coach-page-header">
         <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Mes Programmes</h1>
-          <p class="eg-subtitle">Programmes qui vous sont assignés</p>
+          <h1 class="coach-page-title">Mes Programmes</h1>
+          <p class="coach-subtitle">Programmes qui vous sont assignés</p>
         </div>
       </div>
 
-      <div class="eg-program-grid" *ngIf="programs.length">
-        <div class="eg-program-card" *ngFor="let p of programs">
-          <div class="eg-program-card-top">
-            <div class="eg-program-type-icon">{{ getTypeIcon(p.type) }}</div>
-            <span class="eg-badge" [ngClass]="{'confirmed': p.difficulty === 'BEGINNER', 'pending': p.difficulty === 'INTERMEDIATE', 'cancelled': p.difficulty === 'ADVANCED'}">{{ p.difficulty }}</span>
+      <div class="coach-program-grid" *ngIf="programs.length">
+        <div class="coach-program-card" *ngFor="let p of programs">
+          <div class="coach-program-card-top">
+            <div class="coach-program-type-icon">{{ getTypeIcon(p.type) }}</div>
+            <span class="coach-badge" [ngClass]="{'beginner': p.difficulty==='BEGINNER','intermediate': p.difficulty==='INTERMEDIATE','advanced': p.difficulty==='ADVANCED'}">{{ p.difficulty }}</span>
           </div>
-          <div class="eg-program-card-body">
-            <div class="eg-program-card-title">{{ p.title }}</div>
-            <div class="eg-program-card-desc">{{ p.description }}</div>
-            <div class="eg-program-card-meta">
-              <span> {{ p.gymName || 'Salle' }}</span>
-              <span> {{ p.startTime }} - {{ p.endTime }}</span>
-              <span *ngIf="p.daysOfWeek?.length"> {{ p.daysOfWeek?.join(', ') }}</span>
+          <div class="coach-program-card-body">
+            <div class="coach-program-card-title">{{ p.title }}</div>
+            <div class="coach-program-card-desc">{{ p.description }}</div>
+            <div class="coach-program-card-meta">
+              <span>📍 {{ p.gymName || 'Salle' }}</span>
+              <span>⏰ {{ p.startTime }} - {{ p.endTime }}</span>
+              <span *ngIf="p.daysOfWeek?.length">📆 {{ p.daysOfWeek?.join(', ') }}</span>
             </div>
           </div>
-          <div class="eg-program-card-footer">
-            <div class="eg-enroll-bar-wrap">
-              <div class="eg-enroll-bar"><div class="eg-enroll-fill" [style.width.%]="((p.enrolledCount||0)/(p.capacity||1))*100"></div></div>
-              <div class="eg-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity }} inscrits</div>
+          <div class="coach-program-card-footer">
+            <div class="coach-enroll-bar-wrap">
+              <div class="coach-enroll-bar">
+                <div class="coach-enroll-fill" [style.width.%]="((p.enrolledCount||0)/(p.capacity||1))*100"></div>
+              </div>
+              <div class="coach-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity }} inscrits</div>
             </div>
           </div>
         </div>
       </div>
-      <div class="eg-empty" *ngIf="!programs.length">
-        <span class="eg-empty-icon"></span>
+      <div class="coach-empty" *ngIf="!programs.length">
+        <span class="coach-empty-icon">🎯</span>
         <p>Aucun programme assigné. Contactez le propriétaire de la salle.</p>
       </div>
     </div>
 
     <!-- SCHEDULE -->
-    <div *ngIf="activeTab === 'schedule' && !loading" class="tab-content">
-      <div class="eg-page-header">
+    <div *ngIf="activeTab === 'schedule' && !loading">
+      <div class="coach-page-header">
         <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Planning Hebdo</h1>
-          <p class="eg-subtitle">Votre emploi du temps d'entraînement</p>
+          <h1 class="coach-page-title">Planning Hebdomadaire</h1>
+          <p class="coach-subtitle">Votre emploi du temps d'entraînement</p>
         </div>
       </div>
 
-      <div class="eg-schedule-grid" *ngIf="scheduleByDay.length">
-        <div class="eg-schedule-day" *ngFor="let d of scheduleByDay">
-          <div class="eg-schedule-day-header">{{ d.day }}</div>
-          <div class="eg-schedule-item" *ngFor="let p of d.programs">
-            <div class="eg-schedule-time">{{ p.startTime }}  {{ p.endTime }}</div>
-            <div class="eg-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
-            <div class="eg-schedule-meta">{{ p.gymName }}  {{ p.enrolledCount || 0 }} étudiants</div>
+      <div class="coach-schedule-grid" *ngIf="scheduleByDay.length">
+        <div class="coach-schedule-day" *ngFor="let d of scheduleByDay">
+          <div class="coach-schedule-day-header">{{ d.day }}</div>
+          <div class="coach-schedule-item" *ngFor="let p of d.programs">
+            <div class="coach-schedule-time">{{ p.startTime }} — {{ p.endTime }}</div>
+            <div class="coach-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
+            <div class="coach-schedule-meta">{{ p.gymName }} · {{ p.enrolledCount || 0 }} étudiants</div>
           </div>
         </div>
       </div>
-      <div class="eg-empty" *ngIf="!scheduleByDay.length">
-        <span class="eg-empty-icon"></span>
+      <div class="coach-empty" *ngIf="!scheduleByDay.length">
+        <span class="coach-empty-icon">📅</span>
         <p>Aucun planning disponible.</p>
       </div>
     </div>
 
     <!-- CLIENTS -->
-    <div *ngIf="activeTab === 'clients' && !loading" class="tab-content">
-      <div class="eg-page-header">
+    <div *ngIf="activeTab === 'clients' && !loading">
+      <div class="coach-page-header">
         <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Mes Clients</h1>
-          <p class="eg-subtitle">Membres inscrits à vos programmes</p>
+          <h1 class="coach-page-title">Mes Clients</h1>
+          <p class="coach-subtitle">Membres inscrits à vos programmes</p>
         </div>
       </div>
 
-      <div class="eg-two-col">
-        <div class="eg-section">
-          <div class="eg-section-header"><span class="eg-section-title">Liste des clients</span></div>
-          <div class="eg-coach-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
-            <div class="eg-coach-card" *ngFor="let name of uniqueClients">
-              <div class="eg-coach-avatar" style="background:linear-gradient(135deg,#10b981,#059669);width:46px;height:46px;font-size:1.2rem">{{ name.charAt(0) }}</div>
-              <div class="eg-coach-name" style="font-size:0.85rem">{{ name }}</div>
-            </div>
+      <div class="coach-two-col">
+        <div class="coach-section">
+          <div class="coach-section-header">
+            <span class="coach-section-title">Liste des clients</span>
+            <span style="font-size:0.8rem;color:var(--text-2)">{{ uniqueClients.length }} client(s)</span>
           </div>
-          <div class="eg-empty" style="padding:24px" *ngIf="!uniqueClients.length">
-            <span class="eg-empty-icon"></span><p>Aucun client pour l'instant.</p>
+          <div class="coach-section-body">
+            <div class="coach-client-grid" *ngIf="uniqueClients.length">
+              <div class="coach-client-card" *ngFor="let name of uniqueClients">
+                <div class="coach-client-avatar">{{ name.charAt(0) }}</div>
+                <div class="coach-client-name">{{ name }}</div>
+                <div class="coach-client-msg-dot"
+                     *ngIf="hasConversation(name)"
+                     title="Ce client a envoyé un message">💬</div>
+              </div>
+            </div>
+            <div class="coach-empty" style="padding:24px" *ngIf="!uniqueClients.length">
+              <span class="coach-empty-icon">👥</span>
+              <p>Aucun client pour l'instant.</p>
+            </div>
           </div>
         </div>
 
-        <div class="eg-section">
-          <div class="eg-section-header"><span class="eg-section-title">Toutes les réservations</span></div>
-          <div class="eg-list">
-            <div class="eg-list-item" *ngFor="let b of bookings">
-              <div class="eg-list-left">
-                <div class="eg-list-dot" [style.background]="getStatusColor(b.status)"></div>
-                <div class="eg-list-info">
-                  <div class="eg-list-title">{{ b.memberName }}</div>
-                  <div class="eg-list-meta">{{ b.programTitle }}  {{ b.date }}  {{ b.timeSlot }}</div>
-                </div>
+        <div class="coach-section">
+          <div class="coach-section-header">
+            <span class="coach-section-title">Messages reçus</span>
+            <span class="coach-msg-count-badge" *ngIf="coachConversations.length">{{ coachConversations.length }}</span>
+          </div>
+
+          <!-- Loading state -->
+          <div class="coach-spinner" style="padding:24px" *ngIf="loadingConversations">
+            <div class="coach-spinner-ring"></div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="coach-empty" style="padding:24px" *ngIf="!loadingConversations && !coachConversations.length">
+            <span class="coach-empty-icon">💬</span>
+            <p>Aucun message pour l'instant.</p>
+          </div>
+
+          <!-- Conversation list -->
+          <div class="coach-conv-list" *ngIf="!loadingConversations && coachConversations.length">
+            <div class="coach-conv-item"
+                 *ngFor="let conv of coachConversations"
+                 [class.coach-conv-active]="activeConv?.id === conv.id"
+                 (click)="openConv(conv)">
+              <div class="coach-conv-avatar">{{ getMemberOfConv(conv).charAt(0) }}</div>
+              <div class="coach-conv-info">
+                <div class="coach-conv-name">{{ getMemberOfConv(conv) }}</div>
+                <div class="coach-conv-preview">Message reçu · cliquer pour répondre</div>
               </div>
-              <span class="eg-badge" [ngClass]="{'pending': b.status==='PENDING','confirmed': b.status==='CONFIRMED','cancelled': b.status==='CANCELLED'}">{{ b.status }}</span>
+              <div class="coach-conv-actions">
+                <span class="coach-msg-indicator">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                  </svg>
+                </span>
+              </div>
             </div>
           </div>
-          <div class="eg-empty" style="padding:16px" *ngIf="!bookings.length">
-            <p>Aucune réservation.</p>
+
+          <!-- Inline chat panel -->
+          <div class="coach-inline-chat" *ngIf="activeConv">
+            <div class="coach-inline-chat-header">
+              <div class="coach-inline-chat-title">
+                <div class="coach-conv-avatar" style="width:32px;height:32px;font-size:0.85rem">{{ getMemberOfConv(activeConv).charAt(0) }}</div>
+                <span>{{ getMemberOfConv(activeConv) }}</span>
+              </div>
+              <button class="icon-action-btn" (click)="closeConv()" title="Fermer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="coach-inline-chat-messages" #chatContainer>
+              <div class="coach-spinner" style="padding:16px" *ngIf="loadingMessages">
+                <div class="coach-spinner-ring"></div>
+              </div>
+              <div *ngIf="!loadingMessages && !convMessages.length" class="coach-empty" style="padding:16px">
+                <p>Aucun message encore.</p>
+              </div>
+              <div *ngFor="let msg of convMessages"
+                   class="coach-chat-bubble-wrap"
+                   [class.coach-bubble-right]="isCoachMsg(msg)">
+                <div class="coach-chat-bubble" [class.coach-bubble-mine]="isCoachMsg(msg)">
+                  <span class="coach-bubble-text">{{ msg.contenu }}</span>
+                  <span class="coach-bubble-time">{{ formatTime(msg.dateEnvoi) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="coach-inline-chat-input">
+              <input type="text"
+                     [(ngModel)]="replyText"
+                     class="coach-input"
+                     placeholder="Votre réponse..."
+                     (keyup.enter)="sendReply()">
+              <button class="btn-coach-primary btn-sm"
+                      (click)="sendReply()"
+                      [disabled]="sendingReply || !replyText.trim()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- PROFILE -->
-    <div *ngIf="activeTab === 'profile' && !loading" class="tab-content">
-      <div class="eg-page-header">
+    <div *ngIf="activeTab === 'profile' && !loading">
+      <div class="coach-page-header">
         <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Mon Profil</h1>
-          <p class="eg-subtitle">Gérez votre profil de coach</p>
+          <h1 class="coach-page-title">Mon Profil</h1>
+          <p class="coach-subtitle">Gérez votre profil de coach</p>
         </div>
-        <button class="btn-eg-primary" style="background:linear-gradient(135deg,#10b981,#059669)" *ngIf="!editingProfile" (click)="startEditProfile()"> Modifier</button>
+        <button class="btn-coach-primary" *ngIf="!editingProfile" (click)="startEditProfile()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Modifier
+        </button>
       </div>
 
-      <div class="eg-profile-card" *ngIf="!editingProfile">
-        <div class="eg-profile-header">
-          <div class="eg-profile-avatar-big" style="background:linear-gradient(135deg,#10b981,#059669)">{{ user?.name?.charAt(0) || 'C' }}</div>
+      <!-- View mode -->
+      <div class="coach-profile-card" *ngIf="!editingProfile">
+        <div class="coach-profile-header">
+          <div class="coach-profile-avatar-big">{{ user?.name?.charAt(0) || 'C' }}</div>
           <div>
-            <h2 style="font-size:1.4rem;font-weight:800;color:var(--text)">{{ user?.name }}</h2>
-            <p style="color:var(--text-2);font-size:0.88rem">{{ user?.email }}</p>
-            <span class="eg-badge success" style="margin-top:6px">Coach Certifié </span>
+            <h2 style="font-size:1.4rem;font-weight:800;color:var(--text);margin:0 0 4px">{{ user?.name }}</h2>
+            <p style="color:var(--text-2);font-size:0.88rem;margin:0 0 8px">{{ user?.email }}</p>
+            <span class="coach-badge confirmed">Coach Certifié ✓</span>
           </div>
         </div>
-        <div class="eg-profile-grid">
-          <div class="eg-profile-item"><div class="eg-profile-label">Téléphone</div><div class="eg-profile-value">{{ user?.phone || 'N/A' }}</div></div>
-          <div class="eg-profile-item"><div class="eg-profile-label">Ville</div><div class="eg-profile-value">{{ user?.city || 'N/A' }}</div></div>
-          <div class="eg-profile-item"><div class="eg-profile-label">Expérience</div><div class="eg-profile-value">{{ user?.experienceYears || 0 }} ans</div></div>
-          <div class="eg-profile-item"><div class="eg-profile-label">Note</div><div class="eg-profile-value"> {{ user?.rating || 'N/A' }}</div></div>
+        <div class="coach-profile-grid" style="margin-bottom:16px">
+          <div class="coach-profile-item">
+            <div class="coach-profile-label">Téléphone</div>
+            <div class="coach-profile-value">{{ user?.phone || 'N/A' }}</div>
+          </div>
+          <div class="coach-profile-item">
+            <div class="coach-profile-label">Ville</div>
+            <div class="coach-profile-value">{{ user?.city || 'N/A' }}</div>
+          </div>
+          <div class="coach-profile-item">
+            <div class="coach-profile-label">Expérience</div>
+            <div class="coach-profile-value">{{ user?.experienceYears || 0 }} ans</div>
+          </div>
+          <div class="coach-profile-item">
+            <div class="coach-profile-label">Note</div>
+            <div class="coach-profile-value">⭐ {{ user?.rating || 'N/A' }}</div>
+          </div>
         </div>
-        <div *ngIf="user?.bio" style="margin-top:16px">
-          <div class="eg-profile-label" style="margin-bottom:6px">Bio</div>
-          <p style="font-size:0.9rem;color:var(--text);line-height:1.6">{{ user?.bio }}</p>
+        <div *ngIf="user?.bio" style="margin-bottom:16px">
+          <div class="coach-profile-label" style="margin-bottom:6px">Bio</div>
+          <p style="font-size:0.9rem;color:var(--text);line-height:1.6;margin:0">{{ user?.bio }}</p>
         </div>
-        <div *ngIf="user?.specialties?.length" style="margin-top:16px">
-          <div class="eg-profile-label" style="margin-bottom:8px">Spécialités</div>
-          <div class="eg-specialty-chips">
-            <span class="eg-specialty-chip" *ngFor="let s of user?.specialties">{{ s }}</span>
+        <div *ngIf="user?.specialties?.length">
+          <div class="coach-profile-label" style="margin-bottom:8px">Spécialités</div>
+          <div class="coach-specialty-chips">
+            <span class="coach-specialty-chip" *ngFor="let s of user?.specialties">{{ s }}</span>
           </div>
         </div>
       </div>
 
-      <div class="eg-form-card" *ngIf="editingProfile">
+      <!-- Edit mode -->
+      <div class="coach-form-card" *ngIf="editingProfile">
         <h3>Modifier mon profil</h3>
-        <div class="eg-form-grid">
-          <div class="eg-form-group"><label>Nom *</label><input type="text" [(ngModel)]="profileName" class="eg-input"></div>
-          <div class="eg-form-group"><label>Téléphone</label><input type="tel" [(ngModel)]="profilePhone" class="eg-input"></div>
-          <div class="eg-form-group"><label>Ville</label><input type="text" [(ngModel)]="profileCity" class="eg-input"></div>
-          <div class="eg-form-group"><label>Années d'expérience</label><input type="number" [(ngModel)]="profileExperience" class="eg-input" min="0"></div>
-          <div class="eg-form-group full"><label>Bio</label><textarea [(ngModel)]="profileBio" class="eg-input" placeholder="Présentez-vous à vos clients..."></textarea></div>
-          <div class="eg-form-group full"><label>Spécialités (séparées par virgule)</label><input type="text" [(ngModel)]="profileSpecialties" class="eg-input" placeholder="HIIT, Force, Boxe"></div>
+        <div class="coach-form-grid">
+          <div class="coach-form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="profileName" class="coach-input">
+          </div>
+          <div class="coach-form-group">
+            <label>Téléphone</label>
+            <input type="tel" [(ngModel)]="profilePhone" class="coach-input">
+          </div>
+          <div class="coach-form-group">
+            <label>Ville</label>
+            <input type="text" [(ngModel)]="profileCity" class="coach-input">
+          </div>
+          <div class="coach-form-group">
+            <label>Années d'expérience</label>
+            <input type="number" [(ngModel)]="profileExperience" class="coach-input" min="0">
+          </div>
+          <div class="coach-form-group full">
+            <label>Bio</label>
+            <textarea [(ngModel)]="profileBio" class="coach-input" placeholder="Présentez-vous à vos clients..."></textarea>
+          </div>
+          <div class="coach-form-group full">
+            <label>Spécialités (séparées par virgule)</label>
+            <input type="text" [(ngModel)]="profileSpecialties" class="coach-input" placeholder="HIIT, Force, Boxe">
+          </div>
         </div>
-        <div class="eg-form-actions">
-          <button class="btn-eg-outline" (click)="editingProfile = false">Annuler</button>
-          <button class="btn-eg-primary" style="background:linear-gradient(135deg,#10b981,#059669)" (click)="saveProfile()">Sauvegarder</button>
+        <div class="coach-form-actions">
+          <button class="btn-coach-outline" (click)="editingProfile = false">Annuler</button>
+          <button class="btn-coach-primary" (click)="saveProfile()">Sauvegarder</button>
         </div>
       </div>
     </div>

@@ -1,10 +1,13 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Booking;
+import com.example.demo.model.Program;
 import com.example.demo.repository.BookingRepository;
+import com.example.demo.repository.ProgramRepository;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/bookings")
 public class BookingController {
     private final BookingRepository bookingRepository;
+    private final ProgramRepository programRepository;
 
-    public BookingController(BookingRepository bookingRepository) {
+    public BookingController(BookingRepository bookingRepository, ProgramRepository programRepository) {
         this.bookingRepository = bookingRepository;
+        this.programRepository = programRepository;
     }
 
     @GetMapping
@@ -49,6 +54,31 @@ public class BookingController {
     public ResponseEntity<Booking> create(@Valid @RequestBody Booking booking) {
         booking.setCreatedAt(Instant.now());
         if (booking.getStatus() == null) booking.setStatus("PENDING");
+
+        // Prevent duplicate: same member + same program + same date (excluding cancelled)
+        if (booking.getMemberId() != null && booking.getProgramId() != null && booking.getDate() != null) {
+            boolean duplicate = bookingRepository.existsByMemberIdAndProgramIdAndDateAndStatusNot(
+                    booking.getMemberId(), booking.getProgramId(), booking.getDate(), "CANCELLED");
+            if (duplicate) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+        }
+
+        // Ensure gymId is populated from the program if missing
+        if ((booking.getGymId() == null || booking.getGymId().isEmpty()) && booking.getProgramId() != null) {
+            Optional<Program> program = programRepository.findById(booking.getProgramId());
+            if (program.isPresent()) {
+                Program p = program.get();
+                booking.setGymId(p.getGymId());
+                if (booking.getGymName() == null || booking.getGymName().isEmpty()) {
+                    booking.setGymName(p.getGymName());
+                }
+                if (booking.getProgramTitle() == null || booking.getProgramTitle().isEmpty()) {
+                    booking.setProgramTitle(p.getTitle());
+                }
+            }
+        }
+        
         Booking saved = bookingRepository.save(booking);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }

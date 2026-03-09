@@ -35,6 +35,7 @@ public class User {
     private String gymId; // For coaches (assigned gym)
     private Double rating;
     private Integer experienceYears; // For coaches
+    private Integer pointsFidelite; // Loyalty points for members
     private Instant createdAt;
 
     // Getters and Setters
@@ -76,6 +77,9 @@ public class User {
 
     public Integer getExperienceYears() { return experienceYears; }
     public void setExperienceYears(Integer experienceYears) { this.experienceYears = experienceYears; }
+
+    public Integer getPointsFidelite() { return pointsFidelite; }
+    public void setPointsFidelite(Integer pointsFidelite) { this.pointsFidelite = pointsFidelite; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

@@ -159,6 +159,11 @@
           </div>
 
           <div class="form-group">
+            <label for="gymImage">Image URL (optional)</label>
+            <input id="gymImage" type="text" [(ngModel)]="gymImage" name="gymImage" class="form-input-simple" placeholder="https://example.com/gym-image.jpg">
+          </div>
+
+          <div class="form-group">
             <label for="gymDesc">Description</label>
             <textarea id="gymDesc" [(ngModel)]="gymDescription" name="gymDescription" class="form-input-simple textarea" placeholder="Tell members about your gym..."></textarea>
           </div>

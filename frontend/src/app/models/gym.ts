@@ -15,6 +15,7 @@ export interface Gym {
   memberCount?: number;
   monthlyPrice?: number;
   isActive?: boolean;
+  capacite?: number;
   latitude?: number;
   longitude?: number;
   createdAt?: string;

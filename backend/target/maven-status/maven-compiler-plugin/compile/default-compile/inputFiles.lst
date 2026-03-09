@@ -1,19 +1,45 @@
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\BackendApplication.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\repository\ProgramRepository.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\model\Exercise.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\controller\UserController.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\controller\BookingController.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\config\WebConfig.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\controller\GymController.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\model\Booking.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\model\Program.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\model\User.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\model\WorkoutLog.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\controller\WorkoutController.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\model\Gym.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\repository\BookingRepository.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\repository\GymRepository.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\repository\WorkoutLogRepository.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\controller\ProgramController.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\controller\AuthController.java
-C:\Users\GIGABYTE\Desktop\TEST\test_stack\backend\src\main\java\com\example\demo\repository\UserRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\InscriptionRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\UserController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Paiement.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\ProgramRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Recompense.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\BookingController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Program.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Echange.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\ConversationController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Exercise.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Booking.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\CheckInRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Avis.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\UserRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\EchangeRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\RecompenseController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\RecompenseRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\GymController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\ProgramController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\NotificationController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\WorkoutController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Message.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Gym.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\User.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\BookingRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\InscriptionController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\EchangeController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\AvisRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\PaiementRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\MessageRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\WorkoutLogRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\BackendApplication.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\AuthController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\PaiementController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\WorkoutLog.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\CheckInController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\ConversationRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\NotificationRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\controller\AvisController.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\CheckIn.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\config\WebConfig.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\repository\GymRepository.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Inscription.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Conversation.java
+C:\Users\majdi\OneDrive\Desktop\projet gym\Projet_Service\backend\src\main\java\com\example\demo\model\Notification.java

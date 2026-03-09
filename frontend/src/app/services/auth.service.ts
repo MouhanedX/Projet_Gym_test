@@ -1,7 +1,7 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, of, BehaviorSubject, throwError } from 'rxjs';
+import { tap, timeout, catchError } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { User } from '../models/user';
 
@@ -25,12 +25,26 @@ export class AuthService {
 
   register(user: User): Observable<User> {
     return this.http.post<User>('/api/auth/register', user).pipe(
+      timeout(10000),
+      catchError(err => {
+        if (err.name === 'TimeoutError') {
+          return throwError(() => ({ error: { message: 'Server not responding. Please make sure the backend is running.' } }));
+        }
+        return throwError(() => err);
+      }),
       tap(u => this.setUser(u))
     );
   }
 
   login(email: string, password: string): Observable<User> {
     return this.http.post<User>('/api/auth/login', { email, password }).pipe(
+      timeout(10000),
+      catchError(err => {
+        if (err.name === 'TimeoutError') {
+          return throwError(() => ({ error: { message: 'Server not responding. Please make sure the backend is running.' } }));
+        }
+        return throwError(() => err);
+      }),
       tap(u => this.setUser(u))
     );
   }

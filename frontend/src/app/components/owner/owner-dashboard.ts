@@ -7,10 +7,12 @@ import { GymService } from '../../services/gym.service';
 import { ProgramService } from '../../services/program.service';
 import { BookingService } from '../../services/booking.service';
 import { UserService } from '../../services/user.service';
+import { InscriptionService } from '../../services/inscription.service';
 import { User } from '../../models/user';
 import { Gym } from '../../models/gym';
 import { Program } from '../../models/program';
 import { Booking } from '../../models/booking';
+import { Inscription } from '../../models/inscription';
 
 @Component({
   selector: 'app-owner-dashboard',
@@ -26,9 +28,11 @@ export class OwnerDashboard implements OnInit {
   programs: Program[] = [];
   bookings: Booking[] = [];
   coaches: User[] = [];
+  inscriptions: Inscription[] = [];
   loading = true;
   darkMode = false;
   bookingFilter = '';
+  inscriptionFilter = '';
 
   revenueChart = [
     { month: 'Sept', value: '8k', height: 110 },
@@ -69,6 +73,7 @@ export class OwnerDashboard implements OnInit {
     { key: 'gym', label: 'Ma Salle', icon: '🏢' },
     { key: 'programs', label: 'Programmes', icon: '🎯' },
     { key: 'bookings', label: 'Réservations', icon: '📅' },
+    { key: 'inscriptions', label: 'Inscriptions', icon: '👥' },
     { key: 'coaches', label: 'Coachs', icon: '🏅' }
   ];
 
@@ -82,6 +87,7 @@ export class OwnerDashboard implements OnInit {
     private programService: ProgramService,
     private bookingService: BookingService,
     private userService: UserService,
+    private inscriptionService: InscriptionService,
     private router: Router
   ) {}
 
@@ -100,6 +106,7 @@ export class OwnerDashboard implements OnInit {
             this.programService.getByGym(this.gym.id).subscribe({ next: p => this.programs = p });
             this.bookingService.getByGym(this.gym.id).subscribe({ next: b => this.bookings = b });
             this.userService.getCoachesByGym(this.gym.id).subscribe({ next: c => this.coaches = c });
+            this.inscriptionService.getBySalle(this.gym.id).subscribe({ next: i => this.inscriptions = i, error: () => {} });
           }
           this.loading = false;
         },
@@ -258,6 +265,38 @@ export class OwnerDashboard implements OnInit {
   get totalRevenue(): number { return this.programs.reduce((sum, p) => sum + ((p.price || 0) * (p.enrolledCount || 0)), 0); }
   get totalEnrolled(): number { return this.programs.reduce((sum, p) => sum + (p.enrolledCount || 0), 0); }
   get filteredBookings(): Booking[] { return this.bookingFilter ? this.bookings.filter(b => b.status === this.bookingFilter) : this.bookings; }
+  get pendingInscriptions(): Inscription[] { return this.inscriptions.filter(i => i.statut === 'EN_ATTENTE'); }
+  get filteredInscriptions(): Inscription[] { return this.inscriptionFilter ? this.inscriptions.filter(i => i.statut === this.inscriptionFilter) : this.inscriptions; }
+
+  acceptInscription(id: string): void {
+    this.inscriptionService.updateStatut(id, 'ACCEPTEE').subscribe({
+      next: (updated) => {
+        const idx = this.inscriptions.findIndex(i => i.id === id);
+        if (idx !== -1) this.inscriptions[idx] = updated;
+      }
+    });
+  }
+
+  refuseInscription(id: string): void {
+    this.inscriptionService.updateStatut(id, 'REFUSEE').subscribe({
+      next: (updated) => {
+        const idx = this.inscriptions.findIndex(i => i.id === id);
+        if (idx !== -1) this.inscriptions[idx] = updated;
+      }
+    });
+  }
+
+  deleteInscription(id: string): void {
+    this.inscriptionService.delete(id).subscribe({
+      next: () => { this.inscriptions = this.inscriptions.filter(i => i.id !== id); }
+    });
+  }
+
+  formatDate(d?: string): string {
+    if (!d) return '';
+    try { return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); }
+    catch { return d; }
+  }
 
   getTypeIcon(type?: string): string {
     const icons: Record<string, string> = { STRENGTH: '🏋️', CARDIO: '🏃', YOGA: '🧘', HIIT: '⚡', CROSSFIT: '💥', BOXING: '🥊', SWIMMING: '🏊', MARTIAL_ARTS: '🥋' };

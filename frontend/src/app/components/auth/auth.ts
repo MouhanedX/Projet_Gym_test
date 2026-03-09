@@ -37,6 +37,7 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   gymPrice = 0;
   gymOpeningHours = '06:00 - 22:00';
   gymAmenities = '';
+  gymImage = ''; // Optional image path
   gymLat = 36.8065; // Default: Tunis
   gymLng = 10.1815;
 
@@ -220,25 +221,34 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   private createGymForOwner(owner: User): void {
     const gym: Gym = {
       name: this.gymName,
-      description: this.gymDescription || undefined,
       address: this.gymAddress,
+      description: this.gymDescription || undefined,
       city: this.gymCity || undefined,
       phone: this.gymPhone || undefined,
       ownerId: owner.id!,
       ownerName: owner.name,
+      image: this.gymImage || undefined,
       monthlyPrice: this.gymPrice || undefined,
       openingHours: this.gymOpeningHours || undefined,
       amenities: this.gymAmenities ? this.gymAmenities.split(',').map(a => a.trim()).filter(a => a) : undefined,
       latitude: this.gymLat,
       longitude: this.gymLng,
-      isActive: true
+      isActive: true,
+      rating: 0,
+      memberCount: 0
     };
+
+    console.log('Creating gym:', gym);
 
     this.gymService.create(gym).pipe(
       finalize(() => this.loading = false)
     ).subscribe({
-      next: () => this.redirectByRole('OWNER'),
-      error: () => {
+      next: (savedGym) => {
+        console.log('Gym created successfully:', savedGym);
+        this.redirectByRole('OWNER');
+      },
+      error: (err) => {
+        console.error('Gym creation error:', err);
         // User was created but gym failed - still redirect, they can create gym later
         this.redirectByRole('OWNER');
       }

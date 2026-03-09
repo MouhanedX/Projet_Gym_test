@@ -1,286 +1,450 @@
-﻿<div class="egym-layout" [attr.data-theme]="darkMode ? 'dark' : 'light'">
+<div class="member-layout" [attr.data-theme]="darkMode ? 'dark' : 'light'">
 
   <!-- TOPBAR -->
-  <header class="egym-topbar">
-    <div class="topbar-logo">
-      <div class="topbar-logo-icon"></div>
-      <span class="topbar-logo-text">E-Gym <span>Manager</span></span>
+  <header class="member-topbar">
+    <div class="topbar-main-row">
+      <div class="topbar-brand">
+        <div class="brand-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="11" fill="#3b82f6" opacity="0.15"/>
+            <path d="M7 12h10M7 12V9m0 3v3m10-3V9m0 3v3M9 12V8m0 8v-4m6-4v4m0 4v-4" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="brand-text">E-Gym</span>
+      </div>
+
+      <div class="topbar-right-section">
+        <div class="points-badge">
+          <svg class="points-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 10H18a2 2 0 000 4h4"/>
+          </svg>
+          <div class="points-info">
+            <span class="points-label">Points</span>
+            <span class="points-value">{{ totalPoints | number }}</span>
+          </div>
+        </div>
+        <div class="user-profile-section">
+          <div class="user-avatar-circle">
+            <img *ngIf="user?.avatar" [src]="user!.avatar" [alt]="user!.name">
+            <span *ngIf="!user?.avatar">{{ user?.name?.charAt(0) || 'M' }}</span>
+          </div>
+          <div class="user-identity">
+            <span class="user-display-name">{{ user?.name }}</span>
+            <span class="user-level-badge">Niveau {{ userLevel }}</span>
+          </div>
+        </div>
+        <button class="logout-btn" (click)="logout()" title="Déconnexion">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
     </div>
-    <nav class="topbar-nav">
-      <button *ngFor="let tab of tabs" class="topbar-nav-btn" [class.active]="activeTab === tab.key" (click)="setTab(tab.key)">
-        <span class="nav-icon">{{ tab.icon }}</span>{{ tab.label }}
+
+    <nav class="member-nav">
+      <button *ngFor="let tab of tabs" class="member-nav-btn" [class.active]="activeTab === tab.key" (click)="setTab(tab.key)">
+        <svg *ngIf="tab.icon === 'wallet'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 10H18a2 2 0 000 4h4"/></svg>
+        <svg *ngIf="tab.icon === 'boutique'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+        <svg *ngIf="tab.icon === 'classement'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8m-4-4v4M6 12l6-8 6 8M6 12h12M6 12v4a2 2 0 002 2h8a2 2 0 002-2v-4"/></svg>
+        <svg *ngIf="tab.icon === 'gymbuddy'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <svg *ngIf="tab.icon === 'evenements'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <svg *ngIf="tab.icon === 'salles'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <svg *ngIf="tab.icon === 'coachs'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <svg *ngIf="tab.icon === 'paiements'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+        {{ tab.label }}
       </button>
     </nav>
-    <div class="topbar-right">
-      <div class="topbar-actions">
-        <button class="icon-btn" (click)="toggleDark()">{{ darkMode ? '🌙' : '☀️' }}</button>
-      </div>
-      <div class="topbar-user">
-        <div class="topbar-avatar">{{ user?.name?.charAt(0) || 'M' }}</div>
-        <div class="topbar-user-info">
-          <span class="topbar-user-name">{{ user?.name }}</span>
-          <span class="topbar-user-role" style="color:var(--accent-blue)">Membre</span>
-        </div>
-      </div>
-      <a class="btn-exit" routerLink="/" title="Retour à l'accueil">
-        <span class="exit-icon">🏠</span>
-        Accueil
-      </a>
-      <button class="icon-btn" (click)="logout()" title="Déconnexion">🚪</button>
-    </div>
   </header>
 
-  <main class="egym-main">
-    <div class="eg-spinner" *ngIf="loading"><div class="eg-spinner-ring"></div></div>
+  <main class="member-main">
+    <div class="member-spinner" *ngIf="loading"><div class="member-spinner-ring"></div></div>
 
-    <!-- OVERVIEW -->
-    <div *ngIf="activeTab === 'overview' && !loading" class="tab-content">
-      <div class="eg-page-header">
-        <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)"></div> Tableau de Bord</h1>
-          <p class="eg-subtitle">Bienvenue, {{ (user?.name?.split(' ') || [''])[0] }}   Votre résumé fitness</p>
-        </div>
-        <button class="btn-eg-primary" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)" (click)="showWorkoutForm = true; setTab('workouts')">+ Enregistrer séance</button>
+    <!-- ==================== SALLES ==================== -->
+    <div *ngIf="activeTab === 'salles' && !loading" class="tab-content">
+      <h1 class="member-page-title">Rechercher une salle de sport</h1>
+
+      <div class="member-search-bar">
+        <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" [(ngModel)]="gymSearch" placeholder="Nom de la salle, ville..." class="member-search-input">
       </div>
 
-      <div class="eg-stats-grid">
-        <div class="eg-stat-card">
-          <div class="eg-stat-left">
-            <div class="eg-stat-label">Séances totales</div>
-            <div class="eg-stat-value">{{ totalWorkouts }}</div>
-            <div class="eg-stat-change up">Ce mois</div>
-          </div>
-          <div class="eg-stat-icon orange"></div>
-        </div>
-        <div class="eg-stat-card">
-          <div class="eg-stat-left">
-            <div class="eg-stat-label">Calories brûlées</div>
-            <div class="eg-stat-value">{{ totalCalories | number }}</div>
-            <div class="eg-stat-change up">Total</div>
-          </div>
-          <div class="eg-stat-icon purple"></div>
-        </div>
-        <div class="eg-stat-card">
-          <div class="eg-stat-left">
-            <div class="eg-stat-label">Minutes d'entraînement</div>
-            <div class="eg-stat-value">{{ totalMinutes }}</div>
-            <div class="eg-stat-change up">Total</div>
-          </div>
-          <div class="eg-stat-icon blue"></div>
-        </div>
-        <div class="eg-stat-card">
-          <div class="eg-stat-left">
-            <div class="eg-stat-label">Réservations actives</div>
-            <div class="eg-stat-value">{{ activeBookings }}</div>
-            <div class="eg-stat-change up">En cours</div>
-          </div>
-          <div class="eg-stat-icon green"></div>
-        </div>
-      </div>
-
-      <div class="eg-two-col">
-        <div class="eg-section">
-          <div class="eg-section-header">
-            <span class="eg-section-title">Séances récentes</span>
-            <button class="btn-eg-ghost" (click)="setTab('workouts')">Voir tout </button>
-          </div>
-          <div *ngIf="workouts.length; else noWorkouts">
-            <div class="eg-workout-card" *ngFor="let w of workouts.slice(0, 3)">
-              <div class="eg-workout-header">
-                <div class="eg-workout-left">
-                  <div class="eg-workout-type-icon">{{ getTypeIcon(w.type) }}</div>
-                  <div>
-                    <div class="eg-list-title">{{ w.type }} Workout</div>
-                    <div class="eg-list-meta">{{ w.date }}</div>
-                  </div>
-                </div>
-                <div class="eg-workout-stats">
-                  <span class="eg-workout-stat"> {{ w.durationMinutes }}min</span>
-                  <span class="eg-workout-stat"> {{ w.caloriesBurned || 0 }} cal</span>
-                </div>
-              </div>
-              <div class="eg-exercise-chips" *ngIf="w.exercises?.length">
-                <span class="eg-exercise-chip" *ngFor="let ex of w.exercises?.slice(0, 4)">{{ ex.name }}</span>
-              </div>
+      <div class="gym-list-horizontal" *ngIf="filteredGyms.length">
+        <div class="gym-card-h" *ngFor="let g of filteredGyms">
+          <div class="gym-card-h-image">
+            <img *ngIf="g.image" [src]="g.image" [alt]="g.name">
+            <div *ngIf="!g.image" class="gym-card-h-placeholder">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+                <path d="M6.5 6.5h11M6.5 17.5h11M4 12h2M18 12h2M7.5 6.5v11M16.5 6.5v11"/>
+              </svg>
             </div>
           </div>
-          <ng-template #noWorkouts>
-            <div class="eg-empty" style="padding:24px">
-              <span class="eg-empty-icon"></span>
-              <p>Aucune séance enregistrée. Commencez votre progression !</p>
-              <button class="btn-eg-primary btn-sm" (click)="showWorkoutForm = true; setTab('workouts')">Première séance</button>
-            </div>
-          </ng-template>
-        </div>
-
-        <div class="eg-section">
-          <div class="eg-section-header">
-            <span class="eg-section-title">Mes réservations</span>
-            <button class="btn-eg-ghost" (click)="setTab('bookings')">Voir tout </button>
-          </div>
-          <div *ngIf="bookings.length; else noBookings">
-            <div class="eg-list">
-              <div class="eg-list-item" *ngFor="let b of bookings.slice(0, 4)">
-                <div class="eg-list-left">
-                  <div class="eg-list-dot" [style.background]="getStatusColor(b.status)"></div>
-                  <div class="eg-list-info">
-                    <div class="eg-list-title">{{ b.programTitle }}</div>
-                    <div class="eg-list-meta">{{ b.gymName }}  {{ b.date }}</div>
-                  </div>
-                </div>
-                <span class="eg-badge" [ngClass]="{'pending': b.status==='PENDING','confirmed': b.status==='CONFIRMED','cancelled': b.status==='CANCELLED'}">{{ b.status }}</span>
-              </div>
-            </div>
-          </div>
-          <ng-template #noBookings>
-            <div class="eg-empty" style="padding:24px">
-              <span class="eg-empty-icon"></span>
-              <p>Aucune réservation. Explorez des programmes !</p>
-              <button class="btn-eg-primary btn-sm" (click)="setTab('programs')">Découvrir</button>
-            </div>
-          </ng-template>
-        </div>
-      </div>
-    </div>
-
-    <!-- WORKOUTS -->
-    <div *ngIf="activeTab === 'workouts' && !loading" class="tab-content">
-      <div class="eg-page-header">
-        <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"></div> Mes Séances</h1>
-          <p class="eg-subtitle">Enregistrez et suivez vos entraînements</p>
-        </div>
-        <button class="btn-eg-primary" style="background:linear-gradient(135deg,#f59e0b,#d97706)" (click)="showWorkoutForm = !showWorkoutForm">
-          {{ showWorkoutForm ? ' Annuler' : '+ Nouvelle séance' }}
-        </button>
-      </div>
-
-      <div class="eg-form-card" *ngIf="showWorkoutForm">
-        <h3>Nouvelle séance d'entraînement</h3>
-        <div class="eg-form-grid">
-          <div class="eg-form-group"><label>Date</label><input type="date" [(ngModel)]="workoutDate" class="eg-input"></div>
-          <div class="eg-form-group"><label>Type</label>
-            <select [(ngModel)]="workoutType" class="eg-input"><option *ngFor="let t of workoutTypes" [value]="t">{{ t }}</option></select>
-          </div>
-          <div class="eg-form-group"><label>Durée (min)</label><input type="number" [(ngModel)]="workoutDuration" class="eg-input" min="1"></div>
-          <div class="eg-form-group"><label>Calories brûlées</label><input type="number" [(ngModel)]="workoutCalories" class="eg-input" min="0"></div>
-        </div>
-        <div class="eg-form-group" style="margin-top:14px">
-          <label>Comment vous êtes-vous senti ?</label>
-          <div class="eg-mood-row">
-            <button *ngFor="let m of moods" class="eg-mood-btn" [class.active]="workoutMood === m.value" (click)="workoutMood = m.value">
-              {{ m.icon }} {{ m.label }}
-            </button>
-          </div>
-        </div>
-        <div style="margin-top:16px">
-          <div class="eg-section-header">
-            <label style="font-size:0.78rem;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.4px">Exercices</label>
-            <button class="btn-eg-ghost btn-sm" (click)="addExercise()">+ Ajouter</button>
-          </div>
-          <div class="eg-exercise-row" *ngFor="let ex of exercises; let i = index">
-            <input type="text" [(ngModel)]="ex.name" placeholder="Nom de l'exercice" class="eg-input flex-2">
-            <input type="number" [(ngModel)]="ex.sets" placeholder="Séries" class="eg-input" min="1" style="width:70px">
-            <input type="number" [(ngModel)]="ex.reps" placeholder="Reps" class="eg-input" min="1" style="width:70px">
-            <input type="number" [(ngModel)]="ex.weight" placeholder="kg" class="eg-input" min="0" style="width:70px">
-            <button class="btn-eg-danger btn-sm" (click)="removeExercise(i)" *ngIf="exercises.length > 1"></button>
-          </div>
-        </div>
-        <div class="eg-form-group" style="margin-top:14px">
-          <label>Notes (optionnel)</label>
-          <textarea [(ngModel)]="workoutNotes" class="eg-input" placeholder="Comment s'est passée la séance ?"></textarea>
-        </div>
-        <div class="eg-form-actions">
-          <button class="btn-eg-primary" (click)="saveWorkout()">Enregistrer la séance </button>
-        </div>
-      </div>
-
-      <div *ngIf="workouts.length">
-        <div class="eg-workout-card" *ngFor="let w of workouts">
-          <div class="eg-workout-header">
-            <div class="eg-workout-left">
-              <div class="eg-workout-type-icon">{{ getTypeIcon(w.type) }}</div>
+          <div class="gym-card-h-body">
+            <div class="gym-card-h-header">
               <div>
-                <div class="eg-list-title">{{ w.type }} Workout</div>
-                <div class="eg-list-meta">{{ w.date }}</div>
+                <h3 class="gym-card-h-name">{{ g.name }}</h3>
+                <p class="gym-card-h-address">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  {{ g.address }}<span *ngIf="g.city">, {{ g.city }}</span>
+                </p>
+              </div>
+              <div class="gym-card-h-rating" *ngIf="g.rating">
+                <svg class="star-svg" width="18" height="18" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <span class="rating-number">{{ g.rating }}</span>
+                <span class="rating-count">({{ g.memberCount || 0 }})</span>
               </div>
             </div>
-            <div class="eg-workout-stats">
-              <span class="eg-workout-stat"> {{ w.durationMinutes }}min</span>
-              <span class="eg-workout-stat"> {{ w.caloriesBurned || 0 }} cal</span>
-              <span class="eg-workout-stat" *ngIf="w.mood">{{ w.mood }}</span>
-              <button class="btn-eg-danger btn-sm" (click)="deleteWorkout(w.id!)"></button>
+            <p class="gym-card-h-description">{{ g.description || 'Salle de sport moderne avec équipements de qualité' }}</p>
+            <div class="gym-card-h-amenities" *ngIf="g.amenities?.length">
+              <span class="amenity-tag" *ngFor="let a of g.amenities">{{ a }}</span>
             </div>
-          </div>
-          <div class="eg-exercise-chips" *ngIf="w.exercises?.length">
-            <span class="eg-exercise-chip" *ngFor="let ex of w.exercises">{{ ex.name }} <span style="color:var(--primary-light)">{{ ex.sets }}{{ ex.reps }}{{ ex.weight ? ' @' + ex.weight + 'kg' : '' }}</span></span>
-          </div>
-          <div *ngIf="w.notes" style="font-size:0.78rem;color:var(--text-2);margin-top:8px;font-style:italic">{{ w.notes }}</div>
-        </div>
-      </div>
-      <div class="eg-empty" *ngIf="!workouts.length && !showWorkoutForm">
-        <span class="eg-empty-icon"></span>
-        <p>Aucune séance enregistrée. Commencez à suivre vos progrès !</p>
-      </div>
-    </div>
-
-    <!-- GYMS -->
-    <div *ngIf="activeTab === 'gyms' && !loading" class="tab-content">
-      <div class="eg-page-header">
-        <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#10b981,#059669)"></div> Trouver une Salle</h1>
-          <p class="eg-subtitle">Découvrez les meilleures salles près de chez vous</p>
-        </div>
-        <button class="btn-eg-primary" style="background:linear-gradient(135deg,#10b981,#059669)" (click)="toggleMapView()">
-          {{ showMapView ? ' Liste' : ' Carte' }}
-        </button>
-      </div>
-
-      <div class="gym-map-wrapper" *ngIf="showMapView">
-        <div id="member-gym-map" class="member-map-container" style="height:400px;border-radius:16px;overflow:hidden;margin-bottom:20px"></div>
-      </div>
-
-      <div class="eg-search-wrap">
-        <span class="eg-search-icon"></span>
-        <input type="text" [(ngModel)]="gymSearch" placeholder="Rechercher par nom ou ville..." class="eg-search">
-        <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:0.78rem;color:var(--accent-green)" *ngIf="userLocationFound"> Trié par distance</span>
-      </div>
-
-      <div class="eg-gym-grid" *ngIf="sortedGyms.length">
-        <div class="eg-gym-card" *ngFor="let g of sortedGyms">
-          <div class="eg-gym-card-img">
-            
-            <div class="eg-gym-rating" *ngIf="g.rating"> {{ g.rating }}</div>
-            <div class="eg-gym-rating" style="left:10px;right:auto" *ngIf="getGymDistance(g)"> {{ getGymDistance(g) }}</div>
-          </div>
-          <div class="eg-gym-card-body">
-            <div class="eg-gym-name">{{ g.name }}</div>
-            <div class="eg-gym-location"> {{ g.address }}<span *ngIf="g.city">, {{ g.city }}</span></div>
-            <p style="font-size:0.78rem;color:var(--text-2);margin-bottom:10px">{{ g.description || 'Un endroit parfait pour s'entraîner !' }}</p>
-            <div class="eg-gym-amenities" *ngIf="g.amenities?.length">
-              <span class="eg-amenity-chip" *ngFor="let a of g.amenities?.slice(0, 3)">{{ a }}</span>
-            </div>
-            <div class="eg-gym-footer">
-              <span class="eg-gym-price" *ngIf="g.monthlyPrice">{{ g.monthlyPrice }}/mois</span>
-              <span class="eg-gym-members"> {{ g.memberCount || 0 }} membres</span>
+            <div class="gym-card-h-footer">
+              <div class="gym-card-h-pricing">
+                <span class="gym-price-tag" *ngIf="g.monthlyPrice">{{ g.monthlyPrice | number:'1.2-2' }}€/mois</span>
+                <span class="gym-hours" *ngIf="g.openingHours">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px;">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  {{ g.openingHours }}
+                </span>
+              </div>
+              <div class="gym-card-h-actions">
+                <button class="btn-outline-member" (click)="openGymDetail(g)">Voir détails</button>
+                <button class="btn-primary-member" *ngIf="!isSubscribed(g.id)" (click)="openInscription(g)">S'abonner</button>
+                <span class="inscription-status" *ngIf="isSubscribed(g.id)"
+                      [ngClass]="{'accepted': getInscriptionStatus(g.id)==='ACCEPTEE', 'pending-status': getInscriptionStatus(g.id)==='EN_ATTENTE'}">
+                  {{ getInscriptionStatus(g.id) === 'ACCEPTEE' ? '✓ Inscrit' : '⏳ En attente' }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="eg-empty" *ngIf="!sortedGyms.length">
-        <span class="eg-empty-icon"></span>
+      <div class="eg-empty" *ngIf="!filteredGyms.length">
+        <span class="eg-empty-icon">🏋️</span>
         <p>Aucune salle trouvée. Essayez une autre recherche.</p>
       </div>
     </div>
 
-    <!-- PROGRAMS -->
-    <div *ngIf="activeTab === 'programs' && !loading" class="tab-content">
-      <div class="eg-page-header">
-        <div>
-          <h1 class="eg-page-title"><div class="title-icon"></div> Programmes</h1>
-          <p class="eg-subtitle">Rejoignez des programmes encadrés par des experts</p>
+    <!-- ==================== COACHS ==================== -->
+    <div *ngIf="activeTab === 'coachs' && !loading" class="tab-content">
+      <h1 class="member-page-title">Trouver un coach</h1>
+      <p class="member-subtitle">Consultez nos coachs certifiés et démarrez une discussion</p>
+
+      <div class="member-search-bar">
+        <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" [(ngModel)]="coachSearch" placeholder="Nom du coach, spécialité..." class="member-search-input">
+      </div>
+
+      <div class="coach-grid-member" *ngIf="filteredCoaches.length">
+        <div class="coach-card-member" *ngFor="let c of filteredCoaches">
+          <div class="coach-card-avatar">
+            <img *ngIf="c.avatar" [src]="c.avatar" [alt]="c.name">
+            <span *ngIf="!c.avatar">{{ c.name.charAt(0) }}</span>
+          </div>
+          <h3 class="coach-card-name">{{ c.name }}</h3>
+          <p class="coach-card-bio" *ngIf="c.bio">{{ c.bio.length > 80 ? c.bio.slice(0, 80) + '...' : c.bio }}</p>
+          <div class="coach-card-rating" *ngIf="c.rating">
+            <span *ngFor="let s of getStarArray(c.rating)" class="star-filled">⭐</span>
+            <span class="rating-text">{{ c.rating }}/5</span>
+          </div>
+          <div class="coach-card-specialties" *ngIf="c.specialties?.length">
+            <span class="specialty-tag" *ngFor="let s of c.specialties">{{ s }}</span>
+          </div>
+          <div class="coach-card-meta">
+            <span *ngIf="c.experienceYears">{{ c.experienceYears }} ans d'exp.</span>
+            <span *ngIf="c.city">📍 {{ c.city }}</span>
+          </div>
+          <div class="coach-card-actions">
+            <button class="coach-btn-profile" (click)="openCoachProfile(c)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Voir profil
+            </button>
+            <button class="coach-btn-message" (click)="openCoachProfile(c); openConversationWithCoach(c)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Message
+            </button>
+          </div>
         </div>
       </div>
+      <div class="eg-empty" *ngIf="!filteredCoaches.length">
+        <span class="eg-empty-icon">👤</span>
+        <p>Aucun coach trouvé.</p>
+      </div>
+    </div>
+
+    <!-- ==================== WALLET ==================== -->
+    <div *ngIf="activeTab === 'wallet' && !loading" class="tab-content">
+      <h1 class="member-page-title">Mon Wallet</h1>
+
+      <div class="wallet-summary">
+        <div class="wallet-card-main">
+          <div class="wallet-card-bg">
+            <span class="wallet-points-big">{{ totalPoints | number }}</span>
+            <span class="wallet-points-label">Points de fidélité</span>
+          </div>
+          <div class="wallet-level">
+            <span class="wallet-level-text">Niveau {{ userLevel }}</span>
+            <div class="wallet-progress-bar">
+              <div class="wallet-progress-fill" [style.width.%]="(totalPoints % 1000) / 10"></div>
+            </div>
+          </div>
+        </div>
+        <div class="wallet-stats-row">
+          <div class="wallet-stat">
+            <span class="wallet-stat-value">{{ totalWorkouts }}</span>
+            <span class="wallet-stat-label">Séances</span>
+          </div>
+          <div class="wallet-stat">
+            <span class="wallet-stat-value">{{ totalCalories | number }}</span>
+            <span class="wallet-stat-label">Calories</span>
+          </div>
+          <div class="wallet-stat">
+            <span class="wallet-stat-value">{{ echanges.length }}</span>
+            <span class="wallet-stat-label">Échanges</span>
+          </div>
+          <div class="wallet-stat">
+            <span class="wallet-stat-value">{{ inscriptions.length }}</span>
+            <span class="wallet-stat-label">Abonnements</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="eg-section">
+        <div class="eg-section-header">
+          <span class="eg-section-title">Historique des échanges</span>
+        </div>
+        <div class="eg-list" *ngIf="echanges.length">
+          <div class="eg-list-item" *ngFor="let e of echanges">
+            <div class="eg-list-left">
+              <div class="eg-list-icon">🎁</div>
+              <div class="eg-list-info">
+                <div class="eg-list-title">{{ e.recompenseTitre }}</div>
+                <div class="eg-list-meta">{{ e.dateEchange }} <span *ngIf="e.codePromoGenere"> — Code: {{ e.codePromoGenere }}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="eg-empty" *ngIf="!echanges.length" style="padding:24px">
+          <p>Aucun échange effectué. Visitez la boutique !</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== BOUTIQUE ==================== -->
+    <div *ngIf="activeTab === 'boutique' && !loading" class="tab-content">
+      <h1 class="member-page-title">Boutique Récompenses</h1>
+      <p class="member-subtitle">Échangez vos points contre des récompenses exclusives</p>
+
+      <div class="boutique-grid" *ngIf="recompenses.length">
+        <div class="boutique-card" *ngFor="let r of recompenses">
+          <div class="boutique-card-icon">🎁</div>
+          <h3 class="boutique-card-title">{{ r.titre }}</h3>
+          <p class="boutique-card-desc" *ngIf="r.description">{{ r.description }}</p>
+          <div class="boutique-card-cost">
+            <span class="cost-points">{{ r.coutEnPoints | number }}</span>
+            <span class="cost-label">points</span>
+          </div>
+          <span class="boutique-provider" *ngIf="r.partenaireFournisseur">{{ r.partenaireFournisseur }}</span>
+          <button class="btn-primary-member" [disabled]="totalPoints < r.coutEnPoints" (click)="openEchange(r)">
+            {{ totalPoints >= r.coutEnPoints ? 'Échanger' : 'Points insuffisants' }}
+          </button>
+        </div>
+      </div>
+      <div class="eg-empty" *ngIf="!recompenses.length">
+        <span class="eg-empty-icon">🎁</span>
+        <p>Aucune récompense disponible pour le moment.</p>
+      </div>
+    </div>
+
+    <!-- ==================== CLASSEMENT ==================== -->
+    <div *ngIf="activeTab === 'classement' && !loading" class="tab-content">
+      <h1 class="member-page-title">Classement</h1>
+      <p class="member-subtitle">Votre position parmi les membres</p>
+
+      <div class="classement-card">
+        <div class="classement-self">
+          <div class="classement-rank">🏆</div>
+          <div class="classement-self-info">
+            <span class="classement-name">{{ user?.name }}</span>
+            <span class="classement-pts">{{ totalPoints | number }} points — Niveau {{ userLevel }}</span>
+          </div>
+        </div>
+        <div class="classement-stats">
+          <div class="classement-stat-item">
+            <span class="classement-stat-num">{{ totalWorkouts }}</span>
+            <span class="classement-stat-lbl">Séances</span>
+          </div>
+          <div class="classement-stat-item">
+            <span class="classement-stat-num">{{ totalCalories | number }}</span>
+            <span class="classement-stat-lbl">Calories brûlées</span>
+          </div>
+          <div class="classement-stat-item">
+            <span class="classement-stat-num">{{ echanges.length }}</span>
+            <span class="classement-stat-lbl">Récompenses</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== GYM BUDDY ==================== -->
+    <div *ngIf="activeTab === 'gymbuddy' && !loading" class="tab-content">
+      <h1 class="member-page-title">Gym Buddy</h1>
+      <p class="member-subtitle">Trouvez un partenaire d'entraînement qui partage vos objectifs</p>
+
+      <!-- Button to create new post -->
+      <div style="margin-bottom: 24px;">
+        <button class="btn-primary-member" (click)="openBuddyPostForm()" *ngIf="!showBuddyPostForm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -3px; margin-right: 6px;">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Créer un post
+        </button>
+      </div>
+
+      <!-- Create post form -->
+      <div *ngIf="showBuddyPostForm" class="buddy-form-container" style="margin-bottom: 32px; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--secondary-bg);">
+        <h3 style="margin-top: 0;">Créer un nouveau post</h3>
+        
+        <div class="form-group">
+          <label>Titre *</label>
+          <input type="text" [(ngModel)]="newBuddyTitle" placeholder="Ex: Cherche partenaire pour musculation" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="newBuddyDescription" placeholder="Parlez de vos objectifs et de votre style d'entraînement..." class="form-input" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Salle de sport (optionnel)</label>
+          <div style="position: relative;">
+            <select [(ngModel)]="selectedBuddyGym" class="form-input" (change)="selectedBuddyGym = selectedBuddyGym">
+              <option [ngValue]="null">Sélectionner une salle...</option>
+              <option *ngFor="let g of gyms" [ngValue]="g">{{ g.name }} - {{ g.city }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Spécifications</label>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <input type="text" [(ngModel)]="newBuddySpecificationInput" placeholder="Ex: Niveau avancé, Lundi/Mercredi/Vendredi" class="form-input" (keyup.enter)="addSpecification()" style="flex: 1;">
+            <button type="button" class="btn-secondary-member" (click)="addSpecification()">Ajouter</button>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <span *ngFor="let spec of newBuddySpecifications; let i = index" class="spec-tag">
+              {{ spec }}
+              <button type="button" class="spec-tag-remove" (click)="removeSpecification(i)">×</button>
+            </span>
+          </div>
+        </div>
+
+        <div *ngIf="buddyError" class="error-message" style="color: #ef4444; margin-bottom: 12px;">{{ buddyError }}</div>
+
+        <div style="display: flex; gap: 12px;">
+          <button class="btn-primary-member" (click)="submitBuddyPost()" [disabled]="submittingBuddyPost">
+            {{ submittingBuddyPost ? 'Publication...' : 'Publier le post' }}
+          </button>
+          <button class="btn-secondary-member" (click)="closeBuddyPostForm()" [disabled]="submittingBuddyPost">Annuler</button>
+        </div>
+      </div>
+
+      <!-- My posts section -->
+      <div *ngIf="myBuddyPosts.length > 0" style="margin-bottom: 48px;">
+        <h2 style="margin-top: 0; font-size: 18px; color: var(--text-primary);">Mes posts</h2>
+        <div class="buddy-posts-grid">
+          <div *ngFor="let post of myBuddyPosts" class="buddy-card">
+            <div class="buddy-card-header">
+              <div class="buddy-info">
+                <div class="buddy-avatar">
+                  <img *ngIf="post.clientAvatar" [src]="post.clientAvatar" alt="">
+                  <span *ngIf="!post.clientAvatar">{{ post.clientName?.charAt(0) || 'M' }}</span>
+                </div>
+                <div>
+                  <h3 class="buddy-title">{{ post.title }}</h3>
+                  <p class="buddy-author">{{ post.clientName }}</p>
+                </div>
+              </div>
+              <button class="buddy-card-delete" (click)="deleteBuddyPost(post.id!)" title="Supprimer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                </svg>
+              </button>
+            </div>
+            <div class="buddy-card-body">
+              <p *ngIf="post.description" class="buddy-description">{{ post.description }}</p>
+              <div *ngIf="post.gymName" style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary); margin: 12px 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                {{ post.gymName }}
+              </div>
+              <div *ngIf="post.specifications?.length" class="buddy-specs">
+                <span *ngFor="let spec of post.specifications" class="spec-badge">{{ spec }}</span>
+              </div>
+            </div>
+            <div class="buddy-card-footer">
+              <small style="color: var(--text-secondary);">Posté {{ formatBuddyDate(post.createdAt) }}</small>
+              <span *ngIf="post.status === 'MATCHED'" class="buddy-status-matched">✓ Apparié</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other members posts section -->
+      <div>
+        <h2 style="margin-top: 0; font-size: 18px; color: var(--text-primary);">Postes des autres membres</h2>
+        <div *ngIf="othersBuddyPosts.length > 0" class="buddy-posts-grid">
+          <div *ngFor="let post of othersBuddyPosts" class="buddy-card" style="position: relative;">
+            <div class="buddy-card-header">
+              <div class="buddy-info">
+                <div class="buddy-avatar">
+                  <img *ngIf="post.clientAvatar" [src]="post.clientAvatar" alt="">
+                  <span *ngIf="!post.clientAvatar">{{ post.clientName?.charAt(0) || 'M' }}</span>
+                </div>
+                <div>
+                  <h3 class="buddy-title">{{ post.title }}</h3>
+                  <p class="buddy-author">{{ post.clientName }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="buddy-card-body">
+              <p *ngIf="post.description" class="buddy-description">{{ post.description }}</p>
+              <div *ngIf="post.gymName" style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary); margin: 12px 0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                {{ post.gymName }}
+              </div>
+              <div *ngIf="post.specifications?.length" class="buddy-specs">
+                <span *ngFor="let spec of post.specifications" class="spec-badge">{{ spec }}</span>
+              </div>
+            </div>
+            <div class="buddy-card-footer">
+              <small style="color: var(--text-secondary);">Posté {{ formatBuddyDate(post.createdAt) }}</small>
+              <button class="btn-primary-member btn-sm">Intéressé</button>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="othersBuddyPosts.length === 0" class="eg-empty" style="padding: 48px 20px; text-align: center;">
+          <span class="eg-empty-icon">👥</span>
+          <p>Aucun post disponible pour le moment. Créez le vôtre pour trouver un partenaire !</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ÉVÉNEMENTS ==================== -->
+    <div *ngIf="activeTab === 'evenements' && !loading" class="tab-content">
+      <h1 class="member-page-title">Événements &amp; Programmes</h1>
+      <p class="member-subtitle">Rejoignez des programmes encadrés par des experts</p>
 
       <div class="eg-filters">
         <button class="eg-filter-chip" [class.active]="!programFilter" (click)="programFilter = ''">Tous</button>
@@ -300,12 +464,12 @@
             <div class="eg-program-card-title">{{ p.title }}</div>
             <div class="eg-program-card-desc">{{ p.description || 'Rejoignez ce programme !' }}</div>
             <div class="eg-program-card-meta">
-              <span *ngIf="p.coachName"> {{ p.coachName }}</span>
-              <span *ngIf="p.gymName"> {{ p.gymName }}</span>
-              <span *ngIf="p.startTime"> {{ p.startTime }} - {{ p.endTime }}</span>
+              <span *ngIf="p.coachName">🏋️ {{ p.coachName }}</span>
+              <span *ngIf="p.gymName">📍 {{ p.gymName }}</span>
+              <span *ngIf="p.startTime">🕐 {{ p.startTime }} - {{ p.endTime }}</span>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px" *ngIf="p.daysOfWeek?.length">
-              <span class="eg-amenity-chip" *ngFor="let d of p.daysOfWeek">{{ d.slice(0,3) }}</span>
+              <span class="amenity-tag" *ngFor="let d of p.daysOfWeek">{{ d.slice(0,3) }}</span>
             </div>
           </div>
           <div class="eg-program-card-footer">
@@ -313,62 +477,294 @@
               <div class="eg-enroll-bar"><div class="eg-enroll-fill" [style.width.%]="((p.enrolledCount||0)/(p.capacity||1))*100"></div></div>
               <div class="eg-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity||'' }} inscrits</div>
             </div>
-            <button class="btn-eg-primary btn-sm" (click)="openBooking(p)">Réserver</button>
+            <button class="btn-primary-member btn-sm" (click)="openBooking(p)">Réserver</button>
           </div>
         </div>
       </div>
       <div class="eg-empty" *ngIf="!filteredPrograms.length">
-        <span class="eg-empty-icon"></span>
+        <span class="eg-empty-icon">📅</span>
         <p>Aucun programme disponible. Revenez bientôt !</p>
       </div>
     </div>
 
-    <!-- BOOKINGS -->
-    <div *ngIf="activeTab === 'bookings' && !loading" class="tab-content">
-      <div class="eg-page-header">
-        <div>
-          <h1 class="eg-page-title"><div class="title-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)"></div> Mes Réservations</h1>
-          <p class="eg-subtitle">Gérez vos réservations de programmes</p>
+    <!-- ==================== PAIEMENTS ==================== -->
+    <div *ngIf="activeTab === 'paiements' && !loading" class="tab-content">
+      <h1 class="member-page-title">Mes Paiements</h1>
+
+      <div class="paiements-summary">
+        <div class="paiement-stat-card">
+          <span class="paiement-stat-icon">✅</span>
+          <span class="paiement-stat-value">{{ confirmedPaiements.length }}</span>
+          <span class="paiement-stat-label">Confirmés</span>
+        </div>
+        <div class="paiement-stat-card pending-card">
+          <span class="paiement-stat-icon">⏳</span>
+          <span class="paiement-stat-value">{{ pendingPaiements.length }}</span>
+          <span class="paiement-stat-label">En attente</span>
         </div>
       </div>
 
-      <div class="eg-list" *ngIf="bookings.length">
-        <div class="eg-list-item" *ngFor="let b of bookings">
+      <div class="eg-list" *ngIf="paiements.length">
+        <div class="eg-list-item" *ngFor="let p of paiements">
           <div class="eg-list-left">
-            <div class="eg-list-dot" [style.background]="getStatusColor(b.status)"></div>
+            <div class="eg-list-icon">{{ getPaymentMethodIcon(p.methode) }}</div>
             <div class="eg-list-info">
-              <div class="eg-list-title">{{ b.programTitle }}</div>
-              <div class="eg-list-meta">{{ b.gymName }}  Coach: {{ b.coachName || 'À confirmer' }}  {{ b.date }}  {{ b.timeSlot }}</div>
+              <div class="eg-list-title">{{ p.montant | number:'1.2-2' }} €</div>
+              <div class="eg-list-meta">{{ p.datePaiement }} — {{ p.methode || 'N/A' }}</div>
             </div>
           </div>
           <div class="eg-list-right">
-            <span class="eg-badge" [ngClass]="{'pending': b.status==='PENDING','confirmed': b.status==='CONFIRMED','cancelled': b.status==='CANCELLED'}">{{ b.status }}</span>
-            <button class="btn-eg-danger btn-sm" *ngIf="b.status === 'PENDING'" (click)="cancelBooking(b.id!)">Annuler</button>
+            <span class="eg-badge" [ngClass]="{'confirmed': p.statut==='CONFIRME', 'pending': p.statut==='EN_ATTENTE', 'cancelled': p.statut==='ECHOUE'}">
+              {{ p.statut }}
+            </span>
           </div>
         </div>
       </div>
-      <div class="eg-empty" *ngIf="!bookings.length">
-        <span class="eg-empty-icon"></span>
-        <p>Aucune réservation. Explorez des programmes pour commencer !</p>
-        <button class="btn-eg-primary btn-sm" (click)="setTab('programs')">Trouver des programmes</button>
+      <div class="eg-empty" *ngIf="!paiements.length">
+        <span class="eg-empty-icon">💰</span>
+        <p>Aucun paiement enregistré.</p>
       </div>
     </div>
 
   </main>
 </div>
 
-<!-- Booking Modal -->
-<div class="eg-modal-overlay" *ngIf="showBookingForm" (click)="showBookingForm = false">
+<!-- GYM DETAIL MODAL -->
+<div class="eg-modal-overlay" *ngIf="showGymDetail" (click)="closeGymDetail()">
+  <div class="gym-detail-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeGymDetail()">✕</button>
+    <div class="gym-detail-top">
+      <div class="gym-detail-img">
+        <img *ngIf="selectedGym?.image" [src]="selectedGym!.image" [alt]="selectedGym!.name">
+        <div *ngIf="!selectedGym?.image" class="gym-card-h-placeholder" style="height:200px;font-size:4rem">🏋️</div>
+      </div>
+      <h2>{{ selectedGym?.name }}</h2>
+      <p class="gym-detail-address">📍 {{ selectedGym?.address }}<span *ngIf="selectedGym?.city">, {{ selectedGym?.city }}</span></p>
+      <div class="gym-detail-rating" *ngIf="selectedGym?.rating">
+        <span *ngFor="let s of getStarArray(selectedGym!.rating!)" class="star-filled">⭐</span>
+        <span>{{ selectedGym?.rating }}/5 ({{ selectedGym?.memberCount || 0 }} avis)</span>
+      </div>
+    </div>
+    <div class="gym-detail-info">
+      <p *ngIf="selectedGym?.description">{{ selectedGym?.description }}</p>
+      <div class="gym-detail-row">
+        <span *ngIf="selectedGym?.monthlyPrice"><strong>Prix:</strong> {{ selectedGym?.monthlyPrice }}€/mois</span>
+        <span *ngIf="selectedGym?.openingHours"><strong>Horaires:</strong> {{ selectedGym?.openingHours }}</span>
+        <span *ngIf="selectedGym?.phone"><strong>Tél:</strong> {{ selectedGym?.phone }}</span>
+        <span *ngIf="selectedGym?.capacite"><strong>Capacité:</strong> {{ selectedGym?.capacite }} personnes</span>
+      </div>
+      <div class="gym-card-h-amenities" *ngIf="selectedGym?.amenities?.length" style="margin-top:12px">
+        <span class="amenity-tag" *ngFor="let a of selectedGym!.amenities">{{ a }}</span>
+      </div>
+    </div>
+    <div class="gym-detail-avis">
+      <div class="eg-section-header">
+        <span class="eg-section-title">Avis ({{ selectedGymAvis.length }})</span>
+        <ng-container *ngIf="!myAvisForGym">
+          <button class="btn-outline-member btn-sm" (click)="showAvisForm ? showAvisForm = false : openAvisForm()">
+            {{ showAvisForm ? 'Annuler' : '+ Avis' }}
+          </button>
+        </ng-container>
+        <span *ngIf="myAvisForGym" style="font-size:0.78rem;color:var(--text-2)">✓ Vous avez déjà donné un avis</span>
+      </div>
+
+      <div class="avis-form" *ngIf="showAvisForm && !myAvisForGym">
+        <div class="avis-rating-select">
+          <button *ngFor="let n of [1,2,3,4,5]" class="avis-star-btn" [class.selected]="newAvisNote >= n" (click)="newAvisNote = n">⭐</button>
+          <span style="font-size:0.82rem;color:var(--text-2);margin-left:8px">{{ newAvisNote }}/5</span>
+        </div>
+        <textarea [(ngModel)]="newAvisComment" placeholder="Votre commentaire..." class="eg-input" style="min-height:80px"></textarea>
+        <div *ngIf="avisError" style="color:#ef4444;font-size:0.82rem;margin-top:6px">{{ avisError }}</div>
+        <button class="btn-primary-member btn-sm" (click)="submitAvis()" [disabled]="submittingAvis" style="margin-top:8px">
+          <span *ngIf="submittingAvis">...</span>
+          <span *ngIf="!submittingAvis">Publier</span>
+        </button>
+      </div>
+
+      <div class="avis-list" *ngIf="selectedGymAvis.length">
+        <div class="avis-item" *ngFor="let a of selectedGymAvis" [class.my-avis]="a.clientId === user?.id">
+          <div class="avis-header">
+            <div style="display:flex;align-items:center;gap:8px">
+              <strong>{{ a.clientName }}</strong>
+              <span *ngIf="a.clientId === user?.id" style="font-size:0.7rem;background:var(--accent,#3b82f6);color:#fff;border-radius:4px;padding:1px 6px">Vous</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="avis-stars">
+                <span *ngFor="let s of getStarArray(a.note)">⭐</span>
+              </span>
+              <button *ngIf="a.clientId === user?.id" class="avis-delete-btn" (click)="deleteAvis(a.id!)" title="Supprimer">✕</button>
+            </div>
+          </div>
+          <p *ngIf="a.commentaire">{{ a.commentaire }}</p>
+          <span class="avis-date">{{ formatAvisDate(a.date) }}</span>
+        </div>
+      </div>
+      <p *ngIf="!selectedGymAvis.length" style="color:var(--text-2);font-size:0.85rem;padding:12px 0">Aucun avis pour le moment.</p>
+    </div>
+  </div>
+</div>
+
+<!-- INSCRIPTION CONFIRM MODAL -->
+<div class="eg-modal-overlay" *ngIf="showInscriptionConfirm" (click)="showInscriptionConfirm = false">
+  <div class="eg-modal" (click)="$event.stopPropagation()">
+    <h3>S'abonner à {{ selectedGymForInscription?.name }}</h3>
+    <p class="eg-modal-desc">
+      📍 {{ selectedGymForInscription?.address }}<br>
+      <span *ngIf="selectedGymForInscription?.monthlyPrice">💰 {{ selectedGymForInscription?.monthlyPrice }}€/mois</span>
+    </p>
+    <p style="font-size:0.85rem;color:var(--text-2)">Votre demande d'inscription sera envoyée au propriétaire de la salle pour validation.</p>
+    <div class="eg-modal-actions">
+      <button class="btn-eg-outline" (click)="showInscriptionConfirm = false">Annuler</button>
+      <button class="btn-primary-member" (click)="submitInscription()" [disabled]="submittingInscription">
+        <span *ngIf="submittingInscription">⏳ En cours...</span>
+        <span *ngIf="!submittingInscription">Confirmer l'inscription</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ECHANGE CONFIRM MODAL -->
+<div class="eg-modal-overlay" *ngIf="showEchangeConfirm" (click)="showEchangeConfirm = false">
+  <div class="eg-modal" (click)="$event.stopPropagation()">
+    <h3>Échanger: {{ selectedRecompense?.titre }}</h3>
+    <p class="eg-modal-desc">
+      {{ selectedRecompense?.description }}<br>
+      <strong>Coût:</strong> {{ selectedRecompense?.coutEnPoints | number }} points
+    </p>
+    <p style="font-size:0.85rem;color:var(--text-2)">Votre solde actuel: {{ totalPoints | number }} points</p>
+    <div class="eg-modal-actions">
+      <button class="btn-eg-outline" (click)="showEchangeConfirm = false">Annuler</button>
+      <button class="btn-primary-member" (click)="submitEchange()" [disabled]="submittingEchange">
+        <span *ngIf="submittingEchange">⏳ En cours...</span>
+        <span *ngIf="!submittingEchange">Confirmer l'échange</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="eg-modal-overlay" *ngIf="showBookingForm" (click)="showBookingForm = false; bookingError = ''">
   <div class="eg-modal" (click)="$event.stopPropagation()">
     <h3>{{ selectedProgram?.title }}</h3>
-    <p class="eg-modal-desc">{{ selectedProgram?.gymName }}  {{ selectedProgram?.coachName }}</p>
+    <p class="eg-modal-desc">{{ selectedProgram?.gymName }} — {{ selectedProgram?.coachName }}</p>
     <div class="eg-form-group">
       <label>Choisir une date</label>
-      <input type="date" [(ngModel)]="bookingDate" class="eg-input">
+      <input type="date" [(ngModel)]="bookingDate" class="eg-input" (ngModelChange)="bookingError = ''">
     </div>
+    <div *ngIf="bookingError" style="color:#ef4444;font-size:0.82rem;margin-top:6px;padding:8px;background:rgba(239,68,68,0.1);border-radius:6px">⚠️ {{ bookingError }}</div>
     <div class="eg-modal-actions">
-      <button class="btn-eg-outline" (click)="showBookingForm = false">Annuler</button>
-      <button class="btn-eg-primary" (click)="submitBooking()">Confirmer la réservation</button>
+      <button class="btn-eg-outline" (click)="showBookingForm = false; bookingError = ''">Annuler</button>
+      <button class="btn-primary-member" (click)="submitBooking()" [disabled]="submittingBooking">
+        <span *ngIf="submittingBooking">⏳ En cours...</span>
+        <span *ngIf="!submittingBooking">Confirmer la réservation</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== COACH PROFILE MODAL ==================== -->
+<div class="eg-modal-overlay" *ngIf="showCoachProfile" (click)="closeCoachProfile()">
+  <div class="coach-profile-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeCoachProfile()">✕</button>
+
+    <!-- Profile header -->
+    <div class="coach-profile-header">
+      <div class="coach-profile-avatar">
+        <img *ngIf="selectedCoach?.avatar" [src]="selectedCoach!.avatar" [alt]="selectedCoach!.name">
+        <span *ngIf="!selectedCoach?.avatar">{{ selectedCoach?.name?.charAt(0) }}</span>
+      </div>
+      <div class="coach-profile-identity">
+        <h2 class="coach-profile-name">{{ selectedCoach?.name }}</h2>
+        <div class="coach-profile-rating" *ngIf="selectedCoach?.rating">
+          <span *ngFor="let s of getStarArray(selectedCoach!.rating!)" class="star-filled">⭐</span>
+          <span class="rating-text">{{ selectedCoach?.rating }}/5</span>
+        </div>
+        <div *ngIf="selectedCoach?.city" style="font-size:0.85rem;color:var(--text-2);margin-top:4px;">
+          📍 {{ selectedCoach?.city }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile body (left side) or chat (right side) -->
+    <div class="coach-profile-body">
+      <!-- Left: Profile Details -->
+      <div class="coach-profile-details" [class.split-view]="showChatPanel">
+        <div class="coach-profile-section" *ngIf="selectedCoach?.bio">
+          <h4 class="coach-section-title">À propos</h4>
+          <p class="coach-section-text">{{ selectedCoach?.bio }}</p>
+        </div>
+
+        <div class="coach-profile-section" *ngIf="selectedCoach?.specialties?.length">
+          <h4 class="coach-section-title">Spécialités</h4>
+          <div class="coach-specialties-list">
+            <span class="specialty-tag" *ngFor="let s of selectedCoach?.specialties">{{ s }}</span>
+          </div>
+        </div>
+
+        <div class="coach-profile-section">
+          <h4 class="coach-section-title">Informations</h4>
+          <div class="coach-info-grid">
+            <div class="coach-info-item" *ngIf="selectedCoach?.experienceYears">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>{{ selectedCoach?.experienceYears }} ans d'expérience</span>
+            </div>
+            <div class="coach-info-item" *ngIf="selectedCoach?.phone">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span>{{ selectedCoach?.phone }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="coach-btn-message-full" (click)="openConversationWithCoach(selectedCoach!)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          {{ showChatPanel ? 'Discussion ouverte' : 'Démarrer une discussion' }}
+        </button>
+      </div>
+
+      <!-- Right: Chat Panel -->
+      <div class="coach-chat-panel" *ngIf="showChatPanel">
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <div class="chat-avatar-sm">
+              <img *ngIf="selectedCoach?.avatar" [src]="selectedCoach!.avatar" alt="">
+              <span *ngIf="!selectedCoach?.avatar">{{ selectedCoach?.name?.charAt(0) }}</span>
+            </div>
+            <span class="chat-coach-name">{{ selectedCoach?.name }}</span>
+          </div>
+          <button class="chat-close-btn" (click)="closeChatPanel()">✕</button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages-container">
+          <div *ngIf="loadingMessages" class="chat-loading">
+            <div class="member-spinner-ring" style="width:28px;height:28px;border-width:3px;"></div>
+          </div>
+          <div *ngIf="!loadingMessages && conversationMessages.length === 0" class="chat-empty">
+            <span style="font-size:2rem;">💬</span>
+            <p>Démarrez la conversation !</p>
+          </div>
+          <div *ngFor="let msg of conversationMessages" class="chat-bubble-wrapper" [class.mine]="isMyMessage(msg)">
+            <div class="chat-bubble" [class.bubble-mine]="isMyMessage(msg)" [class.bubble-other]="!isMyMessage(msg)">
+              <p class="bubble-text">{{ msg.contenu }}</p>
+              <span class="bubble-time">{{ formatMessageTime(msg.dateEnvoi) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-row">
+          <input
+            type="text"
+            [(ngModel)]="chatMessageInput"
+            placeholder="Écrire un message..."
+            class="chat-input"
+            (keyup.enter)="sendChatMessage()"
+          >
+          <button class="chat-send-btn" (click)="sendChatMessage()" [disabled]="sendingMessage || !chatMessageInput.trim()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

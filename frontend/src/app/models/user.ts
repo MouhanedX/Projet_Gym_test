@@ -12,5 +12,6 @@ export interface User {
   gymId?: string;
   rating?: number;
   experienceYears?: number;
+  pointsFidelite?: number;
   createdAt?: string;
 }

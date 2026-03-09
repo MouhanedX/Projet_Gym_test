@@ -31,6 +31,7 @@ public class Gym {
     private Integer memberCount;
     private Double monthlyPrice;
     private Boolean isActive;
+    private Integer capacite;
     private Double latitude;
     private Double longitude;
     private Instant createdAt;
@@ -83,6 +84,9 @@ public class Gym {
 
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public Integer getCapacite() { return capacite; }
+    public void setCapacite(Integer capacite) { this.capacite = capacite; }
 
     public Double getLatitude() { return latitude; }
     public void setLatitude(Double latitude) { this.latitude = latitude; }
