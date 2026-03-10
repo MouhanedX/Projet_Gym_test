@@ -50,6 +50,11 @@ public class BookingController {
         return bookingRepository.findByCoachId(coachId);
     }
 
+    @GetMapping("/coach/{coachId}/reservations")
+    public List<Booking> getCoachReservations(@PathVariable String coachId) {
+        return bookingRepository.findByCoachIdAndType(coachId, "COACH_RESERVATION");
+    }
+
     @PostMapping
     public ResponseEntity<Booking> create(@Valid @RequestBody Booking booking) {
         booking.setCreatedAt(Instant.now());

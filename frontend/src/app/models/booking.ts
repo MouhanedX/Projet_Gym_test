@@ -11,6 +11,7 @@ export interface Booking {
   date?: string;
   timeSlot?: string;
   status?: string;
+  type?: string;
   notes?: string;
   createdAt?: string;
 }

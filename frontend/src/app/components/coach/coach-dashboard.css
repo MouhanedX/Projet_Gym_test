@@ -621,3 +621,43 @@ textarea.coach-input { min-height: 100px; resize: vertical; }
   .coach-main { padding: 16px; }
   .coach-stats-grid { grid-template-columns: 1fr; }
 }
+
+/* === RESERVATION CARDS === */
+.reservation-list { display: flex; flex-direction: column; gap: 12px; }
+.reservation-card {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-radius: 12px;
+  background: var(--card-bg, #fff); border: 1px solid var(--border, #e2e8f0);
+  transition: all 0.2s;
+}
+.reservation-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.reservation-info { display: flex; align-items: center; gap: 14px; }
+.reservation-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff; font-weight: 700; font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.reservation-details { display: flex; flex-direction: column; gap: 2px; }
+.reservation-name { font-weight: 700; font-size: 0.95rem; color: var(--text, #1e293b); }
+.reservation-date { font-size: 0.8rem; color: var(--text-2, #64748b); }
+.reservation-actions { display: flex; gap: 8px; }
+.btn-coach-accept {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+  font-weight: 600; font-size: 0.82rem;
+  background: #10b981; color: #fff;
+  transition: all 0.2s;
+}
+.btn-coach-accept:hover { background: #059669; }
+.btn-coach-reject {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+  font-weight: 600; font-size: 0.82rem;
+  background: #64748b; color: #fff;
+  transition: all 0.2s;
+}
+.btn-coach-reject:hover { background: #475569; }
+.reservation-accepted { border-left: 3px solid #10b981; }
+.reservation-rejected { border-left: 3px solid #94a3b8; opacity: 0.7; }
+.reservation-pending { border-left: 3px solid #f59e0b; }

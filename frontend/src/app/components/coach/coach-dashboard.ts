@@ -44,6 +44,7 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
   tabs = [
     { key: 'overview', label: 'Dashboard', icon: '📊' },
+    { key: 'demandes', label: 'Demandes', icon: '📩' },
     { key: 'programs', label: 'Programmes', icon: '🎯' },
     { key: 'schedule', label: 'Planning', icon: '📅' },
     { key: 'clients', label: 'Clients', icon: '👥' },
@@ -58,6 +59,9 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
   profileCity = '';
   profileSpecialties = '';
   profileExperience = 0;
+
+  // Coach reservations
+  coachReservations: Booking[] = [];
 
   constructor(
     private authService: AuthService,
@@ -96,6 +100,9 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
       });
       this.bookingService.getByCoach(this.user.id).subscribe({
         next: (b) => this.bookings = b
+      });
+      this.bookingService.getCoachReservations(this.user.id).subscribe({
+        next: (r) => this.coachReservations = r
       });
       this.loadConversations();
     }
@@ -228,8 +235,40 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
   get activePrograms(): Program[] { return this.programs.filter(p => p.isActive !== false); }
   get upcomingBookings(): Booking[] { return this.bookings.filter(b => b.status === 'CONFIRMED' || b.status === 'PENDING'); }
   get uniqueClients(): string[] {
-    const names = new Set(this.bookings.map(b => b.memberName).filter(Boolean));
-    return Array.from(names) as string[];
+    const names = new Set<string>();
+    // From program bookings
+    this.bookings.map(b => b.memberName).filter(Boolean).forEach(n => names.add(n!));
+    // From accepted coach reservations
+    this.coachReservations.filter(r => r.status === 'CONFIRMED').map(r => r.memberName).filter(Boolean).forEach(n => names.add(n!));
+    return Array.from(names);
+  }
+
+  get pendingReservations(): Booking[] {
+    return this.coachReservations.filter(r => r.status === 'PENDING');
+  }
+
+  get acceptedReservations(): Booking[] {
+    return this.coachReservations.filter(r => r.status === 'CONFIRMED');
+  }
+
+  acceptReservation(reservation: Booking): void {
+    if (!reservation.id) return;
+    this.bookingService.updateStatus(reservation.id, 'CONFIRMED').subscribe({
+      next: (updated) => {
+        const idx = this.coachReservations.findIndex(r => r.id === updated.id);
+        if (idx >= 0) this.coachReservations[idx] = updated;
+      }
+    });
+  }
+
+  rejectReservation(reservation: Booking): void {
+    if (!reservation.id) return;
+    this.bookingService.updateStatus(reservation.id, 'CANCELLED').subscribe({
+      next: (updated) => {
+        const idx = this.coachReservations.findIndex(r => r.id === updated.id);
+        if (idx >= 0) this.coachReservations[idx] = updated;
+      }
+    });
   }
 
   getTypeIcon(type?: string): string {

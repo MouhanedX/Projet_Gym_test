@@ -36,6 +36,9 @@ public class User {
     private Double rating;
     private Integer experienceYears; // For coaches
     private Integer pointsFidelite; // Loyalty points for members
+    private String address; // For members
+    private Double latitude;
+    private Double longitude;
     private Instant createdAt;
 
     // Getters and Setters
@@ -83,4 +86,13 @@ public class User {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
 }

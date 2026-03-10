@@ -80,4 +80,8 @@ export class AuthService {
     }
     this.currentUserSubject.next(user);
   }
+
+  updateStoredUser(user: User): void {
+    this.setUser(user);
+  }
 }

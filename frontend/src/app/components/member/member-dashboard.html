@@ -23,7 +23,7 @@
             <span class="points-value">{{ totalPoints | number }}</span>
           </div>
         </div>
-        <div class="user-profile-section">
+        <div class="user-profile-section" (click)="openProfileEdit()" style="cursor:pointer;" title="Modifier mon profil">
           <div class="user-avatar-circle">
             <img *ngIf="user?.avatar" [src]="user!.avatar" [alt]="user!.name">
             <span *ngIf="!user?.avatar">{{ user?.name?.charAt(0) || 'M' }}</span>
@@ -69,6 +69,26 @@
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
         <input type="text" [(ngModel)]="gymSearch" placeholder="Nom de la salle, ville..." class="member-search-input">
+      </div>
+
+      <!-- MAP DES SALLES -->
+      <div class="salles-map-section">
+        <div class="salles-map-header">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Carte des salles</span>
+          <button class="map-toggle-btn" (click)="toggleSallesMap()">
+            {{ showSallesMap ? 'Masquer' : 'Afficher' }}
+          </button>
+        </div>
+        <div *ngIf="showSallesMap" class="salles-map-wrapper">
+          <div class="map-no-address-banner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span *ngIf="!user?.latitude">Ajoutez votre adresse pour voir votre position sur la carte.</span>
+            <span *ngIf="user?.latitude">{{ user?.address || 'Position enregistrée' }}</span>
+            <button class="map-add-addr-btn" (click)="openProfileEdit()">{{ user?.latitude ? 'Modifier ma position' : 'Ajouter mon adresse' }}</button>
+          </div>
+          <div id="salles-map" class="salles-map-container"></div>
+        </div>
       </div>
 
       <div class="gym-list-horizontal" *ngIf="filteredGyms.length">
@@ -137,6 +157,42 @@
       <h1 class="member-page-title">Trouver un coach</h1>
       <p class="member-subtitle">Consultez nos coachs certifiés et démarrez une discussion</p>
 
+      <!-- MON COACH -->
+      <div class="my-coach-section" *ngIf="myCoaches.length">
+        <div class="my-coach-header">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Mon Coach</span>
+        </div>
+        <div class="my-coach-grid">
+          <div class="my-coach-card" *ngFor="let c of myCoaches">
+            <div class="my-coach-avatar">
+              <img *ngIf="c.avatar" [src]="c.avatar" [alt]="c.name">
+              <span *ngIf="!c.avatar">{{ c.name.charAt(0) }}</span>
+            </div>
+            <div class="my-coach-info">
+              <div class="my-coach-name">{{ c.name }}</div>
+              <div class="my-coach-meta">
+                <span *ngIf="c.specialties?.length">{{ c.specialties!.join(', ') }}</span>
+                <span *ngIf="c.city">{{ c.city }}</span>
+              </div>
+              <div class="my-coach-rating" *ngIf="c.rating">
+                <span class="rating-text">{{ c.rating }}/5</span>
+              </div>
+            </div>
+            <div class="my-coach-actions">
+              <button class="coach-btn-profile" (click)="openCoachProfile(c)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profil
+              </button>
+              <button class="coach-btn-message" (click)="openCoachProfile(c); openConversationWithCoach(c)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Message
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="member-search-bar">
         <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -164,13 +220,19 @@
             <span *ngIf="c.city">📍 {{ c.city }}</span>
           </div>
           <div class="coach-card-actions">
-            <button class="coach-btn-profile" (click)="openCoachProfile(c)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Voir profil
-            </button>
-            <button class="coach-btn-message" (click)="openCoachProfile(c); openConversationWithCoach(c)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Message
+            <div class="coach-card-actions-row">
+              <button class="coach-btn-profile" (click)="openCoachProfile(c)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Voir profil
+              </button>
+              <button class="coach-btn-message" (click)="openCoachProfile(c); openConversationWithCoach(c)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Message
+              </button>
+            </div>
+            <button class="coach-btn-reserve" (click)="reserveCoach(c)" [disabled]="isCoachReserved(c)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              {{ isCoachReserved(c) ? 'Demande envoyée' : 'Réserver' }}
             </button>
           </div>
         </div>
@@ -1079,4 +1141,69 @@
       </div>
     </div>
   </div>
+
 </div>
+
+<!-- PROFILE EDIT MODAL (outside member-layout to avoid z-index stacking context issues) -->
+<div class="modal-overlay" *ngIf="showProfileEdit" (click)="closeProfileEdit()">
+  <div class="profile-edit-modal" (click)="$event.stopPropagation()">
+    <div class="profile-edit-header">
+      <h2>Mon Profil</h2>
+        <button class="close-modal-btn" (click)="closeProfileEdit()">&times;</button>
+      </div>
+      <div class="profile-edit-body">
+        <div class="profile-edit-avatar">
+          <div class="profile-avatar-big">
+            <img *ngIf="user?.avatar" [src]="user!.avatar" [alt]="user!.name">
+            <span *ngIf="!user?.avatar">{{ user?.name?.charAt(0) || 'M' }}</span>
+          </div>
+          <span class="profile-name-big">{{ user?.name }}</span>
+          <span class="profile-email">{{ user?.email }}</span>
+        </div>
+
+        <div class="profile-form-group">
+          <label>Nom complet</label>
+          <input type="text" [(ngModel)]="profileName" placeholder="Votre nom">
+        </div>
+        <div class="profile-form-group">
+          <label>Téléphone</label>
+          <div class="profile-phone-wrapper">
+            <span class="phone-prefix-sm">+216</span>
+            <input type="tel" [(ngModel)]="profilePhone" placeholder="Votre téléphone" maxlength="8">
+          </div>
+        </div>
+        <div class="profile-form-group">
+          <label>Ville</label>
+          <input type="text" [(ngModel)]="profileCity" placeholder="Votre ville">
+        </div>
+        <div class="profile-form-group">
+          <label>Adresse</label>
+          <div class="profile-address-wrapper">
+            <input type="text" [(ngModel)]="profileAddress" placeholder="Votre adresse (ex: Lac 2, Tunis)" (keydown.enter)="$event.preventDefault(); searchProfileAddress()">
+            <button type="button" class="profile-search-addr-btn" (click)="searchProfileAddress()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Localiser
+            </button>
+          </div>
+          <p class="profile-map-hint">Cliquez sur la carte ou glissez le marqueur pour choisir votre emplacement</p>
+          <div id="profile-map" class="profile-map-container"></div>
+          <div class="profile-coords" *ngIf="profileLat && profileLng">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>{{ profileAddress || (profileLat + ', ' + profileLng) }}</span>
+          </div>
+        </div>
+        <div class="profile-form-group">
+          <label>Bio</label>
+          <textarea [(ngModel)]="profileBio" placeholder="Quelques mots sur vous..." rows="3"></textarea>
+        </div>
+
+        <div class="profile-edit-error" *ngIf="profileError">{{ profileError }}</div>
+        <div class="profile-edit-success" *ngIf="profileSuccess">{{ profileSuccess }}</div>
+
+        <button class="profile-save-btn" (click)="saveProfile()" [disabled]="savingProfile">
+          <span *ngIf="savingProfile" class="spinner-sm"></span>
+          {{ savingProfile ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </div>
+  </div>

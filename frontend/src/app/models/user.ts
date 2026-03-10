@@ -13,5 +13,8 @@ export interface User {
   rating?: number;
   experienceYears?: number;
   pointsFidelite?: number;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
   createdAt?: string;
 }

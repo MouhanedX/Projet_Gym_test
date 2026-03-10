@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, AfterViewChecked, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -30,6 +30,7 @@ import { GymBuddy } from '../../models/gym-buddy';
 import { Conversation } from '../../models/conversation';
 import { Message } from '../../models/message';
 import { Challenge, ChallengeStep, StepExercise } from '../../models/challenge';
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-member-dashboard',
@@ -38,7 +39,7 @@ import { Challenge, ChallengeStep, StepExercise } from '../../models/challenge';
   templateUrl: './member-dashboard.html',
   styleUrl: './member-dashboard.css'
 })
-export class MemberDashboard implements OnInit, OnDestroy {
+export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   user: User | null = null;
   activeTab = 'salles';
   gyms: Gym[] = [];
@@ -122,6 +123,7 @@ export class MemberDashboard implements OnInit, OnDestroy {
   selectedCoach: User | null = null;
   showCoachProfile = false;
   showChatPanel = false;
+  coachReservations: Booking[] = [];
   currentConversation: Conversation | null = null;
   conversationMessages: Message[] = [];
   chatMessageInput = '';
@@ -151,6 +153,29 @@ export class MemberDashboard implements OnInit, OnDestroy {
   workoutMood = 'GOOD';
   workoutNotes = '';
   exercises: Exercise[] = [{ name: '', sets: 3, reps: 10, weight: 0 }];
+
+  // Profile edit
+  showProfileEdit = false;
+  profileName = '';
+  profilePhone = '';
+  profileCity = '';
+  profileAddress = '';
+  profileBio = '';
+  profileLat: number | null = null;
+  profileLng: number | null = null;
+  savingProfile = false;
+  profileError = '';
+  profileSuccess = '';
+  private profileMap: L.Map | null = null;
+  private profileMarker: L.Marker | null = null;
+  private profileMapInitialized = false;
+  private needsProfileMapInit = false;
+
+  // Salles map
+  showSallesMap = true;
+  private sallesMap: L.Map | null = null;
+  private sallesMapInitialized = false;
+  private needsSallesMapInit = false;
 
   tabs = [
     { key: 'wallet', label: 'Wallet', icon: 'wallet' },
@@ -188,7 +213,8 @@ export class MemberDashboard implements OnInit, OnDestroy {
     private conversationService: ConversationService,
     private challengeService: ChallengeService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
@@ -196,6 +222,28 @@ export class MemberDashboard implements OnInit, OnDestroy {
     this.loadData();
     this.bookingDate = new Date().toISOString().split('T')[0];
     this.workoutDate = new Date().toISOString().split('T')[0];
+    this.needsSallesMapInit = true;
+    // Auto-geocode address if lat/lng missing
+    if (this.user?.address && (!this.user.latitude || !this.user.longitude)) {
+      this.geocodeUserAddress(this.user.address);
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.needsProfileMapInit && !this.profileMapInitialized) {
+      const container = document.getElementById('profile-map');
+      if (container) {
+        this.initProfileMap();
+        this.needsProfileMapInit = false;
+      }
+    }
+    if (this.needsSallesMapInit && !this.sallesMapInitialized && this.activeTab === 'salles' && this.showSallesMap) {
+      const container = document.getElementById('salles-map');
+      if (container) {
+        this.initSallesMap();
+        this.needsSallesMapInit = false;
+      }
+    }
   }
 
   loadData(): void {
@@ -206,12 +254,17 @@ export class MemberDashboard implements OnInit, OnDestroy {
     this.recompenseService.list().subscribe({ next: r => this.recompenses = r, error: () => {} });
     if (this.user?.id) {
       this.workoutService.getByMember(this.user.id).subscribe({ next: w => this.workouts = w, error: () => {} });
-      this.bookingService.getByMember(this.user.id).subscribe({ next: b => this.bookings = b, error: () => {} });
       this.paiementService.getByClient(this.user.id).subscribe({ next: p => this.paiements = p, error: () => {} });
       this.echangeService.getByClient(this.user.id).subscribe({ next: e => this.echanges = e, error: () => {} });
       this.gymBuddyService.getMyPosts(this.user.id).subscribe({ next: b => this.myBuddyPosts = b, error: () => {} });
       this.gymBuddyService.getOthersPosts(this.user.id).subscribe({ next: b => this.othersBuddyPosts = b, error: () => {} });
       this.challengeService.getByClient(this.user.id).subscribe({ next: c => this.challenges = c, error: () => {} });
+      this.bookingService.getByMember(this.user.id).subscribe({
+        next: b => {
+          this.bookings = b;
+          this.coachReservations = b.filter(bk => bk.type === 'COACH_RESERVATION');
+        }, error: () => {}
+      });
       this.inscriptionService.getByClient(this.user.id).subscribe({
         next: i => { this.inscriptions = i; this.loading = false; },
         error: () => { this.loading = false; }
@@ -223,6 +276,51 @@ export class MemberDashboard implements OnInit, OnDestroy {
 
   setTab(tab: string): void {
     this.activeTab = tab;
+    if (tab === 'salles' && this.showSallesMap && !this.sallesMapInitialized) {
+      this.needsSallesMapInit = true;
+    }
+  }
+
+  private geocodeUserAddress(address: string): void {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+    fetch(url)
+      .then(res => res.json())
+      .then((results: any[]) => {
+        if (results && results.length > 0) {
+          const lat = parseFloat(results[0].lat);
+          const lng = parseFloat(results[0].lon);
+          if (this.user?.id) {
+            this.userService.update(this.user.id, { latitude: lat, longitude: lng }).subscribe({
+              next: (updated) => {
+                if (this.user) {
+                  this.user.latitude = lat;
+                  this.user.longitude = lng;
+                  this.authService.updateStoredUser(this.user);
+                }
+                // Refresh salles map with new coordinates
+                if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
+                this.sallesMapInitialized = false;
+                this.needsSallesMapInit = true;
+                this.cdr.detectChanges();
+              }
+            });
+          }
+        }
+      })
+      .catch(() => {});
+  }
+
+  toggleSallesMap(): void {
+    this.showSallesMap = !this.showSallesMap;
+    if (this.showSallesMap) {
+      // Destroy old map if it exists
+      if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
+      this.sallesMapInitialized = false;
+      this.needsSallesMapInit = true;
+    } else {
+      if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
+      this.sallesMapInitialized = false;
+    }
   }
 
   toggleDark(): void {
@@ -252,6 +350,13 @@ export class MemberDashboard implements OnInit, OnDestroy {
     if (!this.coachSearch) return this.coaches;
     const q = this.coachSearch.toLowerCase();
     return this.coaches.filter(c => c.name.toLowerCase().includes(q) || c.specialties?.some(s => s.toLowerCase().includes(q)));
+  }
+
+  get myCoaches(): User[] {
+    const acceptedCoachIds = this.coachReservations
+      .filter(r => r.status === 'CONFIRMED')
+      .map(r => r.coachId);
+    return this.coaches.filter(c => acceptedCoachIds.includes(c.id));
   }
 
   get filteredPrograms(): Program[] {
@@ -753,6 +858,30 @@ export class MemberDashboard implements OnInit, OnDestroy {
     this.showChatPanel = false;
   }
 
+  isCoachReserved(coach: User): boolean {
+    return this.coachReservations.some(b => b.coachId === coach.id && b.status !== 'CANCELLED');
+  }
+
+  reserveCoach(coach: User): void {
+    if (!this.user?.id || !coach.id || this.isCoachReserved(coach)) return;
+    const booking: Booking = {
+      memberId: this.user.id,
+      memberName: this.user.name,
+      programId: 'COACH_RESERVATION',
+      coachId: coach.id,
+      coachName: coach.name,
+      type: 'COACH_RESERVATION',
+      status: 'PENDING',
+      notes: `Demande de réservation du coach ${coach.name}`
+    };
+    this.bookingService.create(booking).subscribe({
+      next: (b) => {
+        this.coachReservations.push(b);
+        this.bookings.push(b);
+      }
+    });
+  }
+
   closeCoachProfile(): void {
     this.showCoachProfile = false;
     this.selectedCoach = null;
@@ -876,6 +1005,8 @@ export class MemberDashboard implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopChatPolling();
+    if (this.profileMap) { this.profileMap.remove(); this.profileMap = null; }
+    if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
   }
 
   // === CHALLENGE METHODS ===
@@ -1054,5 +1185,226 @@ export class MemberDashboard implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/']);
+  }
+
+  // === PROFILE EDIT ===
+  openProfileEdit(): void {
+    this.showProfileEdit = true;
+    this.profileName = this.user?.name || '';
+    this.profilePhone = this.user?.phone || '';
+    this.profileCity = this.user?.city || '';
+    this.profileAddress = this.user?.address || '';
+    this.profileBio = this.user?.bio || '';
+    this.profileLat = this.user?.latitude || null;
+    this.profileLng = this.user?.longitude || null;
+    this.profileError = '';
+    this.profileSuccess = '';
+    if (this.profileMap) { this.profileMap.remove(); this.profileMap = null; }
+    this.profileMapInitialized = false;
+    this.needsProfileMapInit = false;
+    // Wait for modal DOM to render, then init map
+    setTimeout(() => {
+      this.needsProfileMapInit = true;
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        const container = document.getElementById('profile-map');
+        if (container && !this.profileMapInitialized) {
+          this.initProfileMap();
+        }
+      }, 100);
+    }, 50);
+  }
+
+  closeProfileEdit(): void {
+    this.showProfileEdit = false;
+    if (this.profileMap) { this.profileMap.remove(); this.profileMap = null; this.profileMapInitialized = false; }
+  }
+
+  private initProfileMap(): void {
+    if (this.profileMapInitialized) return;
+    const lat = this.profileLat || 36.8065;
+    const lng = this.profileLng || 10.1815;
+
+    const iconDefault = L.icon({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    });
+
+    this.profileMap = L.map('profile-map', { center: [lat, lng], zoom: 13 });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(this.profileMap);
+
+    this.profileMarker = L.marker([lat, lng], { icon: iconDefault, draggable: true }).addTo(this.profileMap);
+
+    this.profileMap.on('click', (e: L.LeafletMouseEvent) => {
+      this.ngZone.run(() => {
+        this.profileLat = parseFloat(e.latlng.lat.toFixed(6));
+        this.profileLng = parseFloat(e.latlng.lng.toFixed(6));
+        this.profileMarker?.setLatLng(e.latlng);
+        this.reverseGeocodeProfile(this.profileLat, this.profileLng);
+        this.cdr.detectChanges();
+      });
+    });
+
+    this.profileMarker.on('dragend', () => {
+      this.ngZone.run(() => {
+        const pos = this.profileMarker!.getLatLng();
+        this.profileLat = parseFloat(pos.lat.toFixed(6));
+        this.profileLng = parseFloat(pos.lng.toFixed(6));
+        this.reverseGeocodeProfile(this.profileLat, this.profileLng);
+        this.cdr.detectChanges();
+      });
+    });
+
+    this.profileMapInitialized = true;
+    setTimeout(() => {
+      this.profileMap?.invalidateSize();
+    }, 300);
+  }
+
+  searchProfileAddress(): void {
+    const query = this.profileAddress || this.profileCity;
+    if (!query) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+      .then(r => r.json())
+      .then(results => {
+        this.ngZone.run(() => {
+          if (results.length > 0) {
+            const { lat, lon } = results[0];
+            this.profileLat = parseFloat(parseFloat(lat).toFixed(6));
+            this.profileLng = parseFloat(parseFloat(lon).toFixed(6));
+            const latlng = L.latLng(this.profileLat, this.profileLng);
+            this.profileMarker?.setLatLng(latlng);
+            this.profileMap?.setView(latlng, 15);
+            this.reverseGeocodeProfile(this.profileLat, this.profileLng);
+            this.cdr.detectChanges();
+          }
+        });
+      })
+      .catch(() => {});
+  }
+
+  private reverseGeocodeProfile(lat: number, lng: number): void {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+      .then(r => r.json())
+      .then(result => {
+        this.ngZone.run(() => {
+          if (result.address) {
+            const a = result.address;
+            this.profileAddress = result.display_name?.split(',').slice(0, 3).join(',').trim() || this.profileAddress;
+            this.profileCity = a.city || a.town || a.village || a.state || this.profileCity;
+            this.cdr.detectChanges();
+          }
+        });
+      })
+      .catch(() => {});
+  }
+
+  saveProfile(): void {
+    if (!this.user?.id) return;
+    this.savingProfile = true;
+    this.profileError = '';
+    this.profileSuccess = '';
+
+    const updates: Partial<User> = {
+      name: this.profileName,
+      phone: this.profilePhone,
+      city: this.profileCity,
+      address: this.profileAddress,
+      bio: this.profileBio,
+      latitude: this.profileLat ?? undefined,
+      longitude: this.profileLng ?? undefined
+    };
+
+    this.userService.update(this.user.id, updates).subscribe({
+      next: (updated) => {
+        this.savingProfile = false;
+        this.profileSuccess = 'Profil mis à jour avec succès !';
+        // Update local user
+        if (this.user) {
+          this.user.name = updated.name;
+          this.user.phone = updated.phone;
+          this.user.city = updated.city;
+          this.user.address = updated.address;
+          this.user.bio = updated.bio;
+          this.user.latitude = updated.latitude;
+          this.user.longitude = updated.longitude;
+        }
+        this.authService.updateStoredUser(this.user!);
+        // Refresh salles map if address was added
+        if (updated.latitude && updated.longitude) {
+          this.sallesMapInitialized = false;
+          if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
+          this.needsSallesMapInit = true;
+        }
+        // Close modal after short delay so user sees success message
+        setTimeout(() => {
+          this.closeProfileEdit();
+          this.cdr.detectChanges();
+        }, 800);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.savingProfile = false;
+        this.profileError = 'Erreur lors de la mise à jour du profil.';
+      }
+    });
+  }
+
+  // === SALLES MAP ===
+  private initSallesMap(): void {
+    if (this.sallesMapInitialized) return;
+    const userLat = this.user?.latitude || 36.8065;
+    const userLng = this.user?.longitude || 10.1815;
+
+    const iconDefault = L.icon({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    });
+
+    const gymIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    });
+
+    this.sallesMap = L.map('salles-map', { center: [userLat, userLng], zoom: 12 });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(this.sallesMap);
+
+    // User marker
+    if (this.user?.latitude && this.user?.longitude) {
+      L.marker([this.user.latitude, this.user.longitude], { icon: iconDefault })
+        .addTo(this.sallesMap)
+        .bindPopup(`<strong>Ma position</strong><br>${this.user.address || ''}`);
+    }
+
+    // Gym markers
+    const bounds: L.LatLngExpression[] = [];
+    if (this.user?.latitude && this.user?.longitude) {
+      bounds.push([this.user.latitude, this.user.longitude]);
+    }
+
+    for (const gym of this.gyms) {
+      if (gym.latitude && gym.longitude) {
+        const marker = L.marker([gym.latitude, gym.longitude], { icon: gymIcon })
+          .addTo(this.sallesMap)
+          .bindPopup(`<strong>${gym.name}</strong><br>${gym.address || ''}<br>${gym.monthlyPrice ? gym.monthlyPrice + ' DT/mois' : ''}`);
+        bounds.push([gym.latitude, gym.longitude]);
+      }
+    }
+
+    if (bounds.length > 1) {
+      this.sallesMap.fitBounds(L.latLngBounds(bounds as L.LatLngTuple[]).pad(0.1));
+    }
+
+    this.sallesMapInitialized = true;
+    setTimeout(() => this.sallesMap?.invalidateSize(), 200);
   }
 }

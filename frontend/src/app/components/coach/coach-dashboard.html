@@ -79,6 +79,15 @@
         </svg>
         Dashboard
       </button>
+      <button class="coach-nav-btn" [class.active]="activeTab === 'demandes'" (click)="setTab('demandes')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          <path d="M9 16l2 2 4-4"/>
+        </svg>
+        Demandes
+        <span class="coach-nav-badge" *ngIf="pendingReservations.length > 0">{{ pendingReservations.length }}</span>
+      </button>
       <button class="coach-nav-btn" [class.active]="activeTab === 'programs'" (click)="setTab('programs')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/>
@@ -244,6 +253,79 @@
               <div class="coach-alert-title">Aucun programme assigné</div>
               <div class="coach-alert-desc">Contactez le propriétaire de la salle pour être assigné à des programmes</div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEMANDES DE RESERVATION -->
+    <div *ngIf="activeTab === 'demandes' && !loading">
+      <div class="coach-page-header">
+        <div>
+          <h1 class="coach-page-title">Demandes de Réservation</h1>
+          <p class="coach-subtitle">Les athlètes souhaitant réserver vos services</p>
+        </div>
+      </div>
+
+      <!-- Pending requests -->
+      <div class="coach-section" style="margin-bottom:24px">
+        <div class="coach-section-header">
+          <span class="coach-section-title">En attente</span>
+          <span style="font-size:0.8rem;color:var(--text-2)">{{ pendingReservations.length }} demande(s)</span>
+        </div>
+        <div class="coach-section-body">
+          <div class="reservation-list" *ngIf="pendingReservations.length">
+            <div class="reservation-card" *ngFor="let r of pendingReservations">
+              <div class="reservation-info">
+                <div class="reservation-avatar">{{ r.memberName?.charAt(0) || '?' }}</div>
+                <div class="reservation-details">
+                  <div class="reservation-name">{{ r.memberName }}</div>
+                  <div class="reservation-date">Reçue le {{ r.createdAt | date:'dd/MM/yyyy à HH:mm' }}</div>
+                </div>
+              </div>
+              <div class="reservation-actions">
+                <button class="btn-coach-accept" (click)="acceptReservation(r)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Accepter
+                </button>
+                <button class="btn-coach-reject" (click)="rejectReservation(r)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Refuser
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="coach-empty" style="padding:24px" *ngIf="!pendingReservations.length">
+            <span class="coach-empty-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
+            </span>
+            <p>Aucune demande en attente.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accepted requests history -->
+      <div class="coach-section">
+        <div class="coach-section-header">
+          <span class="coach-section-title">Historique des demandes</span>
+        </div>
+        <div class="coach-section-body">
+          <div class="reservation-list" *ngIf="coachReservations.length">
+            <div class="reservation-card" *ngFor="let r of coachReservations" [ngClass]="{'reservation-accepted': r.status === 'CONFIRMED', 'reservation-rejected': r.status === 'CANCELLED', 'reservation-pending': r.status === 'PENDING'}">
+              <div class="reservation-info">
+                <div class="reservation-avatar">{{ r.memberName?.charAt(0) || '?' }}</div>
+                <div class="reservation-details">
+                  <div class="reservation-name">{{ r.memberName }}</div>
+                  <div class="reservation-date">{{ r.createdAt | date:'dd/MM/yyyy à HH:mm' }}</div>
+                </div>
+              </div>
+              <span class="coach-badge" [ngClass]="{'confirmed': r.status==='CONFIRMED', 'cancelled': r.status==='CANCELLED', 'pending': r.status==='PENDING'}">
+                {{ r.status === 'CONFIRMED' ? 'Acceptée' : r.status === 'CANCELLED' ? 'Refusée' : 'En attente' }}
+              </span>
+            </div>
+          </div>
+          <div class="coach-empty" style="padding:24px" *ngIf="!coachReservations.length">
+            <p>Aucune demande reçue.</p>
           </div>
         </div>
       </div>

@@ -26,6 +26,7 @@ public class Booking {
     private String date;
     private String timeSlot;
     private String status; // PENDING, CONFIRMED, CANCELLED, COMPLETED
+    private String type; // PROGRAM, COACH_RESERVATION
     private String notes;
     private Instant createdAt;
 
@@ -65,6 +66,9 @@ public class Booking {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }

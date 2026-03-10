@@ -29,6 +29,7 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   phone = '';
   showPassword = false;
   showConfirmPassword = false;
+  memberAddress = '';
 
   // Gym fields (owner only)
   gymName = '';
@@ -276,7 +277,8 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
         email: this.email,
         password: this.password,
         role: this.selectedRole as 'MEMBER' | 'OWNER' | 'COACH',
-        phone: this.phone
+        phone: this.phone,
+        address: this.selectedRole === 'MEMBER' && this.memberAddress ? this.memberAddress : undefined
       };
 
       this.authService.register(user).pipe(

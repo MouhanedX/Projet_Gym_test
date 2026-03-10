@@ -115,6 +115,16 @@
         </div>
       </div>
 
+      <div class="form-group" *ngIf="!isLogin && selectedRole === 'MEMBER'">
+        <label for="memberAddress">Address</label>
+        <div class="input-wrapper">
+          <span class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </span>
+          <input id="memberAddress" type="text" [(ngModel)]="memberAddress" name="memberAddress" placeholder="Enter your address (e.g. Lac 2, Tunis)">
+        </div>
+      </div>
+
       <button type="submit" class="submit-btn" [disabled]="loading">
         <span class="spinner" *ngIf="loading"></span>
         <ng-container *ngIf="!loading">
