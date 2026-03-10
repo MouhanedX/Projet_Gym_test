@@ -8,11 +8,13 @@ import { ProgramService } from '../../services/program.service';
 import { BookingService } from '../../services/booking.service';
 import { UserService } from '../../services/user.service';
 import { InscriptionService } from '../../services/inscription.service';
+import { PaiementService } from '../../services/paiement.service';
 import { User } from '../../models/user';
 import { Gym } from '../../models/gym';
 import { Program } from '../../models/program';
 import { Booking } from '../../models/booking';
 import { Inscription } from '../../models/inscription';
+import { Paiement } from '../../models/paiement';
 
 @Component({
   selector: 'app-owner-dashboard',
@@ -29,6 +31,7 @@ export class OwnerDashboard implements OnInit {
   bookings: Booking[] = [];
   coaches: User[] = [];
   inscriptions: Inscription[] = [];
+  paiements: Paiement[] = [];
   loading = true;
   darkMode = false;
   bookingFilter = '';
@@ -42,6 +45,8 @@ export class OwnerDashboard implements OnInit {
     { month: 'Jan', value: '11.8k', height: 162 },
     { month: 'Fév', value: '12.4k', height: 170 },
   ];
+
+  subscriberFilter = '';
 
   // Gym form
   showGymForm = false;
@@ -88,6 +93,7 @@ export class OwnerDashboard implements OnInit {
     private bookingService: BookingService,
     private userService: UserService,
     private inscriptionService: InscriptionService,
+    private paiementService: PaiementService,
     private router: Router
   ) {}
 
@@ -107,6 +113,7 @@ export class OwnerDashboard implements OnInit {
             this.bookingService.getByGym(this.gym.id).subscribe({ next: b => this.bookings = b });
             this.userService.getCoachesByGym(this.gym.id).subscribe({ next: c => this.coaches = c });
             this.inscriptionService.getBySalle(this.gym.id).subscribe({ next: i => this.inscriptions = i, error: () => {} });
+            this.paiementService.getBySalle(this.gym.id).subscribe({ next: p => this.paiements = p, error: () => {} });
           }
           this.loading = false;
         },
@@ -262,11 +269,19 @@ export class OwnerDashboard implements OnInit {
 
   // === COMPUTED ===
   get pendingBookings(): Booking[] { return this.bookings.filter(b => b.status === 'PENDING'); }
-  get totalRevenue(): number { return this.programs.reduce((sum, p) => sum + ((p.price || 0) * (p.enrolledCount || 0)), 0); }
+  get totalRevenue(): number { return this.paiements.filter(p => p.statut === 'CONFIRME').reduce((sum, p) => sum + (p.montant || 0), 0); }
+  get activeMembers(): number { return this.inscriptions.filter(i => i.statut === 'ACCEPTEE').length; }
   get totalEnrolled(): number { return this.programs.reduce((sum, p) => sum + (p.enrolledCount || 0), 0); }
   get filteredBookings(): Booking[] { return this.bookingFilter ? this.bookings.filter(b => b.status === this.bookingFilter) : this.bookings; }
   get pendingInscriptions(): Inscription[] { return this.inscriptions.filter(i => i.statut === 'EN_ATTENTE'); }
   get filteredInscriptions(): Inscription[] { return this.inscriptionFilter ? this.inscriptions.filter(i => i.statut === this.inscriptionFilter) : this.inscriptions; }
+  get acceptedInscriptions(): Inscription[] { return this.inscriptions.filter(i => i.statut === 'ACCEPTEE'); }
+  get filteredSubscribers(): Inscription[] {
+    const accepted = this.acceptedInscriptions;
+    if (!this.subscriberFilter) return accepted;
+    if (this.subscriberFilter === 'PAYE') return accepted.filter(i => i.paiementStatut === 'PAYE');
+    return accepted.filter(i => i.paiementStatut !== 'PAYE');
+  }
 
   acceptInscription(id: string): void {
     this.inscriptionService.updateStatut(id, 'ACCEPTEE').subscribe({
@@ -301,6 +316,11 @@ export class OwnerDashboard implements OnInit {
   getTypeIcon(type?: string): string {
     const icons: Record<string, string> = { STRENGTH: '🏋️', CARDIO: '🏃', YOGA: '🧘', HIIT: '⚡', CROSSFIT: '💥', BOXING: '🥊', SWIMMING: '🏊', MARTIAL_ARTS: '🥋' };
     return icons[type || ''] || '💪';
+  }
+
+  parseHours(hours?: string): string[] {
+    if (!hours) return ['N/A'];
+    return hours.split(',').map(h => h.trim()).filter(h => h);
   }
 
   getDifficultyColor(d?: string): string {

@@ -7,4 +7,5 @@ export interface Inscription {
   proprietaireId?: string;
   dateDemande?: string;
   statut?: string; // EN_ATTENTE, ACCEPTEE, REFUSEE
+  paiementStatut?: string; // NON_PAYE, PAYE
 }

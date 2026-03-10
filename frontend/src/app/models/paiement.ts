@@ -5,6 +5,10 @@ export interface Paiement {
   clientName?: string;
   montant: number;
   datePaiement?: string;
-  statut?: string; // EN_ATTENTE, CONFIRME, ECHOUE
+  statut?: string; // CONFIRME, ECHOUE
   methode?: string; // CARTE, ESPECES, VIREMENT
+  cardLast4?: string;
+  cardHolder?: string;
+  salleId?: string;
+  salleName?: string;
 }

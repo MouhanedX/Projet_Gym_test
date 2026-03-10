@@ -702,7 +702,7 @@ textarea.owner-input { min-height: 100px; resize: vertical; }
 
 .owner-gym-stats-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr 1fr 2fr 1fr;
   gap: 16px;
   margin-top: 24px;
 }
@@ -721,6 +721,21 @@ textarea.owner-input { min-height: 100px; resize: vertical; }
   font-size: 0.75rem;
   color: var(--text-2);
   margin-top: 4px;
+}
+
+.owner-gym-stat-hours {
+  grid-column: span 1;
+}
+.owner-hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.owner-hour-line {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.5;
 }
 
 .owner-amenities {

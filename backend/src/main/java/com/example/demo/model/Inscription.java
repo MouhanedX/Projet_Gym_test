@@ -16,6 +16,7 @@ public class Inscription {
     private String proprietaireId;
     private Instant dateDemande;
     private String statut; // EN_ATTENTE, ACCEPTEE, REFUSEE
+    private String paiementStatut; // NON_PAYE, PAYE
 
     // Getters and Setters
     public String getId() { return id; }
@@ -41,4 +42,7 @@ public class Inscription {
 
     public String getStatut() { return statut; }
     public void setStatut(String statut) { this.statut = statut; }
+
+    public String getPaiementStatut() { return paiementStatut; }
+    public void setPaiementStatut(String paiementStatut) { this.paiementStatut = paiementStatut; }
 }

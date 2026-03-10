@@ -7,11 +7,16 @@ com\example\demo\controller\AuthController.class
 com\example\demo\controller\GymController.class
 com\example\demo\repository\MessageRepository.class
 com\example\demo\controller\RecompenseController.class
+com\example\demo\model\Challenge.class
 com\example\demo\controller\AvisController.class
 com\example\demo\repository\ProgramRepository.class
+com\example\demo\model\Challenge$ChallengeStep.class
 com\example\demo\repository\BookingRepository.class
+com\example\demo\repository\ChallengeRepository.class
 com\example\demo\model\Exercise.class
+com\example\demo\controller\ChallengeController.class
 com\example\demo\repository\UserRepository.class
+com\example\demo\model\Challenge$StepExercise.class
 com\example\demo\controller\UserController.class
 com\example\demo\controller\WorkoutController.class
 com\example\demo\model\Gym.class

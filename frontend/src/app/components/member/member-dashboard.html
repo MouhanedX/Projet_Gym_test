@@ -51,6 +51,7 @@
         <svg *ngIf="tab.icon === 'salles'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <svg *ngIf="tab.icon === 'coachs'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <svg *ngIf="tab.icon === 'paiements'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+        <svg *ngIf="tab.icon === 'challenges'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         {{ tab.label }}
       </button>
     </nav>
@@ -489,40 +490,351 @@
 
     <!-- ==================== PAIEMENTS ==================== -->
     <div *ngIf="activeTab === 'paiements' && !loading" class="tab-content">
-      <h1 class="member-page-title">Mes Paiements</h1>
-
-      <div class="paiements-summary">
-        <div class="paiement-stat-card">
-          <span class="paiement-stat-icon">✅</span>
-          <span class="paiement-stat-value">{{ confirmedPaiements.length }}</span>
-          <span class="paiement-stat-label">Confirmés</span>
-        </div>
-        <div class="paiement-stat-card pending-card">
-          <span class="paiement-stat-icon">⏳</span>
-          <span class="paiement-stat-value">{{ pendingPaiements.length }}</span>
-          <span class="paiement-stat-label">En attente</span>
-        </div>
+      <div class="paiements-header">
+        <h1 class="member-page-title">Mes Paiements</h1>
+        <button class="pay-btn-primary" (click)="openPaymentForm()" *ngIf="!showPaymentForm">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouveau paiement
+        </button>
       </div>
 
-      <div class="eg-list" *ngIf="paiements.length">
-        <div class="eg-list-item" *ngFor="let p of paiements">
-          <div class="eg-list-left">
-            <div class="eg-list-icon">{{ getPaymentMethodIcon(p.methode) }}</div>
-            <div class="eg-list-info">
-              <div class="eg-list-title">{{ p.montant | number:'1.2-2' }} €</div>
-              <div class="eg-list-meta">{{ p.datePaiement }} — {{ p.methode || 'N/A' }}</div>
+      <!-- PAYMENT FORM -->
+      <div class="payment-form-card" *ngIf="showPaymentForm">
+        <div class="payment-form-header">
+          <h2 class="payment-form-title">Effectuer un paiement</h2>
+          <button class="payment-close-btn" (click)="closePaymentForm()">✕</button>
+        </div>
+
+        <!-- Card visual preview -->
+        <div class="card-preview">
+          <div class="card-preview-inner">
+            <div class="card-chip"></div>
+            <div class="card-number-preview">{{ cardNumber || '•••• •••• •••• ••••' }}</div>
+            <div class="card-bottom-row">
+              <div class="card-holder-preview">
+                <span class="card-label">TITULAIRE</span>
+                <span class="card-value">{{ cardHolder || 'NOM PRÉNOM' }}</span>
+              </div>
+              <div class="card-expiry-preview">
+                <span class="card-label">EXPIRE</span>
+                <span class="card-value">{{ cardExpiry || 'MM/AA' }}</span>
+              </div>
             </div>
           </div>
-          <div class="eg-list-right">
-            <span class="eg-badge" [ngClass]="{'confirmed': p.statut==='CONFIRME', 'pending': p.statut==='EN_ATTENTE', 'cancelled': p.statut==='ECHOUE'}">
-              {{ p.statut }}
-            </span>
+        </div>
+
+        <div class="payment-form-body">
+          <!-- Salle selection -->
+          <div class="pay-field" *ngIf="unpaidInscriptions.length">
+            <label class="pay-label">Salle</label>
+            <div class="pay-input-wrapper">
+              <span class="pay-input-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              </span>
+              <select class="pay-input" [(ngModel)]="selectedInscriptionId">
+                <option value="">-- Sélectionner une salle --</option>
+                <option *ngFor="let ins of unpaidInscriptions" [value]="ins.id">{{ ins.salleName || 'Salle' }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Montant -->
+          <div class="pay-field">
+            <label class="pay-label">Montant (DT)</label>
+            <div class="pay-input-wrapper amount-wrapper">
+              <span class="pay-input-icon">DT</span>
+              <input type="number" class="pay-input" [(ngModel)]="paymentAmount" placeholder="0.00" min="1" step="0.01" />
+            </div>
+          </div>
+
+          <!-- Numéro de carte -->
+          <div class="pay-field">
+            <label class="pay-label">Numéro de carte</label>
+            <div class="pay-input-wrapper">
+              <span class="pay-input-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+              </span>
+              <input type="text" class="pay-input" [(ngModel)]="cardNumber" (input)="formatCardNumber()" placeholder="1234 5678 9012 3456" maxlength="19" />
+            </div>
+          </div>
+
+          <!-- Titulaire -->
+          <div class="pay-field">
+            <label class="pay-label">Titulaire de la carte</label>
+            <div class="pay-input-wrapper">
+              <span class="pay-input-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </span>
+              <input type="text" class="pay-input" [(ngModel)]="cardHolder" placeholder="NOM PRÉNOM" />
+            </div>
+          </div>
+
+          <!-- Expiry + CVC -->
+          <div class="pay-row">
+            <div class="pay-field">
+              <label class="pay-label">Date d'expiration</label>
+              <div class="pay-input-wrapper">
+                <span class="pay-input-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                </span>
+                <input type="text" class="pay-input" [(ngModel)]="cardExpiry" (input)="formatExpiry()" placeholder="MM/AA" maxlength="5" />
+              </div>
+            </div>
+            <div class="pay-field">
+              <label class="pay-label">CVC</label>
+              <div class="pay-input-wrapper">
+                <span class="pay-input-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </span>
+                <input type="text" class="pay-input" [(ngModel)]="cardCvc" (input)="formatCvc()" placeholder="123" maxlength="3" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Error / Success -->
+          <div class="pay-message pay-error" *ngIf="paymentError">{{ paymentError }}</div>
+          <div class="pay-message pay-success" *ngIf="paymentSuccess">{{ paymentSuccess }}</div>
+
+          <!-- Submit -->
+          <button class="pay-submit-btn" [disabled]="!isPaymentFormValid || submittingPayment" (click)="submitPayment()">
+            <span *ngIf="!submittingPayment">Payer {{ paymentAmount ? (paymentAmount | number:'1.2-2') + ' DT' : '' }}</span>
+            <span *ngIf="submittingPayment" class="pay-spinner"></span>
+          </button>
+
+          <div class="pay-secure-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Paiement sécurisé — Vos données sont protégées
           </div>
         </div>
       </div>
-      <div class="eg-empty" *ngIf="!paiements.length">
-        <span class="eg-empty-icon">💰</span>
-        <p>Aucun paiement enregistré.</p>
+
+      <!-- PAYMENTS LIST -->
+      <div class="paiements-list-section">
+        <h2 class="paiements-list-title" *ngIf="paiements.length">Historique des paiements ({{ paiements.length }})</h2>
+        <div class="eg-list" *ngIf="paiements.length">
+          <div class="eg-list-item paiement-item" *ngFor="let p of paiements">
+            <div class="eg-list-left">
+              <div class="paiement-icon-circle confirmed">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+              </div>
+              <div class="eg-list-info">
+                <div class="eg-list-title paiement-amount">{{ p.montant | number:'1.2-2' }} DT</div>
+                <div class="eg-list-meta">{{ formatPaiementDate(p.datePaiement) }}</div>
+                <div class="eg-list-meta" *ngIf="p.cardLast4">Carte •••• {{ p.cardLast4 }} — {{ p.cardHolder }}</div>
+              </div>
+            </div>
+            <div class="eg-list-right paiement-actions">
+              <span class="paiement-status-badge confirmed">Confirmé</span>
+              <button class="paiement-delete-btn" (click)="deletePaiement(p.id!)" title="Supprimer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="eg-empty" *ngIf="!paiements.length && !showPaymentForm">
+          <svg width="48" height="48" fill="none" stroke="#64748b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+          <p>Aucun paiement enregistré.</p>
+          <button class="pay-btn-primary small" (click)="openPaymentForm()">Effectuer un paiement</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== CHALLENGES ==================== -->
+    <div *ngIf="activeTab === 'challenges' && !loading" class="tab-content">
+      <div class="eg-section-header" style="margin-bottom:20px;">
+        <div>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Mes Challenges</h1>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Fixez-vous des objectifs et suivez votre progression</p>
+        </div>
+        <button class="btn-primary-member" (click)="openChallengeForm()" *ngIf="!showChallengeForm">
+          + Nouveau Challenge
+        </button>
+      </div>
+
+      <!-- CHALLENGE FORM -->
+      <div class="challenge-form-card" *ngIf="showChallengeForm">
+        <div class="challenge-form-header">
+          <h3>Créer un Challenge</h3>
+          <button class="challenge-close-btn" (click)="closeChallengeForm()">✕</button>
+        </div>
+
+        <div class="challenge-form-body">
+          <div class="challenge-form-row">
+            <div class="challenge-field">
+              <label>Titre du challenge *</label>
+              <input type="text" [(ngModel)]="challengeTitre" class="eg-input" placeholder="Ex: Perdre 3kg en une semaine">
+            </div>
+            <div class="challenge-field">
+              <label>Durée (jours, max 7)</label>
+              <input type="number" [(ngModel)]="challengeDuree" class="eg-input" min="1" max="7" placeholder="7">
+            </div>
+          </div>
+          <div class="challenge-field">
+            <label>Description (optionnel)</label>
+            <textarea [(ngModel)]="challengeDescription" class="eg-input" placeholder="Décrivez votre objectif..." style="min-height:60px;"></textarea>
+          </div>
+
+          <!-- Steps builder -->
+          <div class="challenge-steps-builder">
+            <h4>Étapes / Séances</h4>
+
+            <!-- Existing steps -->
+            <div class="challenge-step-preview" *ngFor="let step of challengeSteps; let si = index">
+              <div class="step-preview-header">
+                <span class="step-day-badge">{{ step.jour }}</span>
+                <span class="step-preview-title">{{ step.titre }}</span>
+                <span class="step-ex-count">{{ step.exercices.length }} exercice(s)</span>
+                <button class="step-remove-btn" (click)="removeStep(si)">✕</button>
+              </div>
+              <div class="step-preview-exercises" *ngIf="editingStepIndex !== si">
+                <div class="step-ex-item" *ngFor="let ex of step.exercices; let ei = index">
+                  <span>{{ ex.nom }} <small *ngIf="ex.details">— {{ ex.details }}</small></span>
+                  <button class="step-ex-remove" (click)="removeChallengeExercise(si, ei)">✕</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add new step / exercise -->
+            <div class="challenge-step-add">
+              <div class="challenge-form-row">
+                <div class="challenge-field">
+                  <label>Jour</label>
+                  <select [(ngModel)]="newStepJour" class="eg-input">
+                    <option *ngFor="let d of challengeDays" [value]="d">{{ d }}</option>
+                  </select>
+                </div>
+                <div class="challenge-field">
+                  <label>Titre de la séance</label>
+                  <input type="text" [(ngModel)]="newStepTitre" class="eg-input" placeholder="Ex: Cardio matinal">
+                </div>
+              </div>
+              <div class="challenge-form-row">
+                <div class="challenge-field">
+                  <label>Exercice *</label>
+                  <input type="text" [(ngModel)]="newExerciseNom" class="eg-input" placeholder="Ex: Course 30min">
+                </div>
+                <div class="challenge-field">
+                  <label>Détails</label>
+                  <input type="text" [(ngModel)]="newExerciseDetails" class="eg-input" placeholder="Ex: 3 séries x 15 reps">
+                </div>
+              </div>
+              <div class="challenge-step-actions">
+                <button class="btn-outline-member btn-sm" (click)="addExerciseToStep()" [disabled]="!newExerciseNom.trim()">
+                  + Ajouter exercice
+                </button>
+                <button class="btn-outline-member btn-sm" (click)="finalizeStep()" *ngIf="editingStepIndex >= 0" style="background:var(--accent);color:#fff;">
+                  ✓ Finaliser cette étape
+                </button>
+                <button class="btn-outline-member btn-sm" (click)="startNewStep()" *ngIf="editingStepIndex >= 0">
+                  + Nouvelle étape
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="challengeError" class="challenge-error">{{ challengeError }}</div>
+
+          <div class="challenge-form-footer">
+            <button class="btn-outline-member" (click)="closeChallengeForm()">Annuler</button>
+            <button class="btn-primary-member" (click)="submitChallenge()" [disabled]="submittingChallenge">
+              <span *ngIf="!submittingChallenge">Lancer le Challenge</span>
+              <span *ngIf="submittingChallenge">Création...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHALLENGE FILTERS -->
+      <div class="challenge-filters" *ngIf="challenges.length && !showChallengeForm">
+        <button class="challenge-filter-chip" [class.active]="challengeFilter === ''" (click)="challengeFilter = ''">Tous ({{ challenges.length }})</button>
+        <button class="challenge-filter-chip" [class.active]="challengeFilter === 'EN_COURS'" (click)="challengeFilter = 'EN_COURS'">En cours</button>
+        <button class="challenge-filter-chip" [class.active]="challengeFilter === 'TERMINE'" (click)="challengeFilter = 'TERMINE'">Terminés</button>
+        <button class="challenge-filter-chip" [class.active]="challengeFilter === 'ABANDONNE'" (click)="challengeFilter = 'ABANDONNE'">Abandonnés</button>
+      </div>
+
+      <!-- CHALLENGE LIST -->
+      <div class="challenge-list" *ngIf="filteredChallenges.length && !showChallengeForm">
+        <div class="challenge-card" *ngFor="let ch of filteredChallenges" [class.ch-done]="ch.statut === 'TERMINE'" [class.ch-abandoned]="ch.statut === 'ABANDONNE'">
+          <div class="challenge-card-header" (click)="viewChallenge(ch)">
+            <div class="challenge-card-left">
+              <span class="challenge-status-dot status-active" *ngIf="ch.statut === 'EN_COURS'"></span>
+              <span class="challenge-status-dot status-done" *ngIf="ch.statut === 'TERMINE'"></span>
+              <span class="challenge-status-dot status-abandoned" *ngIf="ch.statut === 'ABANDONNE'"></span>
+              <div>
+                <div class="challenge-card-title">{{ ch.titre }}</div>
+                <div class="challenge-card-meta">
+                  {{ formatChallengeDate(ch.dateDebut) }} → {{ formatChallengeDate(ch.dateFin) }}
+                  <span *ngIf="ch.statut === 'EN_COURS'" class="challenge-days-left">{{ getDaysRemaining(ch.dateFin) }}j restants</span>
+                </div>
+              </div>
+            </div>
+            <div class="challenge-card-right">
+              <div class="challenge-progress-ring">
+                <span class="challenge-progress-text">{{ getChallengeProgress(ch) }}%</span>
+              </div>
+              <svg class="challenge-chevron" [class.open]="selectedChallenge?.id === ch.id" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="challenge-progress-bar">
+            <div class="challenge-progress-fill" [style.width.%]="getChallengeProgress(ch)"
+              [style.background]="ch.statut === 'TERMINE' ? '#d4a017' : ch.statut === 'ABANDONNE' ? '#64748b' : 'linear-gradient(90deg, #0f172a, #d4a017)'"></div>
+          </div>
+
+          <!-- Expanded detail -->
+          <div class="challenge-detail" *ngIf="selectedChallenge?.id === ch.id">
+            <p *ngIf="ch.description" class="challenge-desc">{{ ch.description }}</p>
+
+            <div class="challenge-steps-list">
+              <div class="challenge-step-item" *ngFor="let step of ch.etapes; let si = index" [class.step-complete]="step.complete">
+                <div class="step-header" (click)="toggleStepComplete(ch, si)">
+                  <div class="step-checkbox" [class.checked]="step.complete">
+                    <svg *ngIf="step.complete" width="14" height="14" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                  <div class="step-info">
+                    <span class="step-day">{{ step.jour }}</span>
+                    <span class="step-title">{{ step.titre }}</span>
+                  </div>
+                </div>
+                <div class="step-exercises">
+                  <div class="step-exercise" *ngFor="let ex of step.exercices; let ei = index" [class.ex-done]="ex.done">
+                    <button class="ex-check-btn" (click)="toggleExerciseDone(ch, si, ei)">
+                      <span *ngIf="!ex.done">○</span>
+                      <span *ngIf="ex.done">✓</span>
+                    </button>
+                    <div class="ex-info">
+                      <span class="ex-name" [class.ex-strikethrough]="ex.done">{{ ex.nom }}</span>
+                      <span class="ex-details" *ngIf="ex.details">{{ ex.details }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="challenge-actions" *ngIf="ch.statut === 'EN_COURS'">
+              <button class="btn-primary-member btn-sm" (click)="completeChallenge(ch)" *ngIf="isAllStepsComplete(ch)">
+                Marquer comme terminé
+              </button>
+              <button class="btn-outline-member btn-sm" style="color:#64748b;border-color:#64748b;" (click)="abandonChallenge(ch)">
+                Abandonner
+              </button>
+            </div>
+            <div class="challenge-actions" *ngIf="ch.statut !== 'EN_COURS'">
+              <button class="btn-outline-member btn-sm" style="color:#64748b;border-color:#64748b;" (click)="deleteChallenge(ch.id!)">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="eg-empty" *ngIf="!challenges.length && !showChallengeForm">
+        <svg width="48" height="48" fill="none" stroke="#64748b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <p>Aucun challenge pour l'instant.</p>
+        <p style="color:var(--text-2);font-size:0.85rem;">Fixez-vous un objectif et suivez votre progression.</p>
+        <button class="btn-primary-member" (click)="openChallengeForm()" style="margin-top:12px;">+ Nouveau Challenge</button>
       </div>
     </div>
 

@@ -15,6 +15,7 @@ import { InscriptionService } from '../../services/inscription.service';
 import { AvisService } from '../../services/avis.service';
 import { GymBuddyService } from '../../services/gym-buddy.service';
 import { ConversationService } from '../../services/conversation.service';
+import { ChallengeService } from '../../services/challenge.service';
 import { User } from '../../models/user';
 import { Gym } from '../../models/gym';
 import { Program } from '../../models/program';
@@ -28,6 +29,7 @@ import { Avis } from '../../models/avis';
 import { GymBuddy } from '../../models/gym-buddy';
 import { Conversation } from '../../models/conversation';
 import { Message } from '../../models/message';
+import { Challenge, ChallengeStep, StepExercise } from '../../models/challenge';
 
 @Component({
   selector: 'app-member-dashboard',
@@ -49,6 +51,7 @@ export class MemberDashboard implements OnInit, OnDestroy {
   echanges: Echange[] = [];
   inscriptions: Inscription[] = [];
   avis: Avis[] = [];
+  challenges: Challenge[] = [];
   loading = true;
   darkMode = false;
 
@@ -99,6 +102,22 @@ export class MemberDashboard implements OnInit, OnDestroy {
   submittingBuddyPost = false;
   buddyError = '';
 
+  // Challenge
+  showChallengeForm = false;
+  challengeTitre = '';
+  challengeDescription = '';
+  challengeDuree = 7;
+  challengeSteps: ChallengeStep[] = [];
+  newStepTitre = '';
+  newStepJour = 'Jour 1';
+  newExerciseNom = '';
+  newExerciseDetails = '';
+  editingStepIndex = -1;
+  submittingChallenge = false;
+  challengeError = '';
+  selectedChallenge: Challenge | null = null;
+  challengeFilter = '';
+
   // Coach profile & chat
   selectedCoach: User | null = null;
   showCoachProfile = false;
@@ -110,6 +129,18 @@ export class MemberDashboard implements OnInit, OnDestroy {
   loadingMessages = false;
   memberConversations: Conversation[] = [];
   private chatPollInterval: ReturnType<typeof setInterval> | null = null;
+
+  // Payment form
+  showPaymentForm = false;
+  paymentAmount: number | null = null;
+  cardNumber = '';
+  cardHolder = '';
+  cardExpiry = '';
+  cardCvc = '';
+  submittingPayment = false;
+  paymentError = '';
+  paymentSuccess = '';
+  selectedInscriptionId = '';
 
   // Workout form
   showWorkoutForm = false;
@@ -129,7 +160,8 @@ export class MemberDashboard implements OnInit, OnDestroy {
     { key: 'evenements', label: 'Événements', icon: 'evenements' },
     { key: 'salles', label: 'Salles', icon: 'salles' },
     { key: 'coachs', label: 'Coachs', icon: 'coachs' },
-    { key: 'paiements', label: 'Paiements', icon: 'paiements' }
+    { key: 'paiements', label: 'Paiements', icon: 'paiements' },
+    { key: 'challenges', label: 'Challenges', icon: 'challenges' }
   ];
 
   workoutTypes = ['STRENGTH', 'CARDIO', 'FLEXIBILITY', 'MIXED'];
@@ -154,6 +186,7 @@ export class MemberDashboard implements OnInit, OnDestroy {
     private avisService: AvisService,
     private gymBuddyService: GymBuddyService,
     private conversationService: ConversationService,
+    private challengeService: ChallengeService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -178,6 +211,7 @@ export class MemberDashboard implements OnInit, OnDestroy {
       this.echangeService.getByClient(this.user.id).subscribe({ next: e => this.echanges = e, error: () => {} });
       this.gymBuddyService.getMyPosts(this.user.id).subscribe({ next: b => this.myBuddyPosts = b, error: () => {} });
       this.gymBuddyService.getOthersPosts(this.user.id).subscribe({ next: b => this.othersBuddyPosts = b, error: () => {} });
+      this.challengeService.getByClient(this.user.id).subscribe({ next: c => this.challenges = c, error: () => {} });
       this.inscriptionService.getByClient(this.user.id).subscribe({
         next: i => { this.inscriptions = i; this.loading = false; },
         error: () => { this.loading = false; }
@@ -229,7 +263,6 @@ export class MemberDashboard implements OnInit, OnDestroy {
   get totalWorkouts(): number { return this.workouts.length; }
   get totalCalories(): number { return this.workouts.reduce((sum, w) => sum + (w.caloriesBurned || 0), 0); }
   get confirmedPaiements(): Paiement[] { return this.paiements.filter(p => p.statut === 'CONFIRME'); }
-  get pendingPaiements(): Paiement[] { return this.paiements.filter(p => p.statut === 'EN_ATTENTE'); }
 
   getStarArray(rating: number): number[] {
     return Array(Math.floor(rating || 0)).fill(1);
@@ -527,6 +560,112 @@ export class MemberDashboard implements OnInit, OnDestroy {
     return '💵';
   }
 
+  // === PAYMENT METHODS ===
+  openPaymentForm(): void {
+    this.showPaymentForm = true;
+    this.paymentAmount = null;
+    this.cardNumber = '';
+    this.cardHolder = '';
+    this.cardExpiry = '';
+    this.cardCvc = '';
+    this.paymentError = '';
+    this.paymentSuccess = '';
+    this.selectedInscriptionId = '';
+  }
+
+  closePaymentForm(): void {
+    this.showPaymentForm = false;
+    this.paymentError = '';
+    this.paymentSuccess = '';
+  }
+
+  formatCardNumber(): void {
+    let v = this.cardNumber.replace(/\D/g, '').substring(0, 16);
+    this.cardNumber = v.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+  }
+
+  formatExpiry(): void {
+    let v = this.cardExpiry.replace(/\D/g, '').substring(0, 4);
+    if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2);
+    this.cardExpiry = v;
+  }
+
+  formatCvc(): void {
+    this.cardCvc = this.cardCvc.replace(/\D/g, '').substring(0, 3);
+  }
+
+  get unpaidInscriptions(): Inscription[] {
+    return this.inscriptions.filter(i => i.statut === 'ACCEPTEE');
+  }
+
+  get isPaymentFormValid(): boolean {
+    return !!(this.paymentAmount && this.paymentAmount > 0 &&
+      this.cardNumber.replace(/\s/g, '').length === 16 &&
+      this.cardHolder.trim().length >= 2 &&
+      this.cardExpiry.length === 5 &&
+      this.cardCvc.length === 3);
+  }
+
+  submitPayment(): void {
+    if (!this.isPaymentFormValid || !this.user?.id) return;
+    if (this.submittingPayment) return;
+    this.paymentError = '';
+    this.paymentSuccess = '';
+    this.submittingPayment = true;
+
+    const digits = this.cardNumber.replace(/\s/g, '');
+    const selectedIns = this.inscriptions.find(i => i.id === this.selectedInscriptionId);
+    const paiement: Paiement = {
+      clientId: this.user.id,
+      clientName: this.user.name,
+      montant: this.paymentAmount!,
+      methode: 'CARTE',
+      statut: 'CONFIRME',
+      cardLast4: digits.slice(-4),
+      cardHolder: this.cardHolder.trim(),
+      inscriptionId: this.selectedInscriptionId || undefined,
+      salleId: selectedIns?.salleId || undefined,
+      salleName: selectedIns?.salleName || undefined
+    };
+
+    this.paiementService.create(paiement).subscribe({
+      next: (saved) => {
+        this.paiements = [saved, ...this.paiements];
+        this.paymentSuccess = 'Paiement effectué avec succès !';
+        this.submittingPayment = false;
+        if (selectedIns?.id) {
+          this.inscriptionService.updatePaiementStatut(selectedIns.id, 'PAYE').subscribe({
+            next: (updated) => {
+              const idx = this.inscriptions.findIndex(i => i.id === updated.id);
+              if (idx !== -1) this.inscriptions[idx] = updated;
+            }
+          });
+        }
+        setTimeout(() => {
+          this.showPaymentForm = false;
+          this.paymentSuccess = '';
+        }, 1500);
+      },
+      error: () => {
+        this.submittingPayment = false;
+        this.paymentError = 'Erreur lors du paiement. Veuillez réessayer.';
+      }
+    });
+  }
+
+  formatPaiementDate(dateStr?: string): string {
+    if (!dateStr) return '';
+    try {
+      return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return dateStr; }
+  }
+
+  deletePaiement(id: string): void {
+    this.paiementService.delete(id).subscribe({
+      next: () => { this.paiements = this.paiements.filter(p => p.id !== id); }
+    });
+  }
+
   // === GYM BUDDY METHODS ===
   openBuddyPostForm(): void {
     this.showBuddyPostForm = true;
@@ -737,6 +876,179 @@ export class MemberDashboard implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopChatPolling();
+  }
+
+  // === CHALLENGE METHODS ===
+  get filteredChallenges(): Challenge[] {
+    if (!this.challengeFilter) return this.challenges;
+    return this.challenges.filter(c => c.statut === this.challengeFilter);
+  }
+
+  get challengeDays(): string[] {
+    return Array.from({ length: this.challengeDuree }, (_, i) => `Jour ${i + 1}`);
+  }
+
+  openChallengeForm(): void {
+    this.showChallengeForm = true;
+    this.challengeTitre = '';
+    this.challengeDescription = '';
+    this.challengeDuree = 7;
+    this.challengeSteps = [];
+    this.challengeError = '';
+    this.editingStepIndex = -1;
+  }
+
+  closeChallengeForm(): void {
+    this.showChallengeForm = false;
+  }
+
+  addExerciseToStep(): void {
+    if (!this.newExerciseNom.trim()) return;
+    if (this.editingStepIndex === -1) {
+      // Add new step with this exercise
+      const step: ChallengeStep = {
+        titre: this.newStepTitre || this.newStepJour,
+        jour: this.newStepJour,
+        exercices: [{ nom: this.newExerciseNom.trim(), details: this.newExerciseDetails.trim(), done: false }],
+        complete: false
+      };
+      this.challengeSteps.push(step);
+      this.editingStepIndex = this.challengeSteps.length - 1;
+    } else {
+      this.challengeSteps[this.editingStepIndex].exercices.push({
+        nom: this.newExerciseNom.trim(),
+        details: this.newExerciseDetails.trim(),
+        done: false
+      });
+    }
+    this.newExerciseNom = '';
+    this.newExerciseDetails = '';
+  }
+
+  finalizeStep(): void {
+    if (this.editingStepIndex >= 0) {
+      const step = this.challengeSteps[this.editingStepIndex];
+      if (this.newStepTitre) step.titre = this.newStepTitre;
+    }
+    this.editingStepIndex = -1;
+    this.newStepTitre = '';
+    this.newStepJour = `Jour ${this.challengeSteps.length + 1}`;
+    this.newExerciseNom = '';
+    this.newExerciseDetails = '';
+  }
+
+  removeStep(index: number): void {
+    this.challengeSteps.splice(index, 1);
+    if (this.editingStepIndex === index) this.editingStepIndex = -1;
+  }
+
+  removeChallengeExercise(stepIdx: number, exIdx: number): void {
+    this.challengeSteps[stepIdx].exercices.splice(exIdx, 1);
+    if (this.challengeSteps[stepIdx].exercices.length === 0) {
+      this.removeStep(stepIdx);
+    }
+  }
+
+  startNewStep(): void {
+    if (this.editingStepIndex >= 0) this.finalizeStep();
+    this.editingStepIndex = -1;
+    this.newStepJour = `Jour ${this.challengeSteps.length + 1}`;
+    this.newStepTitre = '';
+  }
+
+  submitChallenge(): void {
+    if (!this.challengeTitre.trim() || this.challengeSteps.length === 0 || !this.user?.id) {
+      this.challengeError = 'Titre et au moins une étape requis.';
+      return;
+    }
+    if (this.editingStepIndex >= 0) this.finalizeStep();
+    this.submittingChallenge = true;
+    this.challengeError = '';
+
+    const now = new Date();
+    const fin = new Date(now.getTime() + this.challengeDuree * 24 * 60 * 60 * 1000);
+
+    const challenge: Challenge = {
+      clientId: this.user.id,
+      clientName: this.user.name,
+      titre: this.challengeTitre.trim(),
+      description: this.challengeDescription.trim() || undefined,
+      dateDebut: now.toISOString(),
+      dateFin: fin.toISOString(),
+      statut: 'EN_COURS',
+      etapes: this.challengeSteps
+    };
+
+    this.challengeService.create(challenge).subscribe({
+      next: (saved) => {
+        this.challenges = [saved, ...this.challenges];
+        this.showChallengeForm = false;
+        this.submittingChallenge = false;
+      },
+      error: () => {
+        this.challengeError = 'Erreur lors de la création.';
+        this.submittingChallenge = false;
+      }
+    });
+  }
+
+  toggleExerciseDone(challenge: Challenge, stepIdx: number, exIdx: number): void {
+    challenge.etapes[stepIdx].exercices[exIdx].done = !challenge.etapes[stepIdx].exercices[exIdx].done;
+    // Check if all exercises in step are done
+    const step = challenge.etapes[stepIdx];
+    step.complete = step.exercices.every(e => e.done);
+    this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
+  }
+
+  toggleStepComplete(challenge: Challenge, stepIdx: number): void {
+    const step = challenge.etapes[stepIdx];
+    const newVal = !step.complete;
+    step.complete = newVal;
+    step.exercices.forEach(e => e.done = newVal);
+    this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
+  }
+
+  completeChallenge(challenge: Challenge): void {
+    challenge.statut = 'TERMINE';
+    this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
+  }
+
+  abandonChallenge(challenge: Challenge): void {
+    challenge.statut = 'ABANDONNE';
+    this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
+  }
+
+  deleteChallenge(id: string): void {
+    this.challengeService.delete(id).subscribe({
+      next: () => { this.challenges = this.challenges.filter(c => c.id !== id); }
+    });
+  }
+
+  getChallengeProgress(challenge: Challenge): number {
+    const total = challenge.etapes.reduce((sum, s) => sum + s.exercices.length, 0);
+    if (total === 0) return 0;
+    const done = challenge.etapes.reduce((sum, s) => sum + s.exercices.filter(e => e.done).length, 0);
+    return Math.round((done / total) * 100);
+  }
+
+  isAllStepsComplete(challenge: Challenge): boolean {
+    return challenge.etapes.every(s => s.complete);
+  }
+
+  viewChallenge(challenge: Challenge): void {
+    this.selectedChallenge = this.selectedChallenge?.id === challenge.id ? null : challenge;
+  }
+
+  formatChallengeDate(d?: string): string {
+    if (!d) return '';
+    try { return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); }
+    catch { return d; }
+  }
+
+  getDaysRemaining(dateFin?: string): number {
+    if (!dateFin) return 0;
+    const diff = new Date(dateFin).getTime() - Date.now();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }
 
   logout(): void {

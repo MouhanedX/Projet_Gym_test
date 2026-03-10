@@ -38,6 +38,11 @@ public class PaiementController {
         return paiementRepository.findByInscriptionId(inscriptionId);
     }
 
+    @GetMapping("/salle/{salleId}")
+    public List<Paiement> getBySalle(@PathVariable String salleId) {
+        return paiementRepository.findBySalleId(salleId);
+    }
+
     @PostMapping
     public Paiement create(@RequestBody Paiement paiement) {
         paiement.setDatePaiement(Instant.now());

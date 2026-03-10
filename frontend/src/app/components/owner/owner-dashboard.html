@@ -108,8 +108,8 @@
         <div class="owner-stat-card">
           <div>
             <div class="owner-stat-label">Membres actifs</div>
-            <div class="owner-stat-value">{{ totalEnrolled }}</div>
-            <div class="owner-stat-change up">+8.5% ce mois</div>
+            <div class="owner-stat-value">{{ activeMembers }}</div>
+            <div class="owner-stat-change up">{{ acceptedInscriptions.length }} abonnés</div>
           </div>
           <div class="owner-stat-icon blue">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
@@ -118,8 +118,8 @@
         <div class="owner-stat-card">
           <div>
             <div class="owner-stat-label">Revenus ce mois</div>
-            <div class="owner-stat-value">{{ totalRevenue | number }}</div>
-            <div class="owner-stat-change up">+12.5% ce mois</div>
+            <div class="owner-stat-value">{{ totalRevenue | number }} DT</div>
+            <div class="owner-stat-change up">{{ paiements.length }} paiements</div>
           </div>
           <div class="owner-stat-icon green">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v20m5-17H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H7"/></svg>
@@ -137,91 +137,66 @@
         </div>
       </div>
 
-      <div class="owner-two-col">
-        <div class="owner-card">
-          <div class="owner-card-header">
-            <div><div class="owner-card-title">Revenus mensuels</div><div class="owner-card-subtitle">Évolution sur 6 mois</div></div>
+      <!-- SUBSCRIBERS LIST -->
+      <div class="owner-card" style="margin-bottom:28px;">
+        <div class="owner-card-header">
+          <div>
+            <div class="owner-card-title">Liste des Abonnés</div>
+            <div class="owner-card-subtitle">Membres acceptés et leur statut de paiement</div>
           </div>
-          <div class="owner-card-body">
-            <div class="owner-chart-area">
-              <div class="owner-bar-wrap" *ngFor="let m of revenueChart">
-                <div class="owner-bar-value">{{ m.value }}</div>
-                <div class="owner-bar" [style.height.px]="m.height"></div>
-                <div class="owner-bar-label">{{ m.month }}</div>
+        </div>
+        <div class="owner-card-body" style="padding:0;">
+          <div class="owner-filters" style="padding:16px 24px 0;">
+            <button class="owner-filter-chip" [class.active]="subscriberFilter === ''" (click)="subscriberFilter = ''">Tous ({{ acceptedInscriptions.length }})</button>
+            <button class="owner-filter-chip" [class.active]="subscriberFilter === 'PAYE'" (click)="subscriberFilter = 'PAYE'">Payé</button>
+            <button class="owner-filter-chip" [class.active]="subscriberFilter === 'NON_PAYE'" (click)="subscriberFilter = 'NON_PAYE'">Non payé</button>
+          </div>
+          <div class="owner-list" style="border:none;border-radius:0;box-shadow:none;" *ngIf="filteredSubscribers.length">
+            <div class="owner-list-item" *ngFor="let sub of filteredSubscribers">
+              <div class="owner-list-left">
+                <div class="owner-inscription-avatar">{{ sub.clientName?.charAt(0) || '?' }}</div>
+                <div class="owner-list-info">
+                  <div class="owner-list-title">{{ sub.clientName }}</div>
+                  <div class="owner-list-meta">Inscrit le {{ formatDate(sub.dateDemande) || '—' }}</div>
+                </div>
+              </div>
+              <div class="owner-list-right">
+                <span class="owner-badge" [class.confirmed]="sub.paiementStatut === 'PAYE'" [class.cancelled]="sub.paiementStatut !== 'PAYE'">
+                  {{ sub.paiementStatut === 'PAYE' ? '✅ Payé' : '❌ Non payé' }}
+                </span>
               </div>
             </div>
           </div>
-        </div>
-        <div class="owner-card">
-          <div class="owner-card-header">
-            <div><div class="owner-card-title">Membres actifs</div><div class="owner-card-subtitle">Croissance de la communauté</div></div>
-          </div>
-          <div class="owner-card-body">
-            <div class="owner-line-chart">
-              <svg viewBox="0 0 300 160" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
-                  </linearGradient>
-                </defs>
-                <path d="M0,120 C50,100 100,85 150,75 C200,65 250,55 300,40" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M0,120 C50,100 100,85 150,75 C200,65 250,55 300,40 L300,160 L0,160 Z" fill="url(#lineGrad)"/>
-                <circle cx="0" cy="120" r="4" fill="#a78bfa"/>
-                <circle cx="60" cy="100" r="4" fill="#a78bfa"/>
-                <circle cx="120" cy="85" r="4" fill="#a78bfa"/>
-                <circle cx="180" cy="75" r="4" fill="#a78bfa"/>
-                <circle cx="240" cy="56" r="4" fill="#a78bfa"/>
-                <circle cx="300" cy="40" r="4" fill="#a78bfa"/>
-              </svg>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0">
-              <span class="owner-bar-label" *ngFor="let m of ['Sept','Oct','Nov','Déc','Jan','Fév']">{{ m }}</span>
-            </div>
+          <div class="owner-empty" *ngIf="!filteredSubscribers.length" style="padding:40px 20px;">
+            <span class="owner-empty-icon">👥</span>
+            <p>Aucun abonné dans cette catégorie.</p>
           </div>
         </div>
       </div>
 
-      <div class="owner-two-col">
-        <div class="owner-card">
-          <div class="owner-card-header"><div class="owner-card-title">Répartition des abonnements</div></div>
-          <div class="owner-card-body">
-            <div class="owner-pie-wrap">
-              <svg viewBox="0 0 120 120" width="120" height="120">
-                <circle cx="60" cy="60" r="45" fill="none" stroke="#3b82f6" stroke-width="28" stroke-dasharray="119 189" stroke-dashoffset="0"/>
-                <circle cx="60" cy="60" r="45" fill="none" stroke="#7c3aed" stroke-width="28" stroke-dasharray="83 225" stroke-dashoffset="-119"/>
-                <circle cx="60" cy="60" r="45" fill="none" stroke="#10b981" stroke-width="28" stroke-dasharray="75 233" stroke-dashoffset="-202"/>
-              </svg>
-              <div class="owner-pie-legend">
-                <div class="owner-pie-legend-item"><div class="owner-pie-dot" style="background:#3b82f6"></div> Mensuel 43%</div>
-                <div class="owner-pie-legend-item"><div class="owner-pie-dot" style="background:#7c3aed"></div> Trimestriel 30%</div>
-                <div class="owner-pie-legend-item"><div class="owner-pie-dot" style="background:#10b981"></div> Annuel 27%</div>
-              </div>
-            </div>
+      <!-- RECENT PAYMENTS -->
+      <div class="owner-card" style="margin-bottom:28px;" *ngIf="paiements.length">
+        <div class="owner-card-header">
+          <div>
+            <div class="owner-card-title">Paiements Reçus</div>
+            <div class="owner-card-subtitle">Derniers paiements enregistrés</div>
           </div>
         </div>
-        <div class="owner-card">
-          <div class="owner-card-header"><div class="owner-card-title">Alertes et Relances</div></div>
-          <div class="owner-card-body">
-            <div class="owner-alert-list">
-              <div class="owner-alert warning" *ngIf="pendingBookings.length">
-                <div class="owner-alert-title">{{ pendingBookings.length }} réservations en attente</div>
-                <div class="owner-alert-desc">Membres à approuver</div>
-                <button class="btn-owner-outline btn-sm" (click)="setTab('bookings')">Voir les réservations</button>
+        <div class="owner-card-body" style="padding:0;">
+          <div class="owner-list" style="border:none;border-radius:0;box-shadow:none;">
+            <div class="owner-list-item" *ngFor="let p of paiements">
+              <div class="owner-list-left">
+                <div class="owner-list-dot" [style.background]="p.statut === 'CONFIRME' ? '#10b981' : '#f59e0b'"></div>
+                <div class="owner-list-info">
+                  <div class="owner-list-title">{{ p.clientName || 'Client' }}</div>
+                  <div class="owner-list-meta">{{ p.methode || 'Carte' }} {{ p.cardLast4 ? '•••• ' + p.cardLast4 : '' }} — {{ formatDate(p.datePaiement) }}</div>
+                </div>
               </div>
-              <div class="owner-alert danger" *ngIf="programs.length === 0">
-                <div class="owner-alert-title">Aucun programme actif</div>
-                <div class="owner-alert-desc">Créez des programmes pour attirer des membres</div>
-                <button class="btn-owner-danger btn-sm" (click)="setTab('programs')">Action requise</button>
-              </div>
-              <div class="owner-alert success" *ngIf="totalEnrolled > 0">
-                <div class="owner-alert-title">{{ totalEnrolled }} membres inscrits !</div>
-                <div class="owner-alert-desc">Excellent engagement</div>
-              </div>
-              <div class="owner-alert warning" *ngIf="!gym">
-                <div class="owner-alert-title">Salle non configurée</div>
-                <div class="owner-alert-desc">Commencez par créer votre salle</div>
-                <button class="btn-owner-outline btn-sm" (click)="setTab('gym')">Créer ma salle</button>
+              <div class="owner-list-right">
+                <span style="font-weight:700;font-size:1rem;color:var(--text);">{{ p.montant }} DT</span>
+                <span class="owner-badge" [class.confirmed]="p.statut === 'CONFIRME'" [class.pending]="p.statut !== 'CONFIRME'">
+                  {{ p.statut === 'CONFIRME' ? 'Confirmé' : p.statut }}
+                </span>
               </div>
             </div>
           </div>
@@ -290,9 +265,14 @@
         </div>
         <p *ngIf="gym.description" style="color:var(--text-2);font-size:0.9rem;margin-bottom:16px;">{{ gym.description }}</p>
         <div class="owner-gym-stats-row">
-          <div class="owner-gym-stat"><div class="owner-gym-stat-val">{{ gym.memberCount || 0 }}</div><div class="owner-gym-stat-label">Membres</div></div>
-          <div class="owner-gym-stat"><div class="owner-gym-stat-val">{{ gym.monthlyPrice || 0 }}€</div><div class="owner-gym-stat-label">Mensuel</div></div>
-          <div class="owner-gym-stat"><div class="owner-gym-stat-val">{{ gym.openingHours || 'N/A' }}</div><div class="owner-gym-stat-label">Horaires</div></div>
+          <div class="owner-gym-stat"><div class="owner-gym-stat-val">{{ activeMembers }}</div><div class="owner-gym-stat-label">Membres</div></div>
+          <div class="owner-gym-stat"><div class="owner-gym-stat-val">{{ gym.monthlyPrice || 0 }} DT</div><div class="owner-gym-stat-label">Mensuel</div></div>
+          <div class="owner-gym-stat owner-gym-stat-hours">
+            <div class="owner-gym-stat-label" style="margin-bottom:8px;">Horaires</div>
+            <div class="owner-hours-list">
+              <div class="owner-hour-line" *ngFor="let h of parseHours(gym.openingHours)">{{ h }}</div>
+            </div>
+          </div>
           <div class="owner-gym-stat"><div class="owner-gym-stat-val">{{ gym.rating || 0 }}★</div><div class="owner-gym-stat-label">Note</div></div>
         </div>
         <div *ngIf="gym.amenities?.length" style="margin-top:18px;">
@@ -308,7 +288,7 @@
           <div class="owner-form-group"><label>Ville</label><input type="text" [(ngModel)]="gymCity" class="owner-input" placeholder="Paris"></div>
           <div class="owner-form-group"><label>Adresse *</label><input type="text" [(ngModel)]="gymAddress" class="owner-input" placeholder="123 rue Fitness"></div>
           <div class="owner-form-group"><label>Téléphone</label><input type="tel" [(ngModel)]="gymPhone" class="owner-input"></div>
-          <div class="owner-form-group"><label>Prix mensuel (€)</label><input type="number" [(ngModel)]="gymPrice" class="owner-input" min="0"></div>
+          <div class="owner-form-group"><label>Prix mensuel (DT)</label><input type="number" [(ngModel)]="gymPrice" class="owner-input" min="0"></div>
           <div class="owner-form-group"><label>Horaires</label><input type="text" [(ngModel)]="gymOpeningHours" class="owner-input" placeholder="06:00 - 22:00"></div>
           <div class="owner-form-group full"><label>Description</label><textarea [(ngModel)]="gymDescription" class="owner-input" placeholder="Décrivez votre salle..."></textarea></div>
           <div class="owner-form-group full"><label>Équipements (séparés par virgule)</label><input type="text" [(ngModel)]="gymAmenities" class="owner-input" placeholder="Piscine, Sauna, Parking, WiFi"></div>
@@ -355,7 +335,7 @@
           <div class="owner-form-group"><label>Heure début</label><input type="time" [(ngModel)]="progStartTime" class="owner-input"></div>
           <div class="owner-form-group"><label>Heure fin</label><input type="time" [(ngModel)]="progEndTime" class="owner-input"></div>
           <div class="owner-form-group"><label>Capacité</label><input type="number" [(ngModel)]="progCapacity" class="owner-input" min="1"></div>
-          <div class="owner-form-group"><label>Prix (€)</label><input type="number" [(ngModel)]="progPrice" class="owner-input" min="0"></div>
+          <div class="owner-form-group"><label>Prix (DT)</label><input type="number" [(ngModel)]="progPrice" class="owner-input" min="0"></div>
           <div class="owner-form-group full"><label>Description</label><textarea [(ngModel)]="progDescription" class="owner-input" placeholder="Décrivez le programme..."></textarea></div>
           <div class="owner-form-group full">
             <label>Jours</label>
@@ -381,7 +361,7 @@
           </div>
           <div class="owner-list-right">
             <span class="owner-badge info">{{ p.enrolledCount || 0 }}/{{ p.capacity }}</span>
-            <span class="owner-badge pending" *ngIf="p.price">{{ p.price }}€</span>
+            <span class="owner-badge pending" *ngIf="p.price">{{ p.price }} DT</span>
             <button class="btn-owner-ghost btn-sm" (click)="openProgramForm(p)">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-10.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>

@@ -36,6 +36,10 @@ export class InscriptionService {
     return this.http.put<Inscription>(`${this.baseUrl}/${id}/statut`, { statut });
   }
 
+  updatePaiementStatut(id: string, paiementStatut: string): Observable<Inscription> {
+    return this.http.put<Inscription>(`${this.baseUrl}/${id}/paiement-statut`, { paiementStatut });
+  }
+
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

@@ -61,7 +61,11 @@ public class InscriptionController {
     public ResponseEntity<Inscription> updateStatut(@PathVariable String id, @RequestBody java.util.Map<String, String> body) {
         return inscriptionRepository.findById(id)
                 .map(inscription -> {
-                    inscription.setStatut(body.get("statut"));
+                    String newStatut = body.get("statut");
+                    inscription.setStatut(newStatut);
+                    if ("ACCEPTEE".equals(newStatut) && inscription.getPaiementStatut() == null) {
+                        inscription.setPaiementStatut("NON_PAYE");
+                    }
                     return ResponseEntity.ok(inscriptionRepository.save(inscription));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -74,5 +78,15 @@ public class InscriptionController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}/paiement-statut")
+    public ResponseEntity<Inscription> updatePaiementStatut(@PathVariable String id, @RequestBody java.util.Map<String, String> body) {
+        return inscriptionRepository.findById(id)
+                .map(inscription -> {
+                    inscription.setPaiementStatut(body.get("paiementStatut"));
+                    return ResponseEntity.ok(inscriptionRepository.save(inscription));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

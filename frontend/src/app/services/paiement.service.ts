@@ -24,6 +24,10 @@ export class PaiementService {
     return this.http.get<Paiement[]>(`${this.baseUrl}/inscription/${inscriptionId}`);
   }
 
+  getBySalle(salleId: string): Observable<Paiement[]> {
+    return this.http.get<Paiement[]>(`${this.baseUrl}/salle/${salleId}`);
+  }
+
   create(paiement: Paiement): Observable<Paiement> {
     return this.http.post<Paiement>(this.baseUrl, paiement);
   }
