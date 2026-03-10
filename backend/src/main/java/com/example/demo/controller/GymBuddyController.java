@@ -52,7 +52,7 @@ public class GymBuddyController {
     public List<GymBuddy> getOthersPosts(@PathVariable String clientId) {
         return gymBuddyRepository.findByStatus("ACTIVE")
                 .stream()
-                .filter(post -> !post.getClientId().equals(clientId))
+                .filter(post -> post.getClientId() != null && !post.getClientId().equals(clientId))
                 .collect(Collectors.toList());
     }
 

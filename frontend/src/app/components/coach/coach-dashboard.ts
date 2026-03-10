@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -19,8 +19,9 @@ import { Message } from '../../models/message';
   templateUrl: './coach-dashboard.html',
   styleUrl: './coach-dashboard.css'
 })
-export class CoachDashboard implements OnInit, AfterViewChecked {
+export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('chatContainer') chatContainer?: ElementRef;
+  @ViewChild('replyInput') replyInput?: ElementRef;
 
   user: User | null = null;
   activeTab = 'overview';
@@ -38,6 +39,8 @@ export class CoachDashboard implements OnInit, AfterViewChecked {
   replyText = '';
   sendingReply = false;
   private shouldScrollChat = false;
+  private shouldFocusInput = false;
+  private chatPollInterval: ReturnType<typeof setInterval> | null = null;
 
   tabs = [
     { key: 'overview', label: 'Dashboard', icon: '📊' },
@@ -69,10 +72,18 @@ export class CoachDashboard implements OnInit, AfterViewChecked {
     this.loadData();
   }
 
+  ngOnDestroy(): void {
+    this.stopChatPolling();
+  }
+
   ngAfterViewChecked(): void {
     if (this.shouldScrollChat) {
       this.scrollChatToBottom();
       this.shouldScrollChat = false;
+    }
+    if (this.shouldFocusInput) {
+      this.replyInput?.nativeElement?.focus();
+      this.shouldFocusInput = false;
     }
   }
 
@@ -118,10 +129,12 @@ export class CoachDashboard implements OnInit, AfterViewChecked {
   }
 
   openConv(conv: Conversation): void {
-    if (this.activeConv?.id === conv.id) { this.activeConv = null; this.convMessages = []; return; }
+    if (this.activeConv?.id === conv.id) { this.closeConv(); return; }
+    this.stopChatPolling();
     this.activeConv = conv;
     this.convMessages = [];
     this.loadingMessages = true;
+    this.shouldFocusInput = true;
     if (conv.id) {
       this.conversationService.getMessages(conv.id).subscribe({
         next: (msgs) => {
@@ -131,13 +144,36 @@ export class CoachDashboard implements OnInit, AfterViewChecked {
         },
         error: () => { this.loadingMessages = false; }
       });
+      this.startChatPolling(conv.id);
     }
   }
 
   closeConv(): void {
+    this.stopChatPolling();
     this.activeConv = null;
     this.convMessages = [];
     this.replyText = '';
+  }
+
+  private startChatPolling(conversationId: string): void {
+    this.chatPollInterval = setInterval(() => {
+      this.conversationService.getMessages(conversationId).subscribe({
+        next: (msgs) => {
+          if (msgs.length !== this.convMessages.length) {
+            this.convMessages = msgs;
+            this.shouldScrollChat = true;
+          }
+        },
+        error: () => {}
+      });
+    }, 3000);
+  }
+
+  private stopChatPolling(): void {
+    if (this.chatPollInterval !== null) {
+      clearInterval(this.chatPollInterval);
+      this.chatPollInterval = null;
+    }
   }
 
   sendReply(): void {

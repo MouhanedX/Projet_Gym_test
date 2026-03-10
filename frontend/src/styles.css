@@ -63,6 +63,15 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
   transition: background 0.3s, color 0.3s;
+  
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 a { color: inherit; text-decoration: none; }
@@ -70,11 +79,12 @@ img { max-width: 100%; display: block; }
 button { font-family: inherit; cursor: pointer; }
 input, textarea, select { font-family: inherit; }
 
-/* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--primary-light); opacity: 0.3; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+/* ===== SCROLLBAR (hidden globally) ===== */
+::-webkit-scrollbar { display: none; }
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
 /* ===== SHARED DASHBOARD LAYOUT ===== */
 .egym-layout {

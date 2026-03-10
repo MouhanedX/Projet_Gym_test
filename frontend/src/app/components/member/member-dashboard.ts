@@ -109,6 +109,7 @@ export class MemberDashboard implements OnInit, OnDestroy {
   sendingMessage = false;
   loadingMessages = false;
   memberConversations: Conversation[] = [];
+  private chatPollInterval: ReturnType<typeof setInterval> | null = null;
 
   // Workout form
   showWorkoutForm = false;
@@ -664,6 +665,29 @@ export class MemberDashboard implements OnInit, OnDestroy {
       },
       error: () => { this.loadingMessages = false; }
     });
+    this.startChatPolling(conversationId);
+  }
+
+  private startChatPolling(conversationId: string): void {
+    this.stopChatPolling();
+    this.chatPollInterval = setInterval(() => {
+      this.conversationService.getMessages(conversationId).subscribe({
+        next: (msgs) => {
+          if (msgs.length !== this.conversationMessages.length) {
+            this.conversationMessages = msgs;
+            setTimeout(() => this.scrollChatToBottom(), 50);
+          }
+        },
+        error: () => {}
+      });
+    }, 3000);
+  }
+
+  private stopChatPolling(): void {
+    if (this.chatPollInterval !== null) {
+      clearInterval(this.chatPollInterval);
+      this.chatPollInterval = null;
+    }
   }
 
   sendChatMessage(): void {
@@ -688,6 +712,7 @@ export class MemberDashboard implements OnInit, OnDestroy {
   }
 
   closeChatPanel(): void {
+    this.stopChatPolling();
     this.showChatPanel = false;
     this.currentConversation = null;
     this.conversationMessages = [];
@@ -710,7 +735,9 @@ export class MemberDashboard implements OnInit, OnDestroy {
     return msg.senderId === this.user?.id;
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.stopChatPolling();
+  }
 
   logout(): void {
     this.authService.logout();

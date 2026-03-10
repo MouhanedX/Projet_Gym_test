@@ -14,7 +14,7 @@ export class AuthService {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      const stored = localStorage.getItem('gym_user');
+      const stored = sessionStorage.getItem('gym_user');
       if (stored) {
         try {
           this.currentUserSubject.next(JSON.parse(stored));
@@ -69,14 +69,14 @@ export class AuthService {
 
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('gym_user');
+      sessionStorage.removeItem('gym_user');
     }
     this.currentUserSubject.next(null);
   }
 
   private setUser(user: User): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('gym_user', JSON.stringify(user));
+      sessionStorage.setItem('gym_user', JSON.stringify(user));
     }
     this.currentUserSubject.next(user);
   }

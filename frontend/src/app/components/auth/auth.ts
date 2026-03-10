@@ -7,7 +7,7 @@ import { GymService } from '../../services/gym.service';
 import { User } from '../../models/user';
 import { Gym } from '../../models/gym';
 import * as L from 'leaflet';
-import { finalize } from 'rxjs/operators';
+import { finalize, timeout } from 'rxjs/operators';
 
 @Component({
   selector: 'app-auth',
@@ -27,6 +27,8 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   password = '';
   confirmPassword = '';
   phone = '';
+  showPassword = false;
+  showConfirmPassword = false;
 
   // Gym fields (owner only)
   gymName = '';
@@ -35,13 +37,35 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   gymPhone = '';
   gymDescription = '';
   gymPrice = 0;
-  gymOpeningHours = '06:00 - 22:00';
+  gymSchedule = [
+    { day: 'Monday', open: true, from: '06:00', to: '22:00' },
+    { day: 'Tuesday', open: true, from: '06:00', to: '22:00' },
+    { day: 'Wednesday', open: true, from: '06:00', to: '22:00' },
+    { day: 'Thursday', open: true, from: '06:00', to: '22:00' },
+    { day: 'Friday', open: true, from: '06:00', to: '22:00' },
+    { day: 'Saturday', open: true, from: '08:00', to: '20:00' },
+    { day: 'Sunday', open: false, from: '08:00', to: '18:00' }
+  ];
   gymAmenities = '';
-  gymImage = ''; // Optional image path
+  amenitiesList: string[] = [];
+  amenityInput = '';
   gymLat = 36.8065; // Default: Tunis
   gymLng = 10.1815;
 
-  error = '';
+  // Gym picture (Owner only)
+  gymImage: string | null = null;
+  gymImagePreview: string | null = null;
+
+  private _error = '';
+  private _errorTimer: any = null;
+
+  get error(): string { return this._error; }
+  set error(value: string) {
+    this._error = value;
+    if (this._errorTimer) { clearTimeout(this._errorTimer); this._errorTimer = null; }
+    if (value) { this._errorTimer = setTimeout(() => { this._error = ''; }, 1500); }
+  }
+
   loading = false;
 
   roles = [
@@ -86,6 +110,7 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this._errorTimer) { clearTimeout(this._errorTimer); }
     if (this.map) {
       this.map.remove();
       this.map = null;
@@ -100,20 +125,76 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
 
   selectRole(role: string): void {
     this.selectedRole = role;
+    this.error = '';
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  addAmenity(): void {
+    const val = this.amenityInput.trim();
+    if (val && !this.amenitiesList.includes(val)) {
+      this.amenitiesList.push(val);
+    }
+    this.amenityInput = '';
+  }
+
+  removeAmenity(index: number): void {
+    this.amenitiesList.splice(index, 1);
+  }
+
+  onGymImageSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        this.error = 'Please select a valid image file';
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.error = 'Image size must be less than 5MB';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        this.gymImage = e.target?.result as string;
+        this.gymImagePreview = this.gymImage;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeGymImage(): void {
+    this.gymImage = null;
+    this.gymImagePreview = null;
   }
 
   nextStep(): void {
     this.error = '';
-    if (!this.name || !this.email || !this.password) {
+    if (!this.name || !this.email || !this.password || !this.phone) {
       this.error = 'Please fill in all required fields';
       return;
     }
-    if (this.password !== this.confirmPassword) {
-      this.error = 'Passwords do not match';
+    if (!/^\d{8}$/.test(this.phone)) {
+      this.error = 'Phone number must be exactly 8 digits.';
       return;
     }
     if (this.password.length < 6) {
-      this.error = 'Password must be at least 6 characters';
+      this.error = 'Password must be at least 6 characters long.';
+      return;
+    }
+    if (this.password !== this.confirmPassword) {
+      this.error = 'Passwords do not match. Please make sure both fields are identical.';
       return;
     }
     this.step = 2;
@@ -171,16 +252,20 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
 
       // Validate basic fields for non-owner (they don't go through step 2)
       if (this.selectedRole !== 'OWNER') {
-        if (!this.name || !this.email || !this.password) {
+        if (!this.name || !this.email || !this.password || !this.phone) {
           this.error = 'Please fill in all required fields';
           return;
         }
-        if (this.password !== this.confirmPassword) {
-          this.error = 'Passwords do not match';
+        if (!/^\d{8}$/.test(this.phone)) {
+          this.error = 'Phone number must be exactly 8 digits.';
           return;
         }
         if (this.password.length < 6) {
-          this.error = 'Password must be at least 6 characters';
+          this.error = 'Password must be at least 6 characters long.';
+          return;
+        }
+        if (this.password !== this.confirmPassword) {
+          this.error = 'Passwords do not match. Please make sure both fields are identical.';
           return;
         }
       }
@@ -191,7 +276,7 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
         email: this.email,
         password: this.password,
         role: this.selectedRole as 'MEMBER' | 'OWNER' | 'COACH',
-        phone: this.phone || undefined
+        phone: this.phone
       };
 
       this.authService.register(user).pipe(
@@ -218,6 +303,13 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
+  private buildOpeningHours(): string {
+    return this.gymSchedule
+      .filter(d => d.open)
+      .map(d => `${d.day}: ${d.from} - ${d.to}`)
+      .join(', ');
+  }
+
   private createGymForOwner(owner: User): void {
     const gym: Gym = {
       name: this.gymName,
@@ -227,10 +319,10 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
       phone: this.gymPhone || undefined,
       ownerId: owner.id!,
       ownerName: owner.name,
-      image: this.gymImage || undefined,
       monthlyPrice: this.gymPrice || undefined,
-      openingHours: this.gymOpeningHours || undefined,
-      amenities: this.gymAmenities ? this.gymAmenities.split(',').map(a => a.trim()).filter(a => a) : undefined,
+      openingHours: this.buildOpeningHours() || undefined,
+      amenities: this.amenitiesList.length > 0 ? this.amenitiesList : undefined,
+      image: this.gymImage || undefined,
       latitude: this.gymLat,
       longitude: this.gymLng,
       isActive: true,
@@ -241,6 +333,7 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
     console.log('Creating gym:', gym);
 
     this.gymService.create(gym).pipe(
+      timeout(15000),
       finalize(() => this.loading = false)
     ).subscribe({
       next: (savedGym) => {

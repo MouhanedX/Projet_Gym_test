@@ -61,8 +61,7 @@ public class ConversationController {
         Message saved = messageRepository.save(message);
 
         // Create notification for other participants
-        conversationRepository.findById(conversationId).ifPresent(conv -> {
-            for (String participantId : conv.getParticipantIds()) {
+        conversationRepository.findById(conversationId).ifPresent(conv -> {            if (conv.getParticipantIds() == null) return;            for (String participantId : conv.getParticipantIds()) {
                 if (!participantId.equals(message.getSenderId())) {
                     Notification notif = new Notification();
                     notif.setUserId(participantId);

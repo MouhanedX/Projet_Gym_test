@@ -1,147 +1,292 @@
-<!-- Animated Background -->
-<div class="bg-effects">
-  <div class="gradient-orb orb-1"></div>
-  <div class="gradient-orb orb-2"></div>
-  <div class="gradient-orb orb-3"></div>
-  <div class="grid-overlay"></div>
-  <div class="particles">
-    <span *ngFor="let p of [1,2,3,4,5,6,7,8,9,10,11,12]" class="particle" [style.--i]="p"></span>
-  </div>
-</div>
-
-<!-- Navbar -->
-<nav class="navbar">
-  <div class="nav-content">
-    <div class="logo">
-      <span class="logo-icon">⚡</span>
-      <span class="logo-text">GymPro</span>
-    </div>
-    <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#roles">Get Started</a>
-      <button class="btn-nav" (click)="goToLogin()">Sign In</button>
-    </div>
-  </div>
-</nav>
-
 <!-- Hero Section -->
-<section class="hero">
-  <div class="hero-content">
-    <div class="hero-badge">🔥 #1 Fitness Platform</div>
-    <h1 class="hero-title">
-      <span class="line1">Transform Your</span>
-      <span class="line2">
-        <span class="gradient-text">Fitness Journey</span>
-      </span>
-    </h1>
-    <p class="hero-subtitle">
-      The all-in-one platform connecting gym enthusiasts, gym owners, and elite coaches.
-      Track workouts, manage facilities, and build champions.
-    </p>
-    <div class="hero-actions">
-      <button class="btn-primary" (click)="goToAuth('MEMBER')">
-        <span>Start Training</span>
-        <span class="btn-arrow">→</span>
-      </button>
-      <button class="btn-secondary" (click)="goToAuth('OWNER')">
-        <span>List Your Gym</span>
-      </button>
+<section class="hero-section">
+  <div class="hero-container">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>✨ Nouvelle génération de fitness</span>
+      </div>
+
+      <h1 class="hero-title">
+        Transformez <span class="gradient-text">Votre&nbsp;Vie</span><br>Avec <span class="yellow-accent-text">E&#8209;Gym</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        La plateforme tout-en-un qui connecte athlètes, coachs<br>
+        professionnels et salles de sport premium. Atteignez vos<br>
+        objectifs avec les meilleurs outils.
+      </p>
+
+      <div class="hero-buttons">
+        <button class="btn-primary" (click)="goToAuth()">
+          Commencer Gratuitement
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-item" *ngFor="let stat of stats">
+          <div class="stat-icon">
+            <span class="stat-emoji">{{ stat.icon }}</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stat.value }}</div>
+            <div class="stat-label">{{ stat.label }}</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Floating Cards -->
-    <div class="hero-visual">
-      <div class="float-card card-1">
-        <div class="card-icon">🔥</div>
-        <div class="card-info">
-          <span class="card-label">Calories Burned</span>
-          <span class="card-value">2,847</span>
-        </div>
-      </div>
-      <div class="float-card card-2">
-        <div class="card-icon">💪</div>
-        <div class="card-info">
-          <span class="card-label">Bench Press PR</span>
-          <span class="card-value">225 lbs</span>
-        </div>
-      </div>
-      <div class="float-card card-3">
-        <div class="card-icon">🏆</div>
-        <div class="card-info">
-          <span class="card-label">Streak</span>
-          <span class="card-value">42 Days</span>
+    <div class="hero-images">
+      <div class="images-grid">
+        <div class="image-card" *ngFor="let img of heroImages">
+          <img [src]="img" alt="Gym">
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Stats Section -->
-<section class="stats-section">
-  <div class="stats-grid">
-    <div class="stat-card" *ngFor="let stat of stats">
-      <span class="stat-value">{{ stat.value }}</span>
-      <span class="stat-label">{{ stat.label }}</span>
+<!-- Premium Gyms Section -->
+<section class="premium-section">
+  <div class="section-container">
+    <h2 class="section-title">Nos Salles Partenaires Premium</h2>
+    <p class="section-subtitle">Des équipements de classe mondiale pour vos entraînements</p>
+  </div>
+  
+  <div class="gyms-carousel-wrapper">
+    <div class="gyms-carousel">
+      <div class="gym-card" *ngFor="let gym of premiumGyms; let i = index">
+        <div class="gym-image">
+          <img [src]="gym.image" alt="Gym">
+        </div>
+        <div class="gym-overlay">
+          <div class="gym-location">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            {{ gym.location }}
+          </div>
+          <div class="gym-rating">
+            <div class="stars-row">
+              <span class="star full" *ngFor="let s of getFullStars(gym.rating)">★</span>
+              <span class="star half-star" *ngIf="hasHalfStar(gym.rating)">
+                <span class="half-fill">★</span>★
+              </span>
+              <span class="star empty" *ngFor="let s of getEmptyStars(gym.rating)">★</span>
+            </div>
+            <span class="rating-value">{{ gym.rating }}<span class="rating-max">/5</span></span>
+          </div>
+        </div>
+      </div>
+      <!-- Duplicate for infinite scroll -->
+      <div class="gym-card" *ngFor="let gym of premiumGyms; let i = index">
+        <div class="gym-image">
+          <img [src]="gym.image" alt="Gym">
+        </div>
+        <div class="gym-overlay">
+          <div class="gym-location">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            {{ gym.location }}
+          </div>
+          <div class="gym-rating">
+            <div class="stars-row">
+              <span class="star full" *ngFor="let s of getFullStars(gym.rating)">★</span>
+              <span class="star half-star" *ngIf="hasHalfStar(gym.rating)">
+                <span class="half-fill">★</span>★
+              </span>
+              <span class="star empty" *ngFor="let s of getEmptyStars(gym.rating)">★</span>
+            </div>
+            <span class="rating-value">{{ gym.rating }}<span class="rating-max">/5</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Profiles Section -->
+<section class="profiles-section" id="profiles">
+  <div class="section-container">
+    <div class="section-badge">Pour Tous</div>
+    <h2 class="section-title">Choisissez Votre <span class="gradient-text-blue">Profil</span></h2>
+    <p class="section-subtitle">Une expérience sur mesure pour chaque membre de la communauté fitness</p>
+
+    <div class="profiles-grid">
+      <div class="profile-card" *ngFor="let profile of profiles" [class]="'profile-card-' + profile.buttonColor">
+        <div class="profile-icon">
+          <span class="profile-emoji">{{ profile.icon }}</span>
+        </div>
+
+        <h3 class="profile-title">{{ profile.title }}</h3>
+        <p class="profile-description">{{ profile.description }}</p>
+
+        <ul class="profile-features">
+          <li *ngFor="let feature of profile.features">
+            <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            {{ feature }}
+          </li>
+        </ul>
+
+        <button class="profile-btn" (click)="goToAuth(profile.role)">
+          {{ profile.buttonText }}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Features Section -->
-<section class="features-section" id="features">
-  <div class="section-header">
-    <span class="section-badge">Features</span>
-    <h2 class="section-title">Everything You Need to <span class="gradient-text">Dominate</span></h2>
-    <p class="section-subtitle">Powerful tools designed for every fitness journey, from beginners to elite athletes.</p>
-  </div>
-  <div class="features-grid">
-    <div class="feature-card" *ngFor="let f of features; let i = index" [style.--delay]="i * 0.1 + 's'">
-      <div class="feature-icon">{{ f.icon }}</div>
-      <h3>{{ f.title }}</h3>
-      <p>{{ f.desc }}</p>
-      <div class="feature-glow"></div>
-    </div>
-  </div>
-</section>
+<section class="features-section">
+  <div class="section-container">
+    <h2 class="section-title">Pourquoi Choisir <span class="gradient-text-blue">E-Gym</span>?</h2>
+    <p class="section-subtitle">Des fonctionnalités innovantes pour votre succès</p>
 
-<!-- Roles Section -->
-<section class="roles-section" id="roles">
-  <div class="section-header">
-    <span class="section-badge">Get Started</span>
-    <h2 class="section-title">Choose Your <span class="gradient-text">Path</span></h2>
-    <p class="section-subtitle">Three powerful interfaces, one unified platform. Pick your role and start your journey.</p>
-  </div>
-  <div class="roles-grid">
-    <div class="role-card" *ngFor="let r of roles" [style.--accent]="r.color" (click)="goToAuth(r.role)">
-      <div class="role-icon">{{ r.icon }}</div>
-      <h3>{{ r.title }}</h3>
-      <p>{{ r.desc }}</p>
-      <button class="role-btn">
-        Get Started
-        <span class="btn-arrow">→</span>
-      </button>
-      <div class="role-bg"></div>
+    <div class="features-grid">
+      <div class="feature-card" *ngFor="let feature of features">
+        <div class="feature-icon" [style.backgroundColor]="feature.bgColor">
+          <span class="feature-emoji">{{ feature.icon }}</span>
+        </div>
+        <h3 class="feature-title">{{ feature.title }}</h3>
+        <p class="feature-description">{{ feature.description }}</p>
+      </div>
     </div>
-  </div>
-</section>
-
-<!-- CTA Section -->
-<section class="cta-section">
-  <div class="cta-content">
-    <h2>Ready to <span class="gradient-text">Level Up</span>?</h2>
-    <p>Join thousands of fitness enthusiasts who are already transforming their lives with GymPro.</p>
-    <button class="btn-primary btn-large" (click)="goToAuth('MEMBER')">
-      <span>Join Now — It's Free</span>
-      <span class="btn-arrow">→</span>
-    </button>
   </div>
 </section>
 
 <!-- Footer -->
 <footer class="footer">
-  <div class="footer-content">
-    <div class="footer-brand">
-      <span class="logo-icon">⚡</span>
-      <span class="logo-text">GymPro</span>
+  <div class="footer-glow-bar"></div>
+
+  <div class="footer-container">
+
+    <!-- Newsletter strip -->
+    <div class="footer-newsletter">
+      <div class="footer-newsletter-text">
+        <span class="footer-newsletter-icon">📬</span>
+        <div>
+          <p class="footer-newsletter-title">Restez dans la boucle</p>
+          <p class="footer-newsletter-sub">Conseils fitness, nouvelles salles et offres exclusives.</p>
+        </div>
+      </div>
+      <div class="footer-newsletter-form">
+        <input type="email" placeholder="votre&#64;email.com" class="footer-newsletter-input">
+        <button class="footer-newsletter-btn">S'abonner</button>
+      </div>
     </div>
-    <p class="footer-text">© 2026 GymPro. Built for champions.</p>
+
+    <div class="footer-divider"></div>
+
+    <!-- Main footer body -->
+    <div class="footer-main">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span>E-Gym</span>
+        </div>
+        <p class="footer-tagline">
+          La plateforme de référence pour connecter<br>athlètes, coachs et salles de sport premium.   
+        </p>
+        <div class="footer-stats-mini">
+          <div class="footer-stat">
+            <span class="footer-stat-value">10K+</span>
+            <span class="footer-stat-label">Membres</span>
+          </div>
+          <div class="footer-stat-sep"></div>
+          <div class="footer-stat">
+            <span class="footer-stat-value">150+</span>
+            <span class="footer-stat-label">Salles</span>
+          </div>
+          <div class="footer-stat-sep"></div>
+          <div class="footer-stat">
+            <span class="footer-stat-value">500+</span>
+            <span class="footer-stat-label">Coachs</span>
+          </div>
+        </div>
+        <div class="footer-social">
+          <!-- Facebook -->
+          <a href="#" class="social-link social-facebook" aria-label="Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+            </svg>
+          </a>
+          <!-- Twitter / X -->
+          <a href="#" class="social-link social-twitter" aria-label="Twitter">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </a>
+          <!-- Instagram -->
+          <a href="#" class="social-link social-instagram" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+          </a>
+          <!-- LinkedIn -->
+          <a href="#" class="social-link social-linkedin" aria-label="LinkedIn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+              <rect x="2" y="9" width="4" height="12"/>
+              <circle cx="4" cy="4" r="2"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>Produit</h4>
+          <a href="#">Fonctionnalités</a>
+          <a href="#">Tarifs</a>
+          <a href="#">Cas d'usage</a>
+          <a href="#">FAQ</a>
+        </div>
+        <div class="footer-column">
+          <h4>Entreprise</h4>
+          <a href="#">À propos</a>
+          <a href="#">Carrières</a>
+          <a href="#">Blog</a>
+          <a href="#">Contact</a>
+        </div>
+        <div class="footer-column">
+          <h4>Support</h4>
+          <a href="#">Centre d'aide</a>
+          <a href="#">Conditions</a>
+          <a href="#">Confidentialité</a>
+          <a href="#">Sécurité</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-divider"></div>
+
+    <div class="footer-bottom">
+      <span>© 2026 E-Gym. Tous droits réservés.</span>
+      <div class="footer-bottom-links">
+        <a href="#">Confidentialité</a>
+        <span class="footer-dot">·</span>
+        <a href="#">Conditions</a>
+        <span class="footer-dot">·</span>
+        <a href="#">Cookies</a>
+      </div>
+      <span class="footer-love">Fait avec <span class="heart">❤</span> pour la communauté fitness</span>
+    </div>
+
   </div>
 </footer>

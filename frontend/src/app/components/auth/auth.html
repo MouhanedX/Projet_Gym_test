@@ -11,11 +11,11 @@
     <span>&#8592;</span> {{ step === 2 ? 'Back' : 'Home' }}
   </button>
 
-  <div class="auth-card" [class.wide]="step === 2">
+  <div class="auth-card" [class.wide]="step === 2" [class.signup]="!isLogin && step === 1">
     <!-- Logo -->
     <div class="auth-logo">
       <span class="logo-icon">&#9889;</span>
-      <span class="logo-text">GymPro</span>
+      <span class="logo-text">E-Gym</span>
     </div>
 
     <!-- Step indicator for owner registration -->
@@ -28,7 +28,6 @@
     <!-- Header -->
     <h1 class="auth-title">
       <ng-container *ngIf="isLogin">Welcome Back</ng-container>
-      <ng-container *ngIf="!isLogin && step === 1">Join GymPro</ng-container>
       <ng-container *ngIf="!isLogin && step === 2">Set Up Your Gym</ng-container>
     </h1>
     <p class="auth-subtitle">
@@ -62,40 +61,57 @@
       <div class="form-group" *ngIf="!isLogin">
         <label for="name">Full Name</label>
         <div class="input-wrapper">
-          <span class="input-icon">&#128100;</span>
-          <input id="name" type="text" [(ngModel)]="name" name="name" placeholder="John Doe" autocomplete="name">
+          <span class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <input id="name" type="text" [(ngModel)]="name" name="name" placeholder="Enter your full name" autocomplete="name">
         </div>
       </div>
 
       <div class="form-group">
         <label for="email">Email</label>
         <div class="input-wrapper">
-          <span class="input-icon">&#9993;&#65039;</span>
-          <input id="email" type="email" [(ngModel)]="email" name="email" placeholder="you&#64;example.com" autocomplete="email">
+          <span class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </span>
+          <input id="email" type="email" [(ngModel)]="email" name="email" placeholder="Enter your email" autocomplete="email">
         </div>
       </div>
 
       <div class="form-group">
         <label for="password">Password</label>
         <div class="input-wrapper">
-          <span class="input-icon">&#128274;</span>
-          <input id="password" type="password" [(ngModel)]="password" name="password" placeholder="Min 6 characters" autocomplete="new-password">
+          <span class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <input id="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" placeholder="Enter your password" autocomplete="new-password">
+          <button type="button" class="toggle-password-btn" (click)="togglePasswordVisibility()" tabindex="-1" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
         </div>
       </div>
 
       <div class="form-group" *ngIf="!isLogin">
         <label for="confirm">Confirm Password</label>
         <div class="input-wrapper">
-          <span class="input-icon">&#128274;</span>
-          <input id="confirm" type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Repeat password" autocomplete="new-password">
+          <span class="input-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <input id="confirm" [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Confirm your password" autocomplete="new-password">
+          <button type="button" class="toggle-password-btn" (click)="toggleConfirmPasswordVisibility()" tabindex="-1" [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'">
+            <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
         </div>
       </div>
 
       <div class="form-group" *ngIf="!isLogin">
-        <label for="phone">Phone (optional)</label>
-        <div class="input-wrapper">
-          <span class="input-icon">&#128241;</span>
-          <input id="phone" type="tel" [(ngModel)]="phone" name="phone" placeholder="+216 XX XXX XXX" autocomplete="tel">
+        <label for="phone">Phone Number</label>
+        <div class="input-wrapper phone-wrapper">
+          <span class="phone-prefix">+216</span>
+          <span class="phone-divider"></span>
+          <input id="phone" type="tel" [(ngModel)]="phone" name="phone" placeholder="Enter your phone number" autocomplete="tel" maxlength="8" pattern="\d{8}">
         </div>
       </div>
 
@@ -105,7 +121,6 @@
           <span *ngIf="isLogin">Sign In</span>
           <span *ngIf="!isLogin && selectedRole !== 'OWNER'">Create Account</span>
           <span *ngIf="!isLogin && selectedRole === 'OWNER'">Next: Gym Info</span>
-          <span class="btn-arrow">&#8594;</span>
         </ng-container>
       </button>
     </form>
@@ -115,67 +130,114 @@
       <div class="gym-form-grid">
         <div class="gym-form-left">
           <div class="form-group">
-            <label for="gymName">Gym Name *</label>
+            <label for="gymName">Gym Name</label>
             <div class="input-wrapper">
-              <span class="input-icon">&#127947;&#65039;</span>
-              <input id="gymName" type="text" [(ngModel)]="gymName" name="gymName" placeholder="FitZone Pro">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+              </span>
+              <input id="gymName" type="text" [(ngModel)]="gymName" name="gymName" placeholder="Enter your Gym name">
             </div>
           </div>
 
           <div class="form-group">
-            <label for="gymAddress">Address *</label>
-            <div class="input-wrapper input-with-btn">
-              <span class="input-icon">&#128205;</span>
-              <input id="gymAddress" type="text" [(ngModel)]="gymAddress" name="gymAddress" placeholder="123 Fitness Ave" (keydown.enter)="$event.preventDefault(); searchAddress()">
-              <button type="button" class="search-loc-btn" (click)="searchAddress()">&#128269;</button>
+            <label for="gymAddress">Address</label>
+            <div class="input-wrapper address-wrapper">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
+              <input id="gymAddress" type="text" [(ngModel)]="gymAddress" name="gymAddress" placeholder="Enter your gym address" (keydown.enter)="$event.preventDefault(); searchAddress()">
+              <button type="button" class="search-loc-btn" (click)="searchAddress()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Search</span>
+              </button>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="gymCity">City</label>
-              <input id="gymCity" type="text" [(ngModel)]="gymCity" name="gymCity" class="form-input-simple" placeholder="Tunis">
+              <input id="gymCity" type="text" [(ngModel)]="gymCity" name="gymCity" class="form-input-simple" placeholder="Enter city">
             </div>
             <div class="form-group">
               <label for="gymPhone">Gym Phone</label>
-              <input id="gymPhone" type="tel" [(ngModel)]="gymPhone" name="gymPhone" class="form-input-simple" placeholder="+216 XX XXX XXX">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="gymPrice">Monthly Price (DT)</label>
-              <input id="gymPrice" type="number" [(ngModel)]="gymPrice" name="gymPrice" class="form-input-simple" min="0">
-            </div>
-            <div class="form-group">
-              <label for="gymHours">Opening Hours</label>
-              <input id="gymHours" type="text" [(ngModel)]="gymOpeningHours" name="gymHours" class="form-input-simple" placeholder="06:00 - 22:00">
+              <div class="input-wrapper phone-wrapper">
+                <span class="phone-prefix">+216</span>
+                <span class="phone-divider"></span>
+                <input id="gymPhone" type="tel" [(ngModel)]="gymPhone" name="gymPhone" placeholder="Enter your phone number" maxlength="8" pattern="\d{8}">
+              </div>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="gymAmenities">Amenities (comma-separated)</label>
-            <input id="gymAmenities" type="text" [(ngModel)]="gymAmenities" name="gymAmenities" class="form-input-simple" placeholder="Pool, Sauna, Parking, WiFi">
+            <label for="gymPrice">Monthly Price (DT)</label>
+            <input id="gymPrice" type="number" [(ngModel)]="gymPrice" name="gymPrice" class="form-input-simple" min="0">
           </div>
 
           <div class="form-group">
-            <label for="gymImage">Image URL (optional)</label>
-            <input id="gymImage" type="text" [(ngModel)]="gymImage" name="gymImage" class="form-input-simple" placeholder="https://example.com/gym-image.jpg">
-          </div>
-
-          <div class="form-group">
-            <label for="gymDesc">Description</label>
-            <textarea id="gymDesc" [(ngModel)]="gymDescription" name="gymDescription" class="form-input-simple textarea" placeholder="Tell members about your gym..."></textarea>
+            <label>Opening Schedule</label>
+            <div class="schedule-grid">
+              <div class="schedule-row" *ngFor="let day of gymSchedule" [class.active]="day.open">
+                <button type="button" class="schedule-day-btn" [class.active]="day.open" (click)="day.open = !day.open">
+                  {{ day.day.substring(0, 3) }}
+                </button>
+                <div class="schedule-times" *ngIf="day.open">
+                  <input type="time" [(ngModel)]="day.from" [name]="'from_' + day.day" class="time-input">
+                  <span class="time-separator">&mdash;</span>
+                  <input type="time" [(ngModel)]="day.to" [name]="'to_' + day.day" class="time-input">
+                </div>
+                <span class="schedule-closed" *ngIf="!day.open">Closed</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="gym-form-right">
-          <label class="map-label">&#128205; Pin Your Gym Location</label>
-          <p class="map-hint">Click the map or drag the pin. You can also type an address above and click &#128269;</p>
+          <label class="map-label">Pin Your Gym Location</label>
+          <p class="map-hint">Click the map or drag the pin to set your gym's location</p>
           <div id="gym-map" class="map-container"></div>
           <div class="coords-display">
             <span>Lat: {{ gymLat }}</span>
             <span>Lng: {{ gymLng }}</span>
+          </div>
+
+          <div class="form-group" style="width: 100%;">
+            <label>Amenities</label>
+            <div class="amenity-input-row">
+              <input type="text" [(ngModel)]="amenityInput" name="amenityInput" class="form-input-simple" placeholder="e.g. Pool, Sauna, WiFi..." (keydown.enter)="$event.preventDefault(); addAmenity()">
+              <button type="button" class="amenity-add-btn" (click)="addAmenity()">+ Add</button>
+            </div>
+            <div class="amenity-tags" *ngIf="amenitiesList.length > 0">
+              <span class="amenity-tag" *ngFor="let a of amenitiesList; let i = index">
+                {{ a }}
+                <button type="button" class="amenity-remove" (click)="removeAmenity(i)">&times;</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group" style="width: 100%;">
+            <label for="gymDesc">Description</label>
+            <textarea id="gymDesc" [(ngModel)]="gymDescription" name="gymDescription" class="form-input-simple textarea" placeholder="Tell members about your gym..."></textarea>
+          </div>
+
+          <!-- Gym Picture Upload -->
+          <div class="form-group profile-picture-section" style="width: 100%;">
+            <label>Gym Picture</label>
+            <div class="profile-upload-container">
+              <div class="profile-preview" *ngIf="gymImagePreview">
+                <img [src]="gymImagePreview" alt="Gym preview">
+                <button type="button" class="remove-picture-btn" (click)="removeGymImage()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <div class="profile-upload-area" *ngIf="!gymImagePreview" (click)="gymImageInput.click()">
+                <input #gymImageInput type="file" accept="image/*" (change)="onGymImageSelect($event)" hidden>
+                <div class="upload-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <span class="upload-text">Click to upload gym photo</span>
+                <span class="upload-hint">JPG, PNG or GIF (max 5MB)</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -183,7 +245,6 @@
       <button type="submit" class="submit-btn" [disabled]="loading">
         <span class="spinner" *ngIf="loading"></span>
         <span *ngIf="!loading">Create Account & Gym</span>
-        <span class="btn-arrow" *ngIf="!loading">&#8594;</span>
       </button>
     </form>
 
