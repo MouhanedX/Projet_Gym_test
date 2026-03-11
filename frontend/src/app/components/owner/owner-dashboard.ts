@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -67,7 +67,8 @@ export class OwnerDashboard implements OnInit {
     { day: 'Samedi',   open: '08:00', close: '20:00', closed: false },
     { day: 'Dimanche', open: '08:00', close: '18:00', closed: true  }
   ];
-  gymAmenities = '';
+  gymAmenityInput = '';
+  gymAmenitiesList: string[] = [];
   gymImage: string | null = null;
   gymImagePreview: string | null = null;
   gymLat: number | null = null;
@@ -87,6 +88,17 @@ export class OwnerDashboard implements OnInit {
   progEndTime = '09:00';
   progCapacity = 20;
   progPrice = 0;
+  progSubmitAttempted = false;
+  progError = '';
+  openDropdown: string | null = null;
+  readonly typeLabels: Record<string, string> = {
+    STRENGTH: 'Musculation', CARDIO: 'Cardio', YOGA: 'Yoga',
+    HIIT: 'HIIT', CROSSFIT: 'CrossFit', BOXING: 'Boxe',
+    SWIMMING: 'Natation', MARTIAL_ARTS: 'Arts martiaux'
+  };
+  readonly diffLabels: Record<string, string> = {
+    BEGINNER: 'Débutant', INTERMEDIATE: 'Intermédiaire', ADVANCED: 'Avancé'
+  };
 
   tabs = [
     { key: 'overview', label: 'Dashboard', icon: '📊' },
@@ -159,7 +171,7 @@ export class OwnerDashboard implements OnInit {
       ownerName: this.user!.name,
       monthlyPrice: this.gymPrice,
       openingHours: this.buildScheduleString(),
-      amenities: this.gymAmenities.split(',').map(a => a.trim()).filter(a => a),
+      amenities: this.gymAmenitiesList,
       image: this.gymImage || undefined,
       latitude: this.gymLat || undefined,
       longitude: this.gymLng || undefined
@@ -188,13 +200,26 @@ export class OwnerDashboard implements OnInit {
       this.gymPrice = this.gym.monthlyPrice || 0;
       this.gymOpeningHours = this.gym.openingHours || '';
       this.parseSchedule(this.gym.openingHours || '');
-      this.gymAmenities = (this.gym.amenities || []).join(', ');
+      this.gymAmenitiesList = [...(this.gym.amenities || [])];
+      this.gymAmenityInput = '';
       this.gymImage = this.gym.image || null;
       this.gymImagePreview = this.gym.image || null;
       this.gymLat = this.gym.latitude || null;
       this.gymLng = this.gym.longitude || null;
     }
     this.showGymForm = true;
+  }
+
+  addGymAmenity(): void {
+    const val = this.gymAmenityInput.trim();
+    if (val && !this.gymAmenitiesList.includes(val)) {
+      this.gymAmenitiesList.push(val);
+    }
+    this.gymAmenityInput = '';
+  }
+
+  removeGymAmenity(index: number): void {
+    this.gymAmenitiesList.splice(index, 1);
   }
 
   private parseScheduleString(hours: string): { day: string; open: string; close: string; closed: boolean }[] {
@@ -239,7 +264,14 @@ export class OwnerDashboard implements OnInit {
   }
 
   buildScheduleString(): string {
-    return JSON.stringify(this.gymSchedule);
+    const frToEn: Record<string, string> = {
+      'Lundi': 'Monday', 'Mardi': 'Tuesday', 'Mercredi': 'Wednesday',
+      'Jeudi': 'Thursday', 'Vendredi': 'Friday', 'Samedi': 'Saturday', 'Dimanche': 'Sunday'
+    };
+    return this.gymSchedule
+      .filter(s => !s.closed)
+      .map(s => `${frToEn[s.day] || s.day}: ${s.open} - ${s.close}`)
+      .join(', ');
   }
 
   getDisplayHours(): string {
@@ -329,7 +361,23 @@ export class OwnerDashboard implements OnInit {
       this.progCapacity = 20;
       this.progPrice = 0;
     }
+    this.progSubmitAttempted = false;
+    this.progError = '';
+    this.openDropdown = null;
     this.showProgramForm = true;
+  }
+
+  @HostListener('document:click')
+  closeDropdowns(): void { this.openDropdown = null; }
+
+  diffColor(d: string): string {
+    const m: Record<string, string> = { BEGINNER: '#22C55E', INTERMEDIATE: '#F59E0B', ADVANCED: '#EF4444' };
+    return m[d] || '#aaa';
+  }
+
+  get selectedCoachName(): string {
+    if (!this.progCoachId) return '— Aucun coach —';
+    return this.coaches.find(c => c.id === this.progCoachId)?.name || '— Aucun coach —';
   }
 
   toggleDay(day: string): void {
@@ -339,6 +387,21 @@ export class OwnerDashboard implements OnInit {
   }
 
   saveProgram(): void {
+    this.progSubmitAttempted = true;
+    this.progError = '';
+    const missing: string[] = [];
+    if (!this.progTitle?.trim())       missing.push('Titre');
+    if (!this.progType)                missing.push('Type d\'activité');
+    if (!this.progDifficulty)          missing.push('Niveau de difficulté');
+    if (!this.progCapacity || this.progCapacity < 1) missing.push('Capacité maximale');
+    if (!this.progStartTime)           missing.push('Heure de début');
+    if (!this.progEndTime)             missing.push('Heure de fin');
+    if (this.progPrice == null || this.progPrice < 0) missing.push('Prix d\'inscription');
+    if (!this.progDays.length)         missing.push('Jours de la semaine');
+    if (missing.length) {
+      this.progError = 'Champs obligatoires manquants : ' + missing.join(', ');
+      return;
+    }
     const coach = this.coaches.find(c => c.id === this.progCoachId);
     const prog: Program = {
       title: this.progTitle,

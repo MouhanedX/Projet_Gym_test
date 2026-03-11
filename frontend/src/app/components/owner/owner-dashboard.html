@@ -23,13 +23,6 @@
         </div>
 
         <div class="topbar-separator"></div>
-        
-        <button class="logout-btn" (click)="toggleDark()" title="Toggle dark mode">
-          <svg *ngIf="!darkMode" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.2 4.2l1.4 1.4m12.8 12.8l1.4 1.4M1 12h2m18 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
-          <svg *ngIf="darkMode" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-        </button>
-
-        <div class="topbar-separator"></div>
 
         <div class="user-profile-section">
           <div class="user-avatar-circle">{{ user?.name?.charAt(0) || 'O' }}</div>
@@ -82,13 +75,14 @@
     <div class="owner-spinner" *ngIf="loading"><div class="owner-spinner-ring"></div></div>
 
     <!-- OVERVIEW -->
-    <div *ngIf="activeTab === 'overview' && !loading" class="tab-content">
-      <div class="owner-page-header">
+    <div *ngIf="activeTab === 'overview' && !loading" class="tab-content owner-overview-theme">
+      <div class="owner-page-header header-overview">
         <div>
+          <div class="owner-overview-badge">Dashboard</div>
           <h1 class="owner-page-title">Tableau de Bord</h1>
           <p class="owner-subtitle">{{ gym ? gym.name + ' — Gestion propriétaire' : 'Configurez votre salle pour commencer' }}</p>
         </div>
-        <button class="btn-owner-primary" *ngIf="!gym" (click)="showGymForm = true; setTab('gym')">
+        <button class="btn-owner-accent" *ngIf="!gym" (click)="showGymForm = true; setTab('gym')">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
           Créer ma salle
         </button>
@@ -152,13 +146,13 @@
               </div>
               <div class="owner-list-right">
                 <span class="owner-badge" [class.confirmed]="sub.paiementStatut === 'PAYE'" [class.cancelled]="sub.paiementStatut !== 'PAYE'">
-                  {{ sub.paiementStatut === 'PAYE' ? '✅ Payé' : '❌ Non payé' }}
+                  {{ sub.paiementStatut === 'PAYE' ? 'Payé' : 'Non payé' }}
                 </span>
               </div>
             </div>
           </div>
           <div class="owner-empty" *ngIf="!filteredSubscribers.length" style="padding:40px 20px;">
-            <span class="owner-empty-icon">👥</span>
+            <svg class="owner-empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm14 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <p>Aucun abonné dans cette catégorie.</p>
           </div>
         </div>
@@ -193,46 +187,15 @@
         </div>
       </div>
 
-      <div class="owner-section" *ngIf="programs.length">
-        <div class="owner-section-header">
-          <span class="owner-section-title">Programmes récents</span>
-          <button class="btn-owner-ghost" (click)="setTab('programs')">Voir tout</button>
-        </div>
-        <div class="owner-program-grid">
-          <div class="owner-program-card" *ngFor="let p of programs.slice(0, 4)">
-            <div class="owner-program-card-top">
-              <div class="owner-program-type-icon">{{ getTypeIcon(p.type) }}</div>
-              <span class="owner-badge" [ngClass]="{'confirmed': p.difficulty === 'BEGINNER', 'pending': p.difficulty === 'INTERMEDIATE', 'cancelled': p.difficulty === 'ADVANCED'}">{{ p.difficulty }}</span>
-            </div>
-            <div class="owner-program-card-body">
-              <div class="owner-program-card-title">{{ p.title }}</div>
-              <div class="owner-program-card-desc">{{ p.description }}</div>
-              <div class="owner-program-card-meta">
-                <span>{{ p.coachName || 'Sans coach' }}</span>
-                <span *ngIf="p.startTime">{{ p.startTime }} - {{ p.endTime }}</span>
-              </div>
-            </div>
-            <div class="owner-program-card-footer">
-              <div class="owner-enroll-bar-wrap">
-                <div class="owner-enroll-bar"><div class="owner-enroll-fill" [style.width.%]="((p.enrolledCount||0)/(p.capacity||1))*100"></div></div>
-                <div class="owner-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity }} inscrits</div>
-              </div>
-              <button class="btn-owner-ghost btn-sm" (click)="openProgramForm(p)">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-10.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- MY GYM -->
     <div *ngIf="activeTab === 'gym' && !loading" class="tab-content">
       <div class="gym-tab-hero">
         <div class="gym-tab-hero-left">
-          <div class="gym-tab-badge">🏢 Ma Salle</div>
-          <h1 class="gym-tab-title">{{ gym ? gym.name : 'Votre Salle de Sport' }}</h1>
-          <p class="gym-tab-subtitle">{{ gym ? 'Gérez les détails, photos et localisation de votre salle' : 'Configurez votre salle pour commencer à gérer vos membres' }}</p>
+          <div class="gym-tab-badge">Ma Salle</div>
+          <h1 class="gym-tab-title">Gestion de la salle</h1>
+          <p class="gym-tab-subtitle">Pilotez vos informations, horaires et services en un seul espace.</p>
         </div>
         <div class="gym-tab-hero-actions">
           <button class="btn-gym-primary" *ngIf="gym && !showGymForm" (click)="editGym()">
@@ -328,10 +291,6 @@
             <!-- Stats KPI strip -->
             <div class="gym-stats-row">
             <div class="gym-stat-block">
-              <div class="gym-stat-num">{{ activeMembers }}</div>
-              <div class="gym-stat-lbl">Membres actifs</div>
-            </div>
-            <div class="gym-stat-block">
               <div class="gym-stat-num">{{ programs.length }}</div>
               <div class="gym-stat-lbl">Programmes</div>
             </div>
@@ -368,17 +327,22 @@
       <div class="gym-form-card" *ngIf="showGymForm">
         <div class="gym-form-header">
           <div class="gym-form-title-row">
-            <div class="gym-form-icon">🏢</div>
+            <div class="gym-form-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
             <div>
               <h3 class="gym-form-title">{{ gym ? 'Modifier la salle' : 'Créer votre salle' }}</h3>
               <p class="gym-form-subtitle">Remplissez les informations de votre établissement</p>
             </div>
           </div>
+          <button type="button" class="prog-form-close" (click)="showGymForm = false; gymImagePreview = gym?.image || null" title="Fermer">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
 
         <!-- Image Upload (only for new gym creation) -->
         <div class="gym-image-upload-section" *ngIf="!gym">
-          <label class="gym-form-label">Photo de la salle</label>
+          <label class="gym-form-label">Photo de la salle <span class="gym-label-opt">(optionnel)</span></label>
           <div class="gym-image-upload-area" *ngIf="!gymImagePreview" (click)="gymImgInput.click()">
             <input #gymImgInput type="file" accept="image/*" (change)="onGymImageSelect($event)" hidden>
             <svg width="32" height="32" fill="none" stroke="#FFD700" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
@@ -395,25 +359,27 @@
         </div>
 
         <div class="gym-form-grid">
-          <div class="gym-form-group"><label class="gym-form-label">Nom de la salle *</label><input type="text" [(ngModel)]="gymName" class="gym-input" placeholder="FitZone Pro"></div>
-          <div class="gym-form-group"><label class="gym-form-label">Ville</label><input type="text" [(ngModel)]="gymCity" class="gym-input" placeholder="Tunis"></div>
-          <div class="gym-form-group gym-address-group" *ngIf="!gym">
-            <label class="gym-form-label">Adresse *</label>
-            <div class="gym-address-row">
-              <input type="text" [(ngModel)]="gymAddress" class="gym-input" placeholder="123 rue Fitness">
-              <button type="button" class="btn-get-location" (click)="getGymLocation()" [disabled]="gettingLocation" title="Obtenir ma position GPS">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                {{ gettingLocation ? 'Localisation...' : 'Ma position' }}
-              </button>
-            </div>
-            <div class="gym-coords" *ngIf="gymLat && gymLng">
-              <svg width="12" height="12" fill="#10b981" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-              GPS: {{ gymLat | number:'1.4-4' }}, {{ gymLng | number:'1.4-4' }}
-            </div>
+
+          <!-- Row 1: Nom | Ville | Téléphone | Prix -->
+          <div class="gym-form-group">
+            <label class="gym-form-label">Nom de la salle</label>
+            <input type="text" [(ngModel)]="gymName" class="gym-input" placeholder="ex: FitZone Pro">
           </div>
-          <div class="gym-form-group"><label class="gym-form-label">Téléphone</label><input type="tel" [(ngModel)]="gymPhone" class="gym-input"></div>
-          <div class="gym-form-group"><label class="gym-form-label">Prix mensuel (DT)</label><input type="number" [(ngModel)]="gymPrice" class="gym-input" min="0"></div>
-          <div class="gym-form-group full">
+          <div class="gym-form-group">
+            <label class="gym-form-label">Ville</label>
+            <input type="text" [(ngModel)]="gymCity" class="gym-input" placeholder="ex: Tunis">
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label">Téléphone</label>
+            <input type="tel" [(ngModel)]="gymPhone" class="gym-input" placeholder="ex: +216 XX XXX XXX">
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label">Prix mensuel (DT)</label>
+            <input type="number" [(ngModel)]="gymPrice" class="gym-input" min="0" placeholder="ex: 120">
+          </div>
+
+          <!-- Row 3: Horaires (full width) -->
+          <div class="gym-form-group gym-form-group-full">
             <label class="gym-form-label">Horaires d'ouverture</label>
             <div class="gym-schedule-table">
               <div class="gym-schedule-header">
@@ -433,8 +399,26 @@
               </div>
             </div>
           </div>
-          <div class="gym-form-group full"><label class="gym-form-label">Description</label><textarea [(ngModel)]="gymDescription" class="gym-input" placeholder="Décrivez votre salle..."></textarea></div>
-          <div class="gym-form-group full"><label class="gym-form-label">Équipements <span style="font-weight:400;color:var(--text-3)">(séparés par virgule)</span></label><input type="text" [(ngModel)]="gymAmenities" class="gym-input" placeholder="Piscine, Sauna, Parking, WiFi"></div>
+
+          <!-- Row 4: Description (2cols) | Équipements (1col) -->
+          <div class="gym-form-group gym-form-group-col2">
+            <label class="gym-form-label">Description <span class="gym-label-opt">(optionnel)</span></label>
+            <textarea [(ngModel)]="gymDescription" class="gym-input gym-textarea" placeholder="Décrivez votre salle : ambiance, services, points forts…"></textarea>
+          </div>
+          <div class="gym-form-group">
+            <label class="gym-form-label">Équipements <span class="gym-label-opt">(optionnel)</span></label>
+            <div class="gym-amenity-input-row">
+              <input type="text" [(ngModel)]="gymAmenityInput" class="gym-input" placeholder="ex: Piscine, Sauna, WiFi…" (keydown.enter)="$event.preventDefault(); addGymAmenity()">
+              <button type="button" class="gym-amenity-add-btn" (click)="addGymAmenity()">+ Ajouter</button>
+            </div>
+            <div class="gym-amenity-tags" *ngIf="gymAmenitiesList.length > 0">
+              <span class="gym-amenity-tag" *ngFor="let a of gymAmenitiesList; let i = index">
+                {{ a }}
+                <button type="button" class="gym-amenity-remove" (click)="removeGymAmenity(i)">&times;</button>
+              </span>
+            </div>
+          </div>
+
         </div>
         <div class="gym-form-actions">
           <button class="btn-gym-outline" (click)="showGymForm = false; gymImagePreview = gym?.image || null; gymImage = gym?.image || null">Annuler</button>
@@ -443,7 +427,7 @@
       </div>
 
       <div class="owner-empty" *ngIf="!gym && !showGymForm">
-        <span class="owner-empty-icon">🏢</span>
+        <svg class="owner-empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <p>Vous n'avez pas encore de salle. Créez-en une pour gérer vos programmes et réservations.</p>
         <button class="btn-gym-primary" (click)="showGymForm = true">Créer ma salle</button>
       </div>
@@ -451,80 +435,224 @@
 
     <!-- PROGRAMS -->
     <div *ngIf="activeTab === 'programs' && !loading" class="tab-content">
-      <div class="owner-page-header">
+      <div class="owner-page-header header-programs">
         <div>
+          <div class="owner-tab-badge">Programmes</div>
           <h1 class="owner-page-title">Programmes</h1>
           <p class="owner-subtitle">Créez et gérez vos programmes d'entraînement</p>
         </div>
-        <button class="btn-owner-primary" *ngIf="gym && !showProgramForm" (click)="openProgramForm()">
+        <button class="btn-owner-accent" *ngIf="gym && !showProgramForm" (click)="openProgramForm()">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg>
           Nouveau programme
         </button>
       </div>
 
       <div class="owner-form-card" *ngIf="showProgramForm">
-        <h3>{{ editingProgram ? 'Modifier le programme' : 'Nouveau programme' }}</h3>
-        <div class="owner-form-grid">
-          <div class="owner-form-group"><label>Titre *</label><input type="text" [(ngModel)]="progTitle" class="owner-input" placeholder="HIIT Matinal"></div>
-          <div class="owner-form-group"><label>Type</label>
-            <select [(ngModel)]="progType" class="owner-input"><option *ngFor="let t of programTypes" [value]="t">{{ t }}</option></select>
-          </div>
-          <div class="owner-form-group"><label>Niveau</label>
-            <select [(ngModel)]="progDifficulty" class="owner-input"><option *ngFor="let d of difficulties" [value]="d">{{ d }}</option></select>
-          </div>
-          <div class="owner-form-group"><label>Coach</label>
-            <select [(ngModel)]="progCoachId" class="owner-input"><option value="">Aucun coach</option><option *ngFor="let c of coaches" [value]="c.id">{{ c.name }}</option></select>
-          </div>
-          <div class="owner-form-group"><label>Heure début</label><input type="time" [(ngModel)]="progStartTime" class="owner-input"></div>
-          <div class="owner-form-group"><label>Heure fin</label><input type="time" [(ngModel)]="progEndTime" class="owner-input"></div>
-          <div class="owner-form-group"><label>Capacité</label><input type="number" [(ngModel)]="progCapacity" class="owner-input" min="1"></div>
-          <div class="owner-form-group"><label>Prix (DT)</label><input type="number" [(ngModel)]="progPrice" class="owner-input" min="0"></div>
-          <div class="owner-form-group full"><label>Description</label><textarea [(ngModel)]="progDescription" class="owner-input" placeholder="Décrivez le programme..."></textarea></div>
-          <div class="owner-form-group full">
-            <label>Jours</label>
-            <div class="owner-days-group">
-              <button *ngFor="let d of weekDays" class="owner-day-btn" [class.active]="progDays.includes(d)" (click)="toggleDay(d)">{{ d.slice(0,3) }}</button>
+        <div class="prog-form-header">
+          <div class="prog-form-header-left">
+            <svg width="20" height="20" fill="none" stroke="#000" stroke-width="2.2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 014 17V5a2 2 0 012-2h14v14H6.5A2.5 2.5 0 004 19.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div>
+              <div class="prog-form-title">{{ editingProgram ? 'Modifier le programme' : 'Nouveau programme' }}</div>
+              <div class="prog-form-subtitle">{{ editingProgram ? 'Mettez à jour les informations du programme' : 'Remplissez les détails pour créer votre programme' }}</div>
             </div>
           </div>
+          <button class="prog-form-close" (click)="showProgramForm = false" title="Fermer">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <!-- Validation error banner -->
+        <div class="prog-form-error" *ngIf="progError">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+          {{ progError }}
+        </div>
+
+        <div class="owner-form-grid owner-form-grid-4" style="padding:22px 28px 0;">
+
+          <!-- Titre -->
+          <div class="owner-form-group col4">
+            <label>Titre du programme</label>
+            <input type="text" [(ngModel)]="progTitle" class="owner-input"
+              [class.owner-input-error]="progSubmitAttempted && !progTitle?.trim()"
+              placeholder="ex: HIIT Matinal — Brûle-graisse intensif">
+          </div>
+
+          <!-- Type | Niveau | Capacité | Prix -->
+          <div class="owner-form-group">
+            <label>Type d'activité</label>
+            <div class="prog-dropdown" [class.open]="openDropdown === 'type'" (click)="$event.stopPropagation()">
+              <button type="button" class="prog-dropdown-trigger"
+                [class.owner-input-error]="progSubmitAttempted && !progType"
+                (click)="openDropdown = openDropdown === 'type' ? null : 'type'">
+                <span>{{ typeLabels[progType] || progType }}</span>
+                <svg class="prog-dropdown-chevron" [class.rotated]="openDropdown === 'type'" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="prog-dropdown-panel" *ngIf="openDropdown === 'type'">
+                <button *ngFor="let t of programTypes" type="button" class="prog-dropdown-item"
+                  [class.selected]="progType === t"
+                  (click)="progType = t; openDropdown = null">
+                  <span>{{ typeLabels[t] || t }}</span>
+                  <svg *ngIf="progType === t" class="prog-check" width="13" height="13" fill="none" stroke="#F8B500" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="owner-form-group">
+            <label>Niveau</label>
+            <div class="prog-dropdown" [class.open]="openDropdown === 'diff'" (click)="$event.stopPropagation()">
+              <button type="button" class="prog-dropdown-trigger"
+                [class.owner-input-error]="progSubmitAttempted && !progDifficulty"
+                (click)="openDropdown = openDropdown === 'diff' ? null : 'diff'">
+                <span class="prog-diff-preview">
+                  <span class="prog-diff-dot" [style.background]="diffColor(progDifficulty)"></span>
+                  {{ diffLabels[progDifficulty] || progDifficulty }}
+                </span>
+                <svg class="prog-dropdown-chevron" [class.rotated]="openDropdown === 'diff'" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="prog-dropdown-panel" *ngIf="openDropdown === 'diff'">
+                <button *ngFor="let d of difficulties" type="button" class="prog-dropdown-item"
+                  [class.selected]="progDifficulty === d"
+                  (click)="progDifficulty = d; openDropdown = null">
+                  <span class="prog-diff-dot" [style.background]="diffColor(d)"></span>
+                  <span>{{ diffLabels[d] || d }}</span>
+                  <svg *ngIf="progDifficulty === d" class="prog-check" width="13" height="13" fill="none" stroke="#F8B500" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="owner-form-group">
+            <label>Capacité</label>
+            <input type="number" [(ngModel)]="progCapacity" class="owner-input"
+              [class.owner-input-error]="progSubmitAttempted && (!progCapacity || progCapacity < 1)"
+              min="1" placeholder="Nb participants">
+          </div>
+          <div class="owner-form-group">
+            <label>Prix (DT)</label>
+            <input type="number" [(ngModel)]="progPrice" class="owner-input"
+              [class.owner-input-error]="progSubmitAttempted && (progPrice == null || progPrice < 0)"
+              min="0" placeholder="0 = gratuit">
+          </div>
+
+          <!-- Coach | Heure début | Heure fin -->
+          <div class="owner-form-group col2">
+            <label>Coach assigné <span class="opt">(optionnel)</span></label>
+            <div class="prog-dropdown" [class.open]="openDropdown === 'coach'" (click)="$event.stopPropagation()">
+              <button type="button" class="prog-dropdown-trigger"
+                (click)="openDropdown = openDropdown === 'coach' ? null : 'coach'">
+                <span>{{ selectedCoachName }}</span>
+                <svg class="prog-dropdown-chevron" [class.rotated]="openDropdown === 'coach'" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="prog-dropdown-panel" *ngIf="openDropdown === 'coach'">
+                <button type="button" class="prog-dropdown-item" [class.selected]="!progCoachId"
+                  (click)="progCoachId = ''; openDropdown = null">
+                  <span>— Aucun coach —</span>
+                  <svg *ngIf="!progCoachId" class="prog-check" width="13" height="13" fill="none" stroke="#F8B500" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                </button>
+                <button *ngFor="let c of coaches" type="button" class="prog-dropdown-item"
+                  [class.selected]="progCoachId === c.id"
+                  (click)="progCoachId = c.id || ''; openDropdown = null">
+                  <span>{{ c.name }}</span>
+                  <svg *ngIf="progCoachId === c.id" class="prog-check" width="13" height="13" fill="none" stroke="#F8B500" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="owner-form-group">
+            <label>Heure début</label>
+            <input type="time" [(ngModel)]="progStartTime" class="owner-input"
+              [class.owner-input-error]="progSubmitAttempted && !progStartTime">
+          </div>
+          <div class="owner-form-group">
+            <label>Heure fin</label>
+            <input type="time" [(ngModel)]="progEndTime" class="owner-input"
+              [class.owner-input-error]="progSubmitAttempted && !progEndTime">
+          </div>
+
+          <!-- Description (left) + Jours (right) -->
+          <div class="owner-form-group col2">
+            <label>Description <span class="opt">(optionnel)</span></label>
+            <textarea [(ngModel)]="progDescription" class="owner-input prog-textarea"
+              placeholder="Objectifs, déroulé de la séance, matériel nécessaire…"></textarea>
+          </div>
+          <div class="owner-form-group col2">
+            <label>Jours de la semaine</label>
+            <div class="owner-days-group" [class.owner-days-error]="progSubmitAttempted && !progDays.length">
+              <button *ngFor="let d of weekDays" class="owner-day-btn" [class.active]="progDays.includes(d)" (click)="toggleDay(d)">{{ d.slice(0,3) }}</button>
+            </div>
+            <span class="prog-field-hint" *ngIf="progSubmitAttempted && !progDays.length">Sélectionnez au moins un jour</span>
+          </div>
+
         </div>
         <div class="owner-form-actions">
           <button class="btn-owner-outline" (click)="showProgramForm = false">Annuler</button>
-          <button class="btn-owner-primary" (click)="saveProgram()">{{ editingProgram ? 'Mettre à jour' : 'Créer' }}</button>
+          <button class="btn-owner-accent" (click)="saveProgram()">{{ editingProgram ? 'Mettre à jour' : 'Créer le programme' }}</button>
         </div>
       </div>
 
-      <div class="owner-list" *ngIf="!showProgramForm && programs.length">
-        <div class="owner-list-item" *ngFor="let p of programs">
-          <div class="owner-list-left">
-            <div class="owner-list-icon">{{ getTypeIcon(p.type) }}</div>
-            <div class="owner-list-info">
-              <div class="owner-list-title">{{ p.title }}</div>
-              <div class="owner-list-meta">{{ p.type }} • {{ p.difficulty }} • Coach: {{ p.coachName || 'N/A' }} • {{ p.startTime }}-{{ p.endTime }}</div>
+      <div class="owner-program-grid" *ngIf="!showProgramForm && programs.length">
+        <div class="owner-program-card" *ngFor="let p of programs">
+
+          <!-- Card header: icon + title + difficulty badge -->
+          <div class="owner-program-card-top">
+            <div class="owner-program-type-icon">{{ p.type?.slice(0,3) }}</div>
+            <div class="owner-program-card-title">{{ p.title }}</div>
+            <span class="owner-badge" [ngClass]="{'confirmed': p.difficulty === 'BEGINNER', 'pending': p.difficulty === 'INTERMEDIATE', 'cancelled': p.difficulty === 'ADVANCED'}">{{ p.difficulty }}</span>
+          </div>
+
+          <!-- Card body -->
+          <div class="owner-program-card-body">
+            <div class="owner-program-card-desc" *ngIf="p.description">{{ p.description }}</div>
+
+            <div class="owner-program-card-info-row">
+              <div class="owner-prog-info-chip">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
+                {{ p.coachName || 'Sans coach' }}
+              </div>
+              <div class="owner-prog-info-chip" *ngIf="p.startTime">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                {{ p.startTime }} – {{ p.endTime }}
+              </div>
+              <div class="owner-prog-info-chip" *ngIf="p.price">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                {{ p.price }} DT
+              </div>
+              <div class="owner-prog-info-chip" *ngIf="p.type">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+                {{ p.type }}
+              </div>
             </div>
           </div>
-          <div class="owner-list-right">
-            <span class="owner-badge info">{{ p.enrolledCount || 0 }}/{{ p.capacity }}</span>
-            <span class="owner-badge pending" *ngIf="p.price">{{ p.price }} DT</span>
-            <button class="btn-owner-ghost btn-sm" (click)="openProgramForm(p)">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-10.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="btn-owner-danger btn-sm" (click)="deleteProgram(p.id!)">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>
+
+          <!-- Card footer: enroll bar + action buttons -->
+          <div class="owner-program-card-footer">
+            <div class="owner-enroll-bar-wrap">
+              <div class="owner-enroll-bar"><div class="owner-enroll-fill" [style.width.%]="((p.enrolledCount||0)/(p.capacity||1))*100"></div></div>
+              <div class="owner-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity }} inscrits</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-owner-ghost btn-sm" (click)="openProgramForm(p)" title="Modifier">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7m-1.5-10.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="btn-owner-danger btn-sm" (click)="deleteProgram(p.id!)" title="Supprimer">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="owner-empty" *ngIf="!programs.length && !showProgramForm">
-        <span class="owner-empty-icon">📋</span>
+        <svg class="owner-empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 014 17V5a2 2 0 012-2h14v14H6.5A2.5 2.5 0 004 19.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <p>{{ gym ? "Aucun programme. Créez votre premier programme !" : "Créez d'abord votre salle, puis ajoutez des programmes." }}</p>
       </div>
     </div>
 
     <!-- BOOKINGS -->
     <div *ngIf="activeTab === 'bookings' && !loading" class="tab-content">
-      <div class="owner-page-header">
+      <div class="owner-page-header header-bookings">
         <div>
+          <div class="owner-tab-badge">Réservations</div>
           <h1 class="owner-page-title">Réservations</h1>
           <p class="owner-subtitle">Gérez les réservations de vos membres</p>
         </div>
@@ -537,41 +665,52 @@
         <button class="owner-filter-chip" [class.active]="bookingFilter === 'CANCELLED'" (click)="bookingFilter = 'CANCELLED'">Annulées</button>
       </div>
 
-      <div class="owner-list">
-        <div class="owner-list-item" *ngFor="let b of filteredBookings">
-          <div class="owner-list-left">
-            <div class="owner-list-dot" [style.background]="getStatusColor(b.status)"></div>
-            <div class="owner-list-info">
-              <div class="owner-list-title">{{ b.memberName }}</div>
-              <div class="owner-list-meta">{{ b.programTitle }} • {{ b.date }} • {{ b.timeSlot }}</div>
+      <div class="owner-booking-grid">
+        <div class="owner-booking-card" *ngFor="let b of filteredBookings">
+          <div class="owner-booking-card-header">
+            <div class="owner-booking-avatar">{{ b.memberName?.charAt(0) || '?' }}</div>
+            <div class="owner-booking-member-info">
+              <div class="owner-booking-member-name">{{ b.memberName }}</div>
+              <div class="owner-booking-program">{{ b.programTitle }}</div>
+            </div>
+            <span class="owner-badge" [ngClass]="{'pending': b.status === 'PENDING', 'confirmed': b.status === 'CONFIRMED', 'cancelled': b.status === 'CANCELLED'}">
+              {{ b.status === 'PENDING' ? 'En attente' : b.status === 'CONFIRMED' ? 'Confirmée' : 'Annulée' }}
+            </span>
+          </div>
+          <div class="owner-booking-card-body">
+            <div class="owner-booking-meta-row">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/></svg>
+              {{ b.date || '—' }}
+            </div>
+            <div class="owner-booking-meta-row" *ngIf="b.timeSlot">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              {{ b.timeSlot }}
             </div>
           </div>
-          <div class="owner-list-right">
-            <span class="owner-badge" [ngClass]="{'pending': b.status === 'PENDING', 'confirmed': b.status === 'CONFIRMED', 'cancelled': b.status === 'CANCELLED'}">{{ b.status }}</span>
-            <ng-container *ngIf="b.status === 'PENDING'">
-              <button class="btn-owner-success btn-sm" (click)="confirmBooking(b.id!)">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                Approuver
-              </button>
-              <button class="btn-owner-danger btn-sm" (click)="rejectBooking(b.id!)">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                Rejeter
-              </button>
-            </ng-container>
+          <div class="owner-booking-card-footer" *ngIf="b.status === 'PENDING'">
+            <button class="btn-owner-success btn-sm" style="flex:1;justify-content:center;" (click)="confirmBooking(b.id!)">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+              Approuver
+            </button>
+            <button class="btn-owner-danger btn-sm" style="flex:1;justify-content:center;" (click)="rejectBooking(b.id!)">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              Rejeter
+            </button>
           </div>
         </div>
       </div>
 
       <div class="owner-empty" *ngIf="!bookings.length">
-        <span class="owner-empty-icon">📅</span>
+        <svg class="owner-empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke-linecap="round"/></svg>
         <p>Aucune réservation pour l'instant.</p>
       </div>
     </div>
 
     <!-- COACHES -->
     <div *ngIf="activeTab === 'coaches' && !loading" class="tab-content">
-      <div class="owner-page-header">
+      <div class="owner-page-header header-coaches">
         <div>
+          <div class="owner-tab-badge">Coachs</div>
           <h1 class="owner-page-title">Nos Coachs</h1>
           <p class="owner-subtitle">Coachs assignés à votre salle</p>
         </div>
@@ -593,15 +732,16 @@
       </div>
 
       <div class="owner-empty" *ngIf="!coaches.length">
-        <span class="owner-empty-icon">👥</span>
+        <svg class="owner-empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm14 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <p>Aucun coach assigné à votre salle pour l'instant.</p>
       </div>
     </div>
 
     <!-- INSCRIPTIONS -->
     <div *ngIf="activeTab === 'inscriptions' && !loading" class="tab-content">
-      <div class="owner-page-header">
+      <div class="owner-page-header header-inscriptions">
         <div>
+          <div class="owner-tab-badge">Inscriptions</div>
           <h1 class="owner-page-title">Inscriptions</h1>
           <p class="owner-subtitle">Consultez les abonnements actifs de vos membres</p>
         </div>
@@ -639,11 +779,11 @@
       </div>
 
       <div class="owner-empty" *ngIf="!inscriptions.length">
-        <span class="owner-empty-icon">👥</span>
+        <svg class="owner-empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8h6m-3-3v6" stroke-linecap="round"/></svg>
         <p>Aucune demande d'inscription pour le moment.</p>
       </div>
       <div class="owner-empty" *ngIf="inscriptions.length && !filteredInscriptions.length">
-        <span class="owner-empty-icon">🔍</span>
+        <svg class="owner-empty-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg>
         <p>Aucune inscription dans cette catégorie.</p>
       </div>
     </div>
