@@ -41,7 +41,7 @@ import * as L from 'leaflet';
 })
 export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   user: User | null = null;
-  activeTab = 'salles';
+  activeTab = 'wallet';
   gyms: Gym[] = [];
   programs: Program[] = [];
   workouts: WorkoutLog[] = [];

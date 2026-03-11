@@ -26,13 +26,47 @@
       </div>
 
       <div class="hero-stats">
-        <div class="stat-item" *ngFor="let stat of stats">
+        <!-- Membres Actifs -->
+        <div class="stat-item">
           <div class="stat-icon">
-            <span class="stat-emoji">{{ stat.icon }}</span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ stat.value }}</div>
-            <div class="stat-label">{{ stat.label }}</div>
+            <div class="stat-value">10K+</div>
+            <div class="stat-label">Membres Actifs</div>
+          </div>
+        </div>
+        <!-- Salles Premium -->
+        <div class="stat-item">
+          <div class="stat-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              <line x1="12" y1="12" x2="12" y2="16"/>
+              <line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">150+</div>
+            <div class="stat-label">Salles Premium</div>
+          </div>
+        </div>
+        <!-- Coachs Certifiés -->
+        <div class="stat-item">
+          <div class="stat-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="6"/>
+              <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">500+</div>
+            <div class="stat-label">Coachs Certifiés</div>
           </div>
         </div>
       </div>
@@ -319,7 +353,6 @@
         <span class="footer-dot">·</span>
         <a href="#">Cookies</a>
       </div>
-      <span class="footer-love">Fait avec <span class="heart">❤</span> pour la communauté fitness</span>
     </div>
 
   </div>

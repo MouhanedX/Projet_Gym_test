@@ -24,7 +24,7 @@
 
         <div class="topbar-separator"></div>
 
-        <div class="user-profile-section" (click)="openProfileEdit()" style="cursor:pointer;" title="Modifier mon profil">
+        <div class="user-profile-section">
           <div class="user-avatar-circle">
             <img *ngIf="user?.avatar" [src]="user!.avatar" [alt]="user!.name">
             <span *ngIf="!user?.avatar">{{ user?.name?.charAt(0) || 'M' }}</span>

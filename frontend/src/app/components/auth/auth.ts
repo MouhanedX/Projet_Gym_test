@@ -57,16 +57,7 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   gymImage: string | null = null;
   gymImagePreview: string | null = null;
 
-  private _error = '';
-  private _errorTimer: any = null;
-
-  get error(): string { return this._error; }
-  set error(value: string) {
-    this._error = value;
-    if (this._errorTimer) { clearTimeout(this._errorTimer); this._errorTimer = null; }
-    if (value) { this._errorTimer = setTimeout(() => { this._error = ''; }, 1500); }
-  }
-
+  error = '';
   loading = false;
 
   roles = [
@@ -111,7 +102,6 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this._errorTimer) { clearTimeout(this._errorTimer); }
     if (this.map) {
       this.map.remove();
       this.map = null;

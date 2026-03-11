@@ -11,9 +11,9 @@ import { Router } from '@angular/router';
 })
 export class Landing {
   stats = [
-    { icon: '👥', value: '10K+', label: 'Membres Actifs' },
-    { icon: '🏢', value: '150+', label: 'Salles Premium' },
-    { icon: '🏆', value: '500+', label: 'Coachs Certifiés' }
+    { icon: '◎', value: '10K+', label: 'Membres Actifs' },
+    { icon: '◼', value: '150+', label: 'Salles Premium' },
+    { icon: '★', value: '500+', label: 'Coachs Certifiés' }
   ];
 
   premiumGyms = [
@@ -27,45 +27,46 @@ export class Landing {
 
   profiles = [
     {
-      icon: '🤸',
+      icon: '◆',
       title: 'Athlète',
-      description: 'Trouvez votre salle et coach idéal, suivez vos progrès',
+      description: 'Rejoignez des milliers de membres et atteignez vos objectifs fitness',
       features: [
-        'Recherche avancée de salles',
-        'Booking instantané de coachs',
-        'Système de points et récompenses',
-        'Suivi de performance détaillé',
-        'Communauté Gym Buddy'
+        'Découvrez des salles et coachs certifiés',
+        'Suivez vos séances d\'entraînement en temps réel',
+        'Participez à des défis et gagnez des récompenses',
+        'Échangez vos points contre des récompenses exclusives',
+        'Trouvez un partenaire d\'entraînement (Gym Buddy)',
+        'Consultez votre progression détaillée'
       ],
       buttonText: 'Commencer comme Athlète',
       buttonColor: 'blue',
       role: 'MEMBER'
     },
     {
-      icon: '🎯',
+      icon: '⊙',
       title: 'Coach Sportif',
-      description: 'Développez votre activité et gérez vos clients facilement',
+      description: 'Développez votre clientèle et gérez efficacement vos entraînements',
       features: [
-        'Profil professionnel attractif',
-        'Gestion agenda intelligente',
-        'Paiements sécurisés',
-        'Analytics et reporting',
-        'Outils marketing intégrés'
+        'Créez des programmes d\'entraînement personnalisés',
+        'Gérez votre agenda et vos clients facilement',
+        'Recevez les avis et commentaires de vos clients',
+        'Suivez la progression de chaque client',
+        'Augmentez vos revenus avec des fonctionnalités premium'
       ],
       buttonText: 'Commencer comme Coach Sportif',
       buttonColor: 'green',
       role: 'COACH'
     },
     {
-      icon: '🥇',
+      icon: '◈',
       title: 'Propriétaire',
-      description: 'Optimisez la gestion de votre salle et augmentez vos revenus',
+      description: 'Gérez votre salle de sport et maximisez votre rentabilité',
       features: [
-        'Dashboard analytics complet',
-        'Gestion des abonnements',
-        'CRM avec relances auto',
-        'Codes promo et Happy Hour',
-        'Planning drag & drop'
+        'Dashboard complet avec statistiques en temps réel',
+        'Gestion automatisée des abonnements et paiements',
+        'Suivi du taux d\'occupation et des revenus',
+        'Créez des offres promotionnelles et codes promo',
+        'Engagement des membres avec les défis mensuel'
       ],
       buttonText: 'Commencer comme Propriétaire',
       buttonColor: 'purple',
