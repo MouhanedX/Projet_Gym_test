@@ -528,11 +528,9 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
   get taskChallengeDone(): boolean {
-    return this.challenges.some(c => {
-      if (!c.dateDebut) return false;
-      const d = new Date(c.dateDebut);
-      return d.toLocaleDateString('en-CA') === this.todayStr;
-    });
+    return this.challenges.some(c =>
+      c.statut === 'TERMINE' && !this.canEarnPointsToday('challenge')
+    );
   }
   get taskAvisDone(): boolean {
     return this.avis.some(a => {
@@ -566,6 +564,23 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
   getEmptyStarArray(rating: number): number[] {
     return Array(5 - Math.floor(rating || 0)).fill(1);
+  }
+
+  /** Parse "Monday: 06:00-22:00, Tuesday: 06:00-22:00, ..." into rows */
+  parseOpeningHours(raw: string): { day: string; hours: string }[] {
+    if (!raw) return [];
+    return raw.split(/[,;\n]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+      .map(seg => {
+        const colonIdx = seg.indexOf(':');
+        if (colonIdx > 0) {
+          const day = seg.substring(0, colonIdx).trim();
+          const hours = seg.substring(colonIdx + 1).trim();
+          if (/\d/.test(hours)) return { day, hours };
+        }
+        return { day: seg, hours: '' };
+      });
   }
 
   getTabIcon(icon: string): string {
@@ -752,6 +767,10 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     return this.inscriptions.some(i => i.salleId === gymId && i.statut !== 'REFUSEE');
   }
 
+  isProgramBooked(programId?: string): boolean {
+    return this.bookings.some(b => b.programId === programId && b.status !== 'CANCELLED');
+  }
+
   getInscriptionStatus(gymId?: string): string {
     const ins = this.inscriptions.find(i => i.salleId === gymId);
     return ins?.statut || '';
@@ -864,14 +883,15 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     if (!this.selectedProgram || !this.user) return;
     if (this.submittingBooking) return;
 
-    // Prevent duplicate: same program + same date (not cancelled)
+    const today = new Date().toISOString().split('T')[0];
+
+    // Prevent duplicate: same program already booked (not cancelled)
     const duplicate = this.bookings.some(b =>
       b.programId === this.selectedProgram!.id &&
-      b.date === this.bookingDate &&
       b.status !== 'CANCELLED'
     );
     if (duplicate) {
-      this.bookingError = 'Vous avez déjà une réservation pour ce programme à cette date.';
+      this.bookingError = 'Vous avez déjà une réservation pour ce programme.';
       return;
     }
 
@@ -887,7 +907,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
       gymName: this.selectedProgram.gymName,
       coachId: this.selectedProgram.coachId,
       coachName: this.selectedProgram.coachName,
-      date: this.bookingDate,
+      date: today,
       timeSlot: `${this.selectedProgram.startTime} - ${this.selectedProgram.endTime}`,
       status: 'PENDING'
     };
@@ -900,7 +920,6 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
         this.submittingBooking = false;
         this.bookingError = '';
         this.programService.enroll(booking.programId).subscribe();
-        this.updatePoints(10); // +10 pts pour une réservation de programme
       },
       error: (err) => {
         this.submittingBooking = false;
@@ -950,7 +969,6 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
         this.workouts = [saved, ...this.workouts];
         this.showWorkoutForm = false;
         this.resetWorkoutForm();
-        this.updatePoints(15); // +15 pts pour un workout enregistré
       }
     });
   }
@@ -1210,7 +1228,6 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
       next: (b) => {
         this.coachReservations.push(b);
         this.bookings.push(b);
-        this.updatePoints(10); // +10 pts pour la réservation d'un coach
       }
     });
   }
@@ -1451,8 +1468,8 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   submitChallenge(): void {
-    if (!this.challengeTitre.trim() || this.challengeSteps.length === 0 || !this.user?.id) {
-      this.challengeError = 'Titre et au moins une étape requis.';
+    if (!this.challengeTitre.trim() || !this.user?.id) {
+      this.challengeError = 'Le titre du challenge est requis.';
       return;
     }
     if (this.editingStepIndex >= 0) this.finalizeStep();
@@ -1492,8 +1509,6 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     // Check if all exercises in step are done
     const step = challenge.etapes[stepIdx];
     step.complete = step.exercices.every(e => e.done);
-    // Award points when a step first becomes complete
-    if (!wasComplete && step.complete) this.updatePoints(10); // +10 pts par étape complétée
     this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
   }
 
@@ -1502,7 +1517,6 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     const newVal = !step.complete;
     step.complete = newVal;
     step.exercices.forEach(e => e.done = newVal);
-    if (newVal) this.updatePoints(10); // +10 pts par étape complétée
     this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
   }
 
@@ -1526,6 +1540,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   getChallengeProgress(challenge: Challenge): number {
+    if (challenge.statut === 'TERMINE') return 100;
     const total = challenge.etapes.reduce((sum, s) => sum + s.exercices.length, 0);
     if (total === 0) return 0;
     const done = challenge.etapes.reduce((sum, s) => sum + s.exercices.filter(e => e.done).length, 0);

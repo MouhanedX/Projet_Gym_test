@@ -118,59 +118,61 @@
         </div>
       </div>
 
-      <div class="gym-list-horizontal" *ngIf="filteredGyms.length">
-        <div class="gym-card-h" *ngFor="let g of filteredGyms">
-          <div class="gym-card-h-image">
-            <img *ngIf="g.image" [src]="g.image" [alt]="g.name">
-            <div *ngIf="!g.image" class="gym-card-h-placeholder">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+      <div class="gym-grid" *ngIf="filteredGyms.length">
+        <div class="gym-card-v" *ngFor="let g of filteredGyms">
+
+          <!-- Image cover -->
+          <div class="gym-card-v-cover">
+            <img *ngIf="g.image" [src]="g.image" [alt]="g.name" class="gym-card-v-img">
+            <div *ngIf="!g.image" class="gym-card-v-placeholder">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.25">
                 <path d="M6.5 6.5h11M6.5 17.5h11M4 12h2M18 12h2M7.5 6.5v11M16.5 6.5v11"/>
               </svg>
             </div>
+            <div class="gym-card-v-rating-badge" *ngIf="g.rating">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#fbbf24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              {{ g.rating }}
+            </div>
+            <div class="gym-card-v-sub-badge" *ngIf="isSubscribed(g.id)">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              Abonné
+            </div>
           </div>
-          <div class="gym-card-h-body">
-            <div class="gym-card-h-header">
-              <div>
-                <h3 class="gym-card-h-name">{{ g.name }}</h3>
-                <p class="gym-card-h-address">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                  </svg>
-                  {{ g.address }}<span *ngIf="g.city">, {{ g.city }}</span>
-                </p>
-              </div>
-              <div class="gym-card-h-rating" *ngIf="g.rating">
-                <svg class="star-svg" width="18" height="18" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="1">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>
-                <span class="rating-number">{{ g.rating }}</span>
-                <span class="rating-count">({{ g.memberCount || 0 }})</span>
-              </div>
+
+          <!-- Body -->
+          <div class="gym-card-v-body">
+            <h3 class="gym-card-v-name">{{ g.name }}</h3>
+            <p class="gym-card-v-location">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ g.address }}<span *ngIf="g.city">, {{ g.city }}</span>
+            </p>
+            <p class="gym-card-v-desc">{{ g.description || 'Salle de sport moderne avec équipements de qualité' }}</p>
+            <div class="gym-card-v-tags" *ngIf="g.amenities?.length">
+              <span class="gym-tag-v" *ngFor="let a of (g.amenities | slice:0:3)">{{ a }}</span>
+              <span class="gym-tag-v gym-tag-more-v" *ngIf="(g.amenities?.length || 0) > 3">+{{ (g.amenities?.length || 0) - 3 }}</span>
             </div>
-            <p class="gym-card-h-description">{{ g.description || 'Salle de sport moderne avec équipements de qualité' }}</p>
-            <div class="gym-card-h-amenities" *ngIf="g.amenities?.length">
-              <span class="amenity-tag" *ngFor="let a of g.amenities">{{ a }}</span>
+          </div>
+
+          <!-- Footer -->
+          <div class="gym-card-v-footer">
+            <div class="gym-card-v-price" *ngIf="g.monthlyPrice">
+              <span class="gym-price-val">{{ g.monthlyPrice | number:'1.0-0' }}</span>
+              <span class="gym-price-unit">DT/mois</span>
             </div>
-            <div class="gym-card-h-footer">
-              <div class="gym-card-h-pricing">
-                <span class="gym-price-tag" *ngIf="g.monthlyPrice">{{ g.monthlyPrice | number:'1.2-2' }}€/mois</span>
-                <span class="gym-hours" *ngIf="g.openingHours">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px;">
-                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                  {{ g.openingHours }}
-                </span>
-              </div>
-              <div class="gym-card-h-actions">
-                <button class="btn-outline-member" (click)="openGymDetail(g)">Voir détails</button>
-                <button class="btn-primary-member" *ngIf="!isSubscribed(g.id)" (click)="openInscription(g)">S'abonner</button>
-              <span class="inscription-status accepted" *ngIf="isSubscribed(g.id)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="gym-price-free" *ngIf="!g.monthlyPrice">Sur demande</span>
+            <div class="gym-card-v-actions">
+              <button class="gym-v-btn-detail" (click)="openGymDetail(g)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8.01"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
+                Détails
+              </button>
+              <button class="gym-v-btn-join" *ngIf="!isSubscribed(g.id)" (click)="openInscription(g)">S'abonner</button>
+              <span class="gym-v-joined" *ngIf="isSubscribed(g.id)">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                 Abonné
               </span>
-              </div>
             </div>
           </div>
+
         </div>
       </div>
       <div class="eg-empty" *ngIf="!filteredGyms.length">
@@ -417,8 +419,8 @@
               </svg>
             </div>
             <div class="daily-task-body">
-              <div class="daily-task-name">Effectuer un challenge</div>
-              <div class="daily-task-desc">Lancez ou complétez un challenge aujourd'hui</div>
+              <div class="daily-task-name">Compléter un challenge</div>
+              <div class="daily-task-desc">Complétez un challenge aujourd'hui</div>
             </div>
             <div class="daily-task-right">
               <span class="daily-task-pts">+100 pts</span>
@@ -847,7 +849,10 @@
               <div class="eg-enroll-bar"><div class="eg-enroll-fill" [style.width.%]="((p.enrolledCount||0)/(p.capacity||1))*100"></div></div>
               <div class="eg-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity||'' }} inscrits</div>
             </div>
-            <button class="btn-primary-member btn-sm" (click)="openBooking(p)">Réserver</button>
+            <button class="btn-primary-member btn-sm" (click)="openBooking(p)"
+              *ngIf="!isProgramBooked(p.id)">Réserver</button>
+            <span class="gym-v-joined" style="font-size:0.78rem;padding:6px 12px"
+              *ngIf="isProgramBooked(p.id)">✓ Réservé</span>
           </div>
         </div>
       </div>
@@ -1121,13 +1126,30 @@
     <div class="gym-detail-info">
       <p *ngIf="selectedGym?.description">{{ selectedGym?.description }}</p>
       <div class="gym-detail-row">
-        <span *ngIf="selectedGym?.monthlyPrice"><strong>Prix:</strong> {{ selectedGym?.monthlyPrice }}€/mois</span>
-        <span *ngIf="selectedGym?.openingHours"><strong>Horaires:</strong> {{ selectedGym?.openingHours }}</span>
+        <span *ngIf="selectedGym?.monthlyPrice"><strong>Prix:</strong> {{ selectedGym?.monthlyPrice }} DT/mois</span>
         <span *ngIf="selectedGym?.phone"><strong>Tél:</strong> {{ selectedGym?.phone }}</span>
         <span *ngIf="selectedGym?.capacite"><strong>Capacité:</strong> {{ selectedGym?.capacite }} personnes</span>
       </div>
       <div class="gym-card-h-amenities" *ngIf="selectedGym?.amenities?.length" style="margin-top:12px">
         <span class="amenity-tag" *ngFor="let a of selectedGym!.amenities">{{ a }}</span>
+      </div>
+
+      <!-- TABLEAU DES HORAIRES -->
+      <div class="gym-hours-section" *ngIf="selectedGym?.openingHours">
+        <div class="gym-hours-heading">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Horaires d'ouverture
+        </div>
+        <table class="gym-hours-table">
+          <tbody>
+            <tr *ngFor="let row of parseOpeningHours(selectedGym!.openingHours!)">
+              <td class="hours-day">{{ row.day }}</td>
+              <td class="hours-time">{{ row.hours }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
     <div class="gym-detail-avis">
@@ -1354,10 +1376,6 @@
   <div class="eg-modal" (click)="$event.stopPropagation()">
     <h3>{{ selectedProgram?.title }}</h3>
     <p class="eg-modal-desc">{{ selectedProgram?.gymName }} — {{ selectedProgram?.coachName }}</p>
-    <div class="eg-form-group">
-      <label>Choisir une date</label>
-      <input type="date" [(ngModel)]="bookingDate" class="eg-input" (ngModelChange)="bookingError = ''">
-    </div>
     <div *ngIf="bookingError" style="color:#ef4444;font-size:0.82rem;margin-top:6px;padding:8px;background:rgba(239,68,68,0.1);border-radius:6px">⚠️ {{ bookingError }}</div>
     <div class="eg-modal-actions">
       <button class="btn-eg-outline" (click)="showBookingForm = false; bookingError = ''">Annuler</button>
