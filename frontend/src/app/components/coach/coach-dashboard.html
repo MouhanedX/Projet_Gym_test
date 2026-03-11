@@ -154,8 +154,15 @@
         <div class="coach-stat-card">
           <div>
             <div class="coach-stat-label">Ma Note</div>
-            <div class="coach-stat-value">{{ user?.rating || 'N/A' }}</div>
-            <div class="coach-stat-sub" *ngIf="user?.rating">Excellent</div>
+            <div class="coach-stat-value" *ngIf="averageRating !== null">
+              {{ averageRating }}<span style="font-size:0.75em;color:var(--text-2)">/5</span>
+            </div>
+            <div class="coach-stat-value" *ngIf="averageRating === null">N/A</div>
+            <div class="coach-stat-sub" *ngIf="averageRating !== null">
+              <span *ngFor="let s of getStarArray(averageRating)" style="color:#f59e0b;font-size:0.85rem;">★</span>
+              <span style="margin-left:4px;">{{ myAvis.length }} avis</span>
+            </div>
+            <div class="coach-stat-sub" *ngIf="averageRating === null">Aucun avis reçu</div>
           </div>
           <div class="coach-stat-icon purple">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
