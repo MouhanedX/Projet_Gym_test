@@ -160,16 +160,21 @@
               <div class="gym-card-h-actions">
                 <button class="btn-outline-member" (click)="openGymDetail(g)">Voir détails</button>
                 <button class="btn-primary-member" *ngIf="!isSubscribed(g.id)" (click)="openInscription(g)">S'abonner</button>
-                <span class="inscription-status accepted" *ngIf="isSubscribed(g.id)">
-                  ✓ Abonné
-                </span>
+              <span class="inscription-status accepted" *ngIf="isSubscribed(g.id)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Abonné
+              </span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div class="eg-empty" *ngIf="!filteredGyms.length">
-        <span class="eg-empty-icon">🏋️</span>
+        <span class="eg-empty-icon">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M6 4v16M18 4v16M3 7h6m6 0h6M3 17h6m6 0h6"/>
+          </svg>
+        </span>
         <p>Aucune salle trouvée. Essayez une autre recherche.</p>
       </div>
     </div>
@@ -252,10 +257,20 @@
                 Message
               </button>
             </div>
-            <button class="coach-btn-reserve" (click)="reserveCoach(c)" [disabled]="isCoachReserved(c)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              {{ isCoachReserved(c) ? 'Demande envoyée' : 'Réserver' }}
-            </button>
+            <ng-container [ngSwitch]="getCoachReservationStatus(c)">
+              <div *ngSwitchCase="'PENDING'" class="coach-status-badge coach-status-pending">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                En attente
+              </div>
+              <div *ngSwitchCase="'CONFIRMED'" class="coach-status-badge coach-status-confirmed">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                Accepté
+              </div>
+              <button *ngSwitchDefault class="coach-btn-reserve" (click)="reserveCoach(c)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Réserver
+              </button>
+            </ng-container>
           </div>
         </div>
       </div>
@@ -272,41 +287,77 @@
       <div class="wallet-summary">
         <!-- Carte principale points -->
         <div class="wallet-card-main">
+          <!-- Chip + level badge row -->
+          <div class="wallet-card-chip-row">
+            <div class="wallet-chip-icon">
+              <svg width="34" height="27" viewBox="0 0 34 27" fill="none">
+                <rect x="0.5" y="0.5" width="33" height="26" rx="4" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.35)"/>
+                <line x1="12" y1="0.5" x2="12" y2="26.5" stroke="rgba(255,255,255,0.25)"/>
+                <line x1="22" y1="0.5" x2="22" y2="26.5" stroke="rgba(255,255,255,0.25)"/>
+                <line x1="0.5" y1="9" x2="33.5" y2="9" stroke="rgba(255,255,255,0.25)"/>
+                <line x1="0.5" y1="18" x2="33.5" y2="18" stroke="rgba(255,255,255,0.25)"/>
+              </svg>
+            </div>
+            <div class="wallet-level-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="margin-right:3px;vertical-align:-1px;opacity:0.85"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Niv. {{ userLevel }}
+            </div>
+          </div>
+          <!-- Points display -->
           <div class="wallet-card-top">
             <div class="wallet-card-left">
               <span class="wallet-points-big">{{ totalPoints | number }}</span>
               <span class="wallet-points-label">Points de fidélité</span>
             </div>
             <div class="wallet-card-right">
-              <div class="wallet-level-badge">Niv. {{ userLevel }}</div>
-              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="1.3">
                 <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 10H18a2 2 0 000 4h4"/>
               </svg>
             </div>
           </div>
+          <!-- Member name -->
+          <div class="wallet-member-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" style="flex-shrink:0">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span class="wallet-member-name">{{ user?.name }}</span>
+          </div>
+          <!-- Progress -->
           <div class="wallet-level-row">
             <span class="wallet-level-text">Niveau {{ userLevel }}</span>
-            <span class="wallet-level-next">{{ 1000 - (totalPoints % 1000) }} pts pour le prochain niveau</span>
+            <span class="wallet-level-next">{{ pointsToNextLevel }} pts pour le prochain niveau</span>
           </div>
           <div class="wallet-progress-bar">
-            <div class="wallet-progress-fill" [style.width.%]="(totalPoints % 1000) / 10"></div>
+            <div class="wallet-progress-fill" [style.width.%]="levelProgressPct"></div>
           </div>
         </div>
 
         <!-- 3 cartes stats -->
         <div class="wallet-stats-row">
           <div class="wallet-stat wallet-stat-blue">
-            <div class="wallet-stat-icon-wrap blue">🏋️</div>
+            <div class="wallet-stat-icon-wrap blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round">
+                <path d="M6 4v16M18 4v16M3 7h6m6 0h6M3 17h6m6 0h6"/>
+              </svg>
+            </div>
             <span class="wallet-stat-value">{{ inscriptions.length }}</span>
             <span class="wallet-stat-label">Abonnements</span>
           </div>
           <div class="wallet-stat wallet-stat-green">
-            <div class="wallet-stat-icon-wrap green">🏆</div>
+            <div class="wallet-stat-icon-wrap green">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round">
+                <path d="M6 9H3a2 2 0 000 4h3M18 9h3a2 2 0 010 4h-3M6 5h12v8a6 6 0 01-12 0V5zM9 21h6M12 17v4"/>
+              </svg>
+            </div>
             <span class="wallet-stat-value">{{ completedChallengesCount }}</span>
             <span class="wallet-stat-label">Challenges terminés</span>
           </div>
           <div class="wallet-stat wallet-stat-gold">
-            <div class="wallet-stat-icon-wrap gold">🎁</div>
+            <div class="wallet-stat-icon-wrap gold">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7"/>
+              </svg>
+            </div>
             <span class="wallet-stat-value">{{ echanges.length }}</span>
             <span class="wallet-stat-label">Échanges</span>
           </div>
@@ -316,7 +367,14 @@
       <!-- Tâches du jour -->
       <div class="eg-section">
         <div class="eg-section-header">
-          <span class="eg-section-title">🎯 Tâches du jour</span>
+          <span class="eg-section-title">
+            <span class="section-title-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+              </svg>
+            </span>
+            Tâches du jour
+          </span>
           <span class="daily-tasks-badge">{{ (taskAbonnementDone ? 1 : 0) + (taskChallengeDone ? 1 : 0) + (taskAvisDone ? 1 : 0) }}/3 complétées</span>
         </div>
         <p class="daily-tasks-subtitle">Accomplissez ces actions aujourd'hui pour gagner des points</p>
@@ -327,13 +385,17 @@
             <div class="daily-task-check" [class.checked]="taskAbonnementDone">
               <svg *ngIf="taskAbonnementDone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <div class="daily-task-icon-wrap">🏋️</div>
+            <div class="daily-task-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round">
+                <path d="M6 4v16M18 4v16M3 7h6m6 0h6M3 17h6m6 0h6"/>
+              </svg>
+            </div>
             <div class="daily-task-body">
               <div class="daily-task-name">Effectuer un abonnement</div>
               <div class="daily-task-desc">Abonnez-vous à une salle de sport aujourd'hui</div>
             </div>
             <div class="daily-task-right">
-              <span class="daily-task-pts">+100 pts</span>
+              <span class="daily-task-pts">+50 pts</span>
               <span class="task-status-badge" [class.done]="taskAbonnementDone">
                 {{ taskAbonnementDone ? '✓ Fait' : 'À faire' }}
               </span>
@@ -345,13 +407,17 @@
             <div class="daily-task-check" [class.checked]="taskChallengeDone">
               <svg *ngIf="taskChallengeDone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <div class="daily-task-icon-wrap">🏆</div>
+            <div class="daily-task-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round">
+                <path d="M6 9H3a2 2 0 000 4h3M18 9h3a2 2 0 010 4h-3M6 5h12v8a6 6 0 01-12 0V5zM9 21h6M12 17v4"/>
+              </svg>
+            </div>
             <div class="daily-task-body">
               <div class="daily-task-name">Effectuer un challenge</div>
               <div class="daily-task-desc">Lancez ou complétez un challenge aujourd'hui</div>
             </div>
             <div class="daily-task-right">
-              <span class="daily-task-pts">+150 pts</span>
+              <span class="daily-task-pts">+100 pts</span>
               <span class="task-status-badge" [class.done]="taskChallengeDone">
                 {{ taskChallengeDone ? '✓ Fait' : 'À faire' }}
               </span>
@@ -363,13 +429,17 @@
             <div class="daily-task-check" [class.checked]="taskAvisDone">
               <svg *ngIf="taskAvisDone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <div class="daily-task-icon-wrap">⭐</div>
+            <div class="daily-task-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
             <div class="daily-task-body">
               <div class="daily-task-name">Donner un avis</div>
               <div class="daily-task-desc">Évaluez une salle de sport ou un coach</div>
             </div>
             <div class="daily-task-right">
-              <span class="daily-task-pts">+50 pts</span>
+              <span class="daily-task-pts">+15 pts</span>
               <span class="task-status-badge" [class.done]="taskAvisDone">
                 {{ taskAvisDone ? '✓ Fait' : 'À faire' }}
               </span>
@@ -381,7 +451,14 @@
       <!-- Mes Abonnements -->
       <div class="eg-section">
         <div class="eg-section-header">
-          <span class="eg-section-title">🏋️ Mes Abonnements</span>
+          <span class="eg-section-title">
+            <span class="section-title-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M6 4v16M18 4v16M3 7h6m6 0h6M3 17h6m6 0h6"/>
+              </svg>
+            </span>
+            Mes Abonnements
+          </span>
           <span class="abonnements-count-badge">{{ inscriptions.length }}</span>
         </div>
 
@@ -390,7 +467,11 @@
                [class.abonnement-expired]="isInscriptionExpired(ins)"
                [class.abonnement-expiring]="isInscriptionExpiringSoon(ins)">
             <!-- Icône + nom salle -->
-            <div class="abonnement-gym-icon">🏋️</div>
+            <div class="abonnement-gym-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round">
+                <path d="M6 4v16M18 4v16M3 7h6m6 0h6M3 17h6m6 0h6"/>
+              </svg>
+            </div>
             <div class="abonnement-body">
               <div class="abonnement-gym-name">{{ ins.salleName || 'Salle inconnue' }}</div>
               <div class="abonnement-dates">
@@ -420,17 +501,18 @@
                 [class.badge-accepte]="ins.statut === 'ACCEPTEE'"
                 [class.badge-attente]="ins.statut === 'EN_ATTENTE'"
                 [class.badge-refuse]="ins.statut === 'REFUSEE'">
-                {{ ins.statut === 'ACCEPTEE' ? '✓ Actif' : ins.statut === 'EN_ATTENTE' ? '⏳ En attente' : '✗ Refusé' }}
+                {{ ins.statut === 'ACCEPTEE' ? 'Actif' : ins.statut === 'EN_ATTENTE' ? 'En attente' : 'Refusé' }}
               </span>
               <span class="abonnement-pay-badge"
                 [class.pay-paye]="ins.paiementStatut === 'PAYE'"
                 [class.pay-impaye]="ins.paiementStatut !== 'PAYE'">
-                {{ ins.paiementStatut === 'PAYE' ? '💳 Payé' : '⚠ Non payé' }}
+                {{ ins.paiementStatut === 'PAYE' ? 'Payé' : 'Non payé' }}
               </span>
               <button class="btn-renew"
                 *ngIf="ins.statut === 'ACCEPTEE' && (isInscriptionExpired(ins) || isInscriptionExpiringSoon(ins))"
                 (click)="openRenewModal(ins)">
-                🔄 Renouveler
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                Renouveler
               </button>
               <span class="abonnement-expired-label" *ngIf="isInscriptionExpired(ins)">Expiré</span>
             </div>
@@ -439,7 +521,11 @@
 
         <ng-template #noAbonnements>
           <div class="eg-empty" style="padding:24px">
-            <span class="eg-empty-icon">🏋️</span>
+            <span class="eg-empty-icon">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <path d="M6 4v16M18 4v16M3 7h6m6 0h6M3 17h6m6 0h6"/>
+              </svg>
+            </span>
             <p>Aucun abonnement. Explorez les salles disponibles !</p>
           </div>
         </ng-template>
@@ -451,7 +537,9 @@
       <div class="modal-box renew-modal" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeRenewModal()">✕</button>
         <div class="renew-modal-header">
-          <div class="renew-modal-icon">🔄</div>
+          <div class="renew-modal-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          </div>
           <h2 class="renew-modal-title">Renouveler l'abonnement</h2>
           <p class="renew-modal-gym">{{ renewTargetInscription?.salleName }}</p>
         </div>
@@ -478,7 +566,11 @@
 
       <div class="boutique-grid" *ngIf="recompenses.length">
         <div class="boutique-card" *ngFor="let r of recompenses">
-          <div class="boutique-card-icon">🎁</div>
+          <div class="boutique-card-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7"/>
+            </svg>
+          </div>
           <h3 class="boutique-card-title">{{ r.titre }}</h3>
           <p class="boutique-card-desc" *ngIf="r.description">{{ r.description }}</p>
           <div class="boutique-card-cost">
@@ -492,7 +584,11 @@
         </div>
       </div>
       <div class="eg-empty" *ngIf="!recompenses.length">
-        <span class="eg-empty-icon">🎁</span>
+        <span class="eg-empty-icon">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7"/>
+          </svg>
+        </span>
         <p>Aucune récompense disponible pour le moment.</p>
       </div>
     </div>
@@ -504,7 +600,11 @@
 
       <div class="classement-card">
         <div class="classement-self">
-          <div class="classement-rank">🏆</div>
+          <div class="classement-rank">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round">
+              <path d="M6 9H3a2 2 0 000 4h3M18 9h3a2 2 0 010 4h-3M6 5h12v8a6 6 0 01-12 0V5zM9 21h6M12 17v4"/>
+            </svg>
+          </div>
           <div class="classement-self-info">
             <span class="classement-name">{{ user?.name }}</span>
             <span class="classement-pts">{{ totalPoints | number }} points — Niveau {{ userLevel }}</span>
@@ -682,24 +782,57 @@
       <div class="eg-filters">
         <button class="eg-filter-chip" [class.active]="!programFilter" (click)="programFilter = ''">Tous</button>
         <button class="eg-filter-chip" *ngFor="let t of ['STRENGTH','CARDIO','YOGA','HIIT','CROSSFIT','BOXING']"
-                [class.active]="programFilter === t" (click)="programFilter = t">
-          {{ getTypeIcon(t) }} {{ t }}
+                [class.active]="programFilter === t" [attr.data-type]="t" (click)="programFilter = t">
+          {{ getTypeLabel(t) }}
         </button>
       </div>
 
       <div class="eg-program-grid" *ngIf="filteredPrograms.length">
-        <div class="eg-program-card" *ngFor="let p of filteredPrograms">
+        <div class="eg-program-card" *ngFor="let p of filteredPrograms" [attr.data-type]="p.type">
           <div class="eg-program-card-top">
-            <div class="eg-program-type-icon">{{ getTypeIcon(p.type) }}</div>
+            <div class="eg-program-type-icon" [attr.data-type]="p.type">
+              <ng-container [ngSwitch]="p.type">
+                <svg *ngSwitchCase="'STRENGTH'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                  <path d="M6 4v16M18 4v16M3 7h6m6 0h6M3 17h6m6 0h6"/>
+                </svg>
+                <svg *ngSwitchCase="'CARDIO'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                <svg *ngSwitchCase="'YOGA'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                  <path d="M12 22V12M12 12C12 7 7 2 2 2c0 5 5 10 10 10zM12 12C12 7 17 2 22 2c0 5-5 10-10 10z"/>
+                </svg>
+                <svg *ngSwitchCase="'HIIT'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+                <svg *ngSwitchCase="'CROSSFIT'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+                </svg>
+                <svg *ngSwitchCase="'BOXING'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <svg *ngSwitchDefault width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
+                </svg>
+              </ng-container>
+            </div>
             <span class="eg-badge" [ngClass]="{'confirmed': p.difficulty === 'BEGINNER', 'pending': p.difficulty === 'INTERMEDIATE', 'cancelled': p.difficulty === 'ADVANCED'}">{{ p.difficulty || 'TOUS NIVEAUX' }}</span>
           </div>
           <div class="eg-program-card-body">
             <div class="eg-program-card-title">{{ p.title }}</div>
             <div class="eg-program-card-desc">{{ p.description || 'Rejoignez ce programme !' }}</div>
             <div class="eg-program-card-meta">
-              <span *ngIf="p.coachName">🏋️ {{ p.coachName }}</span>
-              <span *ngIf="p.gymName">📍 {{ p.gymName }}</span>
-              <span *ngIf="p.startTime">🕐 {{ p.startTime }} - {{ p.endTime }}</span>
+              <span *ngIf="p.coachName">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                {{ p.coachName }}
+              </span>
+              <span *ngIf="p.gymName">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                {{ p.gymName }}
+              </span>
+              <span *ngIf="p.startTime">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ p.startTime }} - {{ p.endTime }}
+              </span>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px" *ngIf="p.daysOfWeek?.length">
               <span class="amenity-tag" *ngFor="let d of p.daysOfWeek">{{ d.slice(0,3) }}</span>
@@ -715,7 +848,9 @@
         </div>
       </div>
       <div class="eg-empty" *ngIf="!filteredPrograms.length">
-        <span class="eg-empty-icon">📅</span>
+        <span class="eg-empty-icon">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </span>
         <p>Aucun programme disponible. Revenez bientôt !</p>
       </div>
     </div>

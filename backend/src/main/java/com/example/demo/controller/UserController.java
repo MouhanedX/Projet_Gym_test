@@ -60,6 +60,7 @@ public class UserController {
                     if (updatedUser.getLatitude() != null) existing.setLatitude(updatedUser.getLatitude());
                     if (updatedUser.getLongitude() != null) existing.setLongitude(updatedUser.getLongitude());
                     if (updatedUser.getAvatar() != null) existing.setAvatar(updatedUser.getAvatar());
+                    if (updatedUser.getPointsFidelite() != null) existing.setPointsFidelite(updatedUser.getPointsFidelite());
                     User saved = userRepository.save(existing);
                     saved.setPassword(null);
                     return ResponseEntity.ok(saved);

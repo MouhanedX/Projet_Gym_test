@@ -586,7 +586,23 @@ select.eg-input { cursor: pointer; appearance: none; background-image: url("data
   display: flex; flex-direction: column;
   height: 100%;
   min-height: 280px;
+  position: relative;
 }
+.eg-program-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  z-index: 1;
+}
+.eg-program-card[data-type="STRENGTH"]::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.eg-program-card[data-type="CARDIO"]::before   { background: linear-gradient(90deg, #ef4444, #f87171); }
+.eg-program-card[data-type="YOGA"]::before     { background: linear-gradient(90deg, #10b981, #34d399); }
+.eg-program-card[data-type="HIIT"]::before     { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.eg-program-card[data-type="CROSSFIT"]::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.eg-program-card[data-type="BOXING"]::before   { background: linear-gradient(90deg, #ec4899, #f472b6); }
 .eg-program-card:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-4px); }
 .eg-program-card-top {
   padding: 18px 18px 0;
@@ -597,8 +613,14 @@ select.eg-input { cursor: pointer; appearance: none; background-image: url("data
   background: linear-gradient(135deg, var(--primary-glow), rgba(124,58,237,0.05));
   border: 1px solid rgba(124,58,237,0.15);
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem;
 }
+/* Type-specific icon colors */
+.eg-program-type-icon[data-type="STRENGTH"] { background: rgba(59,130,246,0.1);  border-color: rgba(59,130,246,0.25);  color: #3b82f6; }
+.eg-program-type-icon[data-type="CARDIO"]   { background: rgba(239,68,68,0.1);   border-color: rgba(239,68,68,0.25);   color: #ef4444; }
+.eg-program-type-icon[data-type="YOGA"]     { background: rgba(16,185,129,0.1);  border-color: rgba(16,185,129,0.25);  color: #10b981; }
+.eg-program-type-icon[data-type="HIIT"]     { background: rgba(245,158,11,0.1);  border-color: rgba(245,158,11,0.25);  color: #f59e0b; }
+.eg-program-type-icon[data-type="CROSSFIT"] { background: rgba(124,58,237,0.1);  border-color: rgba(124,58,237,0.25);  color: #7c3aed; }
+.eg-program-type-icon[data-type="BOXING"]   { background: rgba(236,72,153,0.1);  border-color: rgba(236,72,153,0.25);  color: #ec4899; }
 .eg-program-card-body { padding: 14px 18px; flex: 1; }
 .eg-program-card-title { font-size: 0.97rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
 .eg-program-card-desc { font-size: 0.78rem; color: var(--text-2); line-height: 1.5; }
@@ -678,7 +700,7 @@ select.eg-input { cursor: pointer; appearance: none; background-image: url("data
   background: var(--bg-card); border: 1px dashed var(--border);
   border-radius: var(--radius); color: var(--text-2);
 }
-.eg-empty-icon { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+.eg-empty-icon { display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: var(--text-3, #94a3b8); width: 56px; height: 56px; background: var(--bg-card2, #f8fafc); border-radius: 50%; border: 1px dashed var(--border); }
 .eg-empty p { font-size: 0.9rem; margin-bottom: 16px; }
 
 /* ===== MODAL ===== */
@@ -713,15 +735,27 @@ select.eg-input { cursor: pointer; appearance: none; background-image: url("data
 .eg-day-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 2px 10px var(--primary-glow); }
 
 /* ===== FILTER CHIPS ===== */
-.eg-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.eg-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
 .eg-filter-chip {
-  padding: 7px 14px; border-radius: 20px;
+  padding: 7px 16px; border-radius: 20px;
   background: var(--bg-card); border: 1.5px solid var(--border);
-  color: var(--text-2); font-size: 0.78rem; font-weight: 600;
-  transition: var(--transition);
+  color: var(--text-2); font-size: 0.8rem; font-weight: 600;
+  transition: var(--transition); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
 }
+.eg-filter-chip[data-type]::before {
+  content: ''; display: inline-block;
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.eg-filter-chip[data-type="STRENGTH"]::before { background: #3b82f6; }
+.eg-filter-chip[data-type="CARDIO"]::before   { background: #ef4444; }
+.eg-filter-chip[data-type="YOGA"]::before     { background: #10b981; }
+.eg-filter-chip[data-type="HIIT"]::before     { background: #f59e0b; }
+.eg-filter-chip[data-type="CROSSFIT"]::before { background: #7c3aed; }
+.eg-filter-chip[data-type="BOXING"]::before   { background: #ec4899; }
 .eg-filter-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 2px 10px var(--primary-glow); }
-.eg-filter-chip:hover { border-color: var(--primary-light); color: var(--primary); }
+.eg-filter-chip.active::before { background: #fff !important; }
+.eg-filter-chip:hover:not(.active) { border-color: var(--primary-light); color: var(--primary); }
 
 /* ===== SEARCH ===== */
 .eg-search-wrap { position: relative; margin-bottom: 20px; }

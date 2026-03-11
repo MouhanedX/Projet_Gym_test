@@ -131,6 +131,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   loadingMessages = false;
   memberConversations: Conversation[] = [];
   private chatPollInterval: ReturnType<typeof setInterval> | null = null;
+  private coachPollInterval: ReturnType<typeof setInterval> | null = null;
 
   // Payment form
   showPaymentForm = false;
@@ -179,6 +180,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   private sallesMapInitialized = false;
   private needsSallesMapInit = false;
   private userLocMarker: L.Marker | null = null;
+  private openGymHandler: ((e: Event) => void) | null = null;
 
   // Renouvellement abonnement
   renewDuree = 1;
@@ -298,6 +300,11 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     if (tab === 'salles' && this.showSallesMap && !this.sallesMapInitialized) {
       this.needsSallesMapInit = true;
     }
+    if (tab === 'coachs') {
+      this.startCoachPoll();
+    } else {
+      this.stopCoachPoll();
+    }
   }
 
   private geocodeUserAddress(address: string): void {
@@ -310,17 +317,16 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
           const lng = parseFloat(results[0].lon);
           if (this.user?.id) {
             this.userService.update(this.user.id, { latitude: lat, longitude: lng }).subscribe({
-              next: (updated) => {
-                if (this.user) {
-                  this.user.latitude = lat;
-                  this.user.longitude = lng;
-                  this.authService.updateStoredUser(this.user);
-                }
-                // Refresh salles map with new coordinates
-                if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
-                this.sallesMapInitialized = false;
-                this.needsSallesMapInit = true;
-                this.cdr.detectChanges();
+              next: () => {
+                this.ngZone.run(() => {
+                  if (this.user) {
+                    this.user.latitude = lat;
+                    this.user.longitude = lng;
+                    this.authService.updateStoredUser(this.user);
+                  }
+                  this._refreshSallesMap();
+                  this.cdr.detectChanges();
+                });
               }
             });
           }
@@ -408,13 +414,66 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
   private _refreshSallesMap(): void {
     if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; this.userLocMarker = null; }
+    if (this.openGymHandler) {
+      document.removeEventListener('openGym', this.openGymHandler);
+      this.openGymHandler = null;
+    }
     this.sallesMapInitialized = false;
     this.needsSallesMapInit = true;
+    // Use setTimeout to let Angular update the DOM before re-initialising
+    setTimeout(() => {
+      if (this.activeTab === 'salles' && this.showSallesMap) {
+        const container = document.getElementById('salles-map');
+        if (container && !this.sallesMapInitialized) {
+          this.initSallesMap();
+          this.needsSallesMapInit = false;
+          this.cdr.detectChanges();
+        }
+      }
+    }, 50);
   }
 
   toggleDark(): void {
     this.darkMode = !this.darkMode;
     document.documentElement.setAttribute('data-theme', this.darkMode ? 'dark' : 'light');
+  }
+
+  // === POINTS SYSTEM ===
+  // delta > 0 → award points, delta < 0 → deduct points
+  private updatePoints(delta: number): void {
+    if (!this.user?.id) return;
+    const newTotal = Math.max(0, (this.user.pointsFidelite || 0) + delta);
+    // Optimistic local update so the UI reacts immediately
+    this.user.pointsFidelite = newTotal;
+    this.authService.updateStoredUser(this.user);
+    this.cdr.detectChanges();
+    // Persist on server
+    this.userService.update(this.user.id, { pointsFidelite: newTotal }).subscribe({
+      next: (updated) => {
+        if (this.user) {
+          this.user.pointsFidelite = updated.pointsFidelite ?? newTotal;
+          this.authService.updateStoredUser(this.user);
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {}
+    });
+  }
+
+  /** Returns true if this action has not yet been rewarded today (calendar day). */
+  private canEarnPointsToday(actionKey: string): boolean {
+    const key = `pts_daily_${this.user?.id}_${actionKey}`;
+    const last = localStorage.getItem(key);
+    if (!last) return true;
+    const lastDay = new Date(parseInt(last, 10)).toLocaleDateString('en-CA');
+    const today   = new Date().toLocaleDateString('en-CA');
+    return lastDay !== today;
+  }
+
+  /** Records that the action was rewarded today. */
+  private markPointsEarned(actionKey: string): void {
+    const key = `pts_daily_${this.user?.id}_${actionKey}`;
+    localStorage.setItem(key, Date.now().toString());
   }
 
   // === COMPUTED ===
@@ -462,13 +521,43 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   private get todayStr(): string { return new Date().toISOString().split('T')[0]; }
 
   get taskAbonnementDone(): boolean {
-    return this.inscriptions.some(i => i.dateDemande?.startsWith(this.todayStr));
+    return this.inscriptions.some(i => {
+      if (!i.dateDemande) return false;
+      const d = new Date(i.dateDemande);
+      return d.toLocaleDateString('en-CA') === this.todayStr;
+    });
   }
   get taskChallengeDone(): boolean {
-    return this.challenges.some(c => c.dateDebut?.startsWith(this.todayStr));
+    return this.challenges.some(c => {
+      if (!c.dateDebut) return false;
+      const d = new Date(c.dateDebut);
+      return d.toLocaleDateString('en-CA') === this.todayStr;
+    });
   }
   get taskAvisDone(): boolean {
-    return this.avis.some(a => a.date?.startsWith(this.todayStr));
+    return this.avis.some(a => {
+      if (!a.date) return false;
+      const d = new Date(a.date);
+      return d.toLocaleDateString('en-CA') === this.todayStr;
+    });
+  }
+
+  // Points needed to reach the next level threshold
+  get pointsToNextLevel(): number {
+    const pts = this.totalPoints;
+    const thresholds = [500, 1000, 2000, 3000, 4000, 5000];
+    const next = thresholds.find(t => t > pts);
+    return next ? next - pts : 0;
+  }
+
+  // Progress percentage within the current level band
+  get levelProgressPct(): number {
+    const pts = this.totalPoints;
+    const bands: [number, number][] = [[0,500],[500,1000],[1000,2000],[2000,3000],[3000,4000],[4000,5000]];
+    const band = bands.find(([lo, hi]) => pts >= lo && pts < hi);
+    if (!band) return 100;
+    const [lo, hi] = band;
+    return Math.round(((pts - lo) / (hi - lo)) * 100);
   }
 
   getStarArray(rating: number): number[] {
@@ -537,10 +626,12 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.avisService.create(avis).subscribe({
       next: (saved) => {
         this.selectedGymAvis = [saved, ...this.selectedGymAvis];
+        this.avis = [saved, ...this.avis]; // pour que taskAvisDone se mette à jour
         this.showAvisForm = false;
         this.submittingAvis = false;
         this.newAvisNote = 5;
         this.newAvisComment = '';
+        if (this.canEarnPointsToday('avis')) { this.updatePoints(15); this.markPointsEarned('avis'); }
       },
       error: (err) => {
         this.submittingAvis = false;
@@ -637,6 +728,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
             this.inscriptions = [savedIns, ...this.inscriptions];
             this.subscriptionPaymentSuccess = 'Abonnement activé avec succès !';
             this.submittingInscription = false;
+            if (this.canEarnPointsToday('inscription')) { this.updatePoints(50); this.markPointsEarned('inscription'); }
             setTimeout(() => {
               this.showInscriptionConfirm = false;
               this.subscriptionPaymentSuccess = '';
@@ -741,6 +833,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     if ((this.user.pointsFidelite || 0) < this.selectedRecompense.coutEnPoints) return;
     if (this.submittingEchange) return;
     this.submittingEchange = true;
+    const cost = this.selectedRecompense.coutEnPoints;
     const echange: Echange = {
       clientId: this.user.id,
       clientName: this.user.name,
@@ -750,6 +843,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.echangeService.create(echange).subscribe({
       next: (saved) => {
         this.echanges = [saved, ...this.echanges];
+        this.updatePoints(-cost); // déduire les points dépensés
         this.showEchangeConfirm = false;
         this.selectedRecompense = null;
         this.submittingEchange = false;
@@ -806,6 +900,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
         this.submittingBooking = false;
         this.bookingError = '';
         this.programService.enroll(booking.programId).subscribe();
+        this.updatePoints(10); // +10 pts pour une réservation de programme
       },
       error: (err) => {
         this.submittingBooking = false;
@@ -855,6 +950,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
         this.workouts = [saved, ...this.workouts];
         this.showWorkoutForm = false;
         this.resetWorkoutForm();
+        this.updatePoints(15); // +15 pts pour un workout enregistré
       }
     });
   }
@@ -877,8 +973,16 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
   // === HELPERS ===
   getTypeIcon(type?: string): string {
-    const icons: Record<string, string> = { STRENGTH: '🏋️', CARDIO: '🏃', YOGA: '🧘', HIIT: '⚡', CROSSFIT: '💥', BOXING: '🥊', SWIMMING: '🏊', MARTIAL_ARTS: '🥋', FLEXIBILITY: '🤸', MIXED: '🔄' };
-    return icons[type || ''] || '💪';
+    return ''; // replaced by SVG icons in template
+  }
+
+  getTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      STRENGTH: 'Musculation', CARDIO: 'Cardio', YOGA: 'Yoga',
+      HIIT: 'HIIT', CROSSFIT: 'CrossFit', BOXING: 'Boxe',
+      SWIMMING: 'Natation', MARTIAL_ARTS: 'Arts martiaux', FLEXIBILITY: 'Souplesse', MIXED: 'Mixte'
+    };
+    return labels[type] || type;
   }
 
   getStatusColor(s?: string): string {
@@ -1106,6 +1210,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
       next: (b) => {
         this.coachReservations.push(b);
         this.bookings.push(b);
+        this.updatePoints(10); // +10 pts pour la réservation d'un coach
       }
     });
   }
@@ -1186,6 +1291,31 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
+  private startCoachPoll(): void {
+    this.stopCoachPoll();
+    if (!this.user?.id) return;
+    this.coachPollInterval = setInterval(() => {
+      this.bookingService.getByMember(this.user!.id!).subscribe({
+        next: b => {
+          this.bookings = b;
+          this.coachReservations = b.filter(bk => bk.type === 'COACH_RESERVATION');
+        }, error: () => {}
+      });
+    }, 15000);
+  }
+
+  private stopCoachPoll(): void {
+    if (this.coachPollInterval !== null) {
+      clearInterval(this.coachPollInterval);
+      this.coachPollInterval = null;
+    }
+  }
+
+  getCoachReservationStatus(coach: User): string | null {
+    const res = this.coachReservations.find(b => b.coachId === coach.id && b.status !== 'CANCELLED');
+    return res ? (res.status ?? null) : null;
+  }
+
   sendChatMessage(): void {
     if (!this.chatMessageInput.trim() || !this.currentConversation?.id || !this.user?.id) return;
     if (this.sendingMessage) return;
@@ -1233,8 +1363,13 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnDestroy(): void {
     this.stopChatPolling();
+    this.stopCoachPoll();
     if (this.profileMap) { this.profileMap.remove(); this.profileMap = null; }
     if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
+    if (this.openGymHandler) {
+      document.removeEventListener('openGym', this.openGymHandler);
+      this.openGymHandler = null;
+    }
   }
 
   // === CHALLENGE METHODS ===
@@ -1352,10 +1487,13 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   toggleExerciseDone(challenge: Challenge, stepIdx: number, exIdx: number): void {
+    const wasComplete = challenge.etapes[stepIdx].complete;
     challenge.etapes[stepIdx].exercices[exIdx].done = !challenge.etapes[stepIdx].exercices[exIdx].done;
     // Check if all exercises in step are done
     const step = challenge.etapes[stepIdx];
     step.complete = step.exercices.every(e => e.done);
+    // Award points when a step first becomes complete
+    if (!wasComplete && step.complete) this.updatePoints(10); // +10 pts par étape complétée
     this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
   }
 
@@ -1364,12 +1502,16 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     const newVal = !step.complete;
     step.complete = newVal;
     step.exercices.forEach(e => e.done = newVal);
+    if (newVal) this.updatePoints(10); // +10 pts par étape complétée
     this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
   }
 
   completeChallenge(challenge: Challenge): void {
     challenge.statut = 'TERMINE';
-    this.challengeService.update(challenge.id!, challenge).subscribe({ error: () => {} });
+    this.challengeService.update(challenge.id!, challenge).subscribe({
+      next: () => { if (this.canEarnPointsToday('challenge')) { this.updatePoints(100); this.markPointsEarned('challenge'); } },
+      error: () => {}
+    });
   }
 
   abandonChallenge(challenge: Challenge): void {
@@ -1638,18 +1780,19 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
       }
     }
 
-    // Listen for gym detail open events from popup buttons
-    document.addEventListener('openGym', (e: Event) => {
+    // Listen for gym detail open events from popup buttons (stored to allow removal)
+    this.openGymHandler = (e: Event) => {
       const gymId = (e as CustomEvent).detail;
       const gym = this.gyms.find(g => g.id === gymId);
       if (gym) this.ngZone.run(() => this.openGymDetail(gym));
-    });
+    };
+    document.addEventListener('openGym', this.openGymHandler);
 
     if (bounds.length > 1) {
       this.sallesMap.fitBounds(L.latLngBounds(bounds as L.LatLngTuple[]).pad(0.15));
     }
 
     this.sallesMapInitialized = true;
-    setTimeout(() => this.sallesMap?.invalidateSize(), 200);
+    setTimeout(() => this.sallesMap?.invalidateSize(), 400);
   }
 }
