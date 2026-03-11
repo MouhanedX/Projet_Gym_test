@@ -14,6 +14,7 @@ public class Recompense {
     private Integer coutEnPoints;
     private String partenaireFournisseur;
     private List<String> salleIds; // participating gyms
+    private String imageBase64;
 
     // Getters and Setters
     public String getId() { return id; }
@@ -33,4 +34,7 @@ public class Recompense {
 
     public List<String> getSalleIds() { return salleIds; }
     public void setSalleIds(List<String> salleIds) { this.salleIds = salleIds; }
+
+    public String getImageBase64() { return imageBase64; }
+    public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64; }
 }

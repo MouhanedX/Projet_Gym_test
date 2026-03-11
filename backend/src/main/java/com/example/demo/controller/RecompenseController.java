@@ -46,6 +46,7 @@ public class RecompenseController {
                     if (update.getCoutEnPoints() != null) existing.setCoutEnPoints(update.getCoutEnPoints());
                     if (update.getPartenaireFournisseur() != null) existing.setPartenaireFournisseur(update.getPartenaireFournisseur());
                     if (update.getSalleIds() != null) existing.setSalleIds(update.getSalleIds());
+                    if (update.getImageBase64() != null) existing.setImageBase64(update.getImageBase64());
                     return ResponseEntity.ok(recompenseRepository.save(existing));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

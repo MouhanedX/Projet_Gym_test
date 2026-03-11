@@ -5,4 +5,5 @@ export interface Recompense {
   coutEnPoints: number;
   partenaireFournisseur?: string;
   salleIds?: string[];
+  imageBase64?: string;
 }

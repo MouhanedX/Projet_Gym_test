@@ -85,6 +85,13 @@
         Clients
         <span class="coach-nav-badge" *ngIf="upcomingBookings.length > 0">{{ upcomingBookings.length }}</span>
       </button>
+      <button class="coach-nav-btn" [class.active]="activeTab === 'salles'" (click)="setTab('salles')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Salles
+        <span class="coach-nav-badge" *ngIf="myGymRequests.length > 0">{{ myGymRequests.length }}</span>
+      </button>
       <button class="coach-nav-btn" [class.active]="activeTab === 'profile'" (click)="setTab('profile')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -583,6 +590,124 @@
           <button class="btn-coach-primary" (click)="saveProfile()">Sauvegarder</button>
         </div>
       </div>
+    </div>
+
+    <!-- ==================== SALLES ==================== -->
+    <div *ngIf="activeTab === 'salles' && !loading">
+
+      <!-- Header -->
+      <div class="coach-section-header" style="margin-bottom:20px;">
+        <div>
+          <h2 class="coach-section-title">Associer une salle</h2>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Postulez pour rejoindre une salle de sport en tant que coach</p>
+        </div>
+      </div>
+
+      <!-- Mes demandes en cours -->
+      <div *ngIf="myGymRequests.length" style="margin-bottom:28px;">
+        <h3 style="font-size:0.95rem;font-weight:700;color:var(--text);margin:0 0 12px;">Mes demandes</h3>
+        <div class="gym-request-list">
+          <div class="gym-request-item" *ngFor="let r of myGymRequests">
+            <div class="gym-request-info">
+              <span class="gym-request-name">{{ r.gymName }}</span>
+              <span *ngIf="r.message" class="gym-request-msg">"{{ r.message }}"</span>
+            </div>
+            <div class="gym-request-right">
+              <span class="gym-request-badge"
+                [class.pending]="r.statut === 'EN_ATTENTE'"
+                [class.accepted]="r.statut === 'ACCEPTEE'"
+                [class.rejected]="r.statut === 'REFUSEE'">
+                {{ r.statut === 'EN_ATTENTE' ? 'En attente' : r.statut === 'ACCEPTEE' ? 'Acceptée' : 'Refusée' }}
+              </span>
+              <button *ngIf="r.statut === 'EN_ATTENTE'" class="btn-coach-outline btn-sm" (click)="cancelRequest(r.id!)">Annuler</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recherche salles -->
+      <div class="coach-search-bar" style="margin-bottom:20px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:0.5;flex-shrink:0;">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" [(ngModel)]="gymSearch" placeholder="Rechercher une salle par nom ou ville…" class="coach-search-input">
+      </div>
+
+      <!-- Grille des salles -->
+      <div class="gym-apply-grid" *ngIf="filteredGyms.length">
+        <div class="gym-apply-card" *ngFor="let g of filteredGyms">
+          <div class="gym-apply-img" *ngIf="g.image">
+            <img [src]="g.image" [alt]="g.name">
+          </div>
+          <div class="gym-apply-img gym-apply-img-placeholder" *ngIf="!g.image">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(212,160,23,0.4)" stroke-width="1.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <div class="gym-apply-body">
+            <div class="gym-apply-name">{{ g.name }}</div>
+            <div class="gym-apply-meta">
+              <span *ngIf="g.city">📍 {{ g.city }}</span>
+              <span *ngIf="g.monthlyPrice">{{ g.monthlyPrice }} TND/mois</span>
+            </div>
+            <div class="gym-apply-amenities" *ngIf="g.amenities?.length">
+              <span class="gym-amenity-chip" *ngFor="let a of g.amenities!.slice(0,3)">{{ a }}</span>
+            </div>
+          </div>
+          <div class="gym-apply-action">
+            <ng-container [ngSwitch]="getRequestStatus(g.id!)">
+              <button *ngSwitchCase="'EN_ATTENTE'" class="btn-coach-outline btn-sm" disabled>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                En attente
+              </button>
+              <button *ngSwitchCase="'ACCEPTEE'" class="btn-coach-success btn-sm" disabled>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                Acceptée
+              </button>
+              <button *ngSwitchCase="'REFUSEE'" class="btn-coach-danger btn-sm" (click)="openRequestModal(g)">
+                Postuler à nouveau
+              </button>
+              <button *ngSwitchDefault class="btn-coach-primary btn-sm" (click)="openRequestModal(g)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Postuler
+              </button>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+      <div class="coach-empty" *ngIf="!filteredGyms.length">
+        <p>Aucune salle trouvée.</p>
+      </div>
+
+      <!-- Modal de postulation -->
+      <div class="modal-overlay" *ngIf="showRequestModal" (click)="closeRequestModal()">
+        <div class="coach-modal" (click)="$event.stopPropagation()">
+          <div class="coach-modal-header">
+            <h3>Postuler — {{ selectedGymForRequest?.name }}</h3>
+            <button class="coach-modal-close" (click)="closeRequestModal()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="coach-modal-body">
+            <p style="color:var(--text-2);font-size:0.88rem;margin-bottom:16px;">
+              Envoyez une demande au propriétaire de <strong>{{ selectedGymForRequest?.name }}</strong> à {{ selectedGymForRequest?.city }}.
+            </p>
+            <div class="coach-form-group">
+              <label class="coach-form-label">Message de motivation (optionnel)</label>
+              <textarea [(ngModel)]="requestMessage" rows="4" class="coach-form-input"
+                placeholder="Présentez-vous et expliquez pourquoi vous souhaitez rejoindre cette salle…"></textarea>
+            </div>
+            <div class="coach-form-error" *ngIf="requestError">{{ requestError }}</div>
+          </div>
+          <div class="coach-modal-footer">
+            <button class="btn-coach-outline" (click)="closeRequestModal()">Annuler</button>
+            <button class="btn-coach-primary" (click)="submitRequest()" [disabled]="submittingRequest">
+              {{ submittingRequest ? 'Envoi…' : 'Envoyer la demande' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </main>

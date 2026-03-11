@@ -90,6 +90,20 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   showEchangeConfirm = false;
   selectedRecompense: Recompense | null = null;
 
+  // Boutique — ajout récompense
+  showAddRecompenseForm = false;
+  newRecompenseTitre = '';
+  newRecompenseDescription = '';
+  newRecompenseCout = 0;
+  newRecompensePartenaire = '';
+  newRecompenseImage: string | null = null;
+  newRecompenseImagePreview: string | null = null;
+  savingRecompense = false;
+  recompenseFormError = '';
+
+  // Classement
+  allMembers: User[] = [];
+
   // Gym Buddy
   gymBuddies: GymBuddy[] = [];
   myBuddyPosts: GymBuddy[] = [];
@@ -271,6 +285,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.gymService.list().subscribe({ next: g => this.gyms = g, error: () => {} });
     this.programService.list().subscribe({ next: p => this.programs = p, error: () => {} });
     this.userService.getCoaches().subscribe({ next: c => this.coaches = c, error: () => {} });
+    this.userService.getMembers().subscribe({ next: m => this.allMembers = m, error: () => {} });
     this.recompenseService.list().subscribe({ next: r => this.recompenses = r, error: () => {} });
     if (this.user?.id) {
       this.workoutService.getByMember(this.user.id).subscribe({ next: w => this.workouts = w, error: () => {} });
@@ -488,6 +503,16 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     return 1;
   }
 
+  getLevelForPoints(pts: number): number {
+    if (pts >= 5000) return 10;
+    if (pts >= 4000) return 8;
+    if (pts >= 3000) return 7;
+    if (pts >= 2000) return 5;
+    if (pts >= 1000) return 3;
+    if (pts >= 500) return 2;
+    return 1;
+  }
+
   get filteredGyms(): Gym[] {
     if (!this.gymSearch) return this.gyms;
     const q = this.gymSearch.toLowerCase();
@@ -513,6 +538,9 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   get totalPoints(): number { return this.user?.pointsFidelite || 0; }
+  get rankedMembers(): User[] {
+    return [...this.allMembers].sort((a, b) => (b.pointsFidelite || 0) - (a.pointsFidelite || 0));
+  }
   get totalWorkouts(): number { return this.workouts.length; }
   get totalCalories(): number { return this.workouts.reduce((sum, w) => sum + (w.caloriesBurned || 0), 0); }
   get completedChallengesCount(): number { return this.challenges.filter(c => c.statut === 'TERMINE').length; }
@@ -845,6 +873,70 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   openEchange(recompense: Recompense): void {
     this.selectedRecompense = recompense;
     this.showEchangeConfirm = true;
+  }
+
+  openAddRecompenseForm(): void {
+    this.newRecompenseTitre = '';
+    this.newRecompenseDescription = '';
+    this.newRecompenseCout = 0;
+    this.newRecompensePartenaire = '';
+    this.newRecompenseImage = null;
+    this.newRecompenseImagePreview = null;
+    this.recompenseFormError = '';
+    this.showAddRecompenseForm = true;
+  }
+
+  onNewRecompenseImageSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      if (!file.type.startsWith('image/')) return;
+      if (file.size > 5 * 1024 * 1024) return;
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        this.newRecompenseImage = e.target?.result as string;
+        this.newRecompenseImagePreview = this.newRecompenseImage;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeNewRecompenseImage(): void {
+    this.newRecompenseImage = null;
+    this.newRecompenseImagePreview = null;
+  }
+
+  saveNewRecompense(): void {
+    this.recompenseFormError = '';
+    if (!this.newRecompenseTitre.trim()) {
+      this.recompenseFormError = 'Le titre est obligatoire.';
+      return;
+    }
+    if (this.newRecompenseCout < 0) {
+      this.recompenseFormError = 'Le coût en points doit être positif.';
+      return;
+    }
+    if (this.savingRecompense) return;
+    this.savingRecompense = true;
+    const payload: Recompense = {
+      titre: this.newRecompenseTitre.trim(),
+      description: this.newRecompenseDescription,
+      coutEnPoints: this.newRecompenseCout,
+      partenaireFournisseur: this.newRecompensePartenaire,
+      salleIds: [],
+      imageBase64: this.newRecompenseImage || undefined
+    };
+    this.recompenseService.create(payload).subscribe({
+      next: (created) => {
+        this.recompenses = [created, ...this.recompenses];
+        this.showAddRecompenseForm = false;
+        this.savingRecompense = false;
+      },
+      error: () => {
+        this.recompenseFormError = 'Erreur lors de la création.';
+        this.savingRecompense = false;
+      }
+    });
   }
 
   submitEchange(): void {

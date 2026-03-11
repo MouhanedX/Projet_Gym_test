@@ -9,12 +9,14 @@ import { BookingService } from '../../services/booking.service';
 import { UserService } from '../../services/user.service';
 import { InscriptionService } from '../../services/inscription.service';
 import { PaiementService } from '../../services/paiement.service';
+import { CoachGymRequestService } from '../../services/coach-gym-request.service';
 import { User } from '../../models/user';
 import { Gym } from '../../models/gym';
 import { Program } from '../../models/program';
 import { Booking } from '../../models/booking';
 import { Inscription } from '../../models/inscription';
 import { Paiement } from '../../models/paiement';
+import { CoachGymRequest } from '../../models/coach-gym-request';
 
 @Component({
   selector: 'app-owner-dashboard',
@@ -32,6 +34,8 @@ export class OwnerDashboard implements OnInit {
   coaches: User[] = [];
   inscriptions: Inscription[] = [];
   paiements: Paiement[] = [];
+  coachRequests: CoachGymRequest[] = [];
+  processingRequestId: string | null = null;
   loading = true;
   darkMode = false;
   bookingFilter = '';
@@ -121,6 +125,7 @@ export class OwnerDashboard implements OnInit {
     private userService: UserService,
     private inscriptionService: InscriptionService,
     private paiementService: PaiementService,
+    private coachGymRequestService: CoachGymRequestService,
     private router: Router,
     private ngZone: NgZone
   ) {}
@@ -143,6 +148,7 @@ export class OwnerDashboard implements OnInit {
             this.userService.getCoachesByGym(this.gym.id).subscribe({ next: c => this.coaches = c });
             this.inscriptionService.getBySalle(this.gym.id).subscribe({ next: i => this.inscriptions = i, error: () => {} });
             this.paiementService.getBySalle(this.gym.id).subscribe({ next: p => this.paiements = p, error: () => {} });
+            this.coachGymRequestService.getByGym(this.gym.id).subscribe({ next: r => this.coachRequests = r, error: () => {} });
           }
           this.loading = false;
         },
@@ -153,6 +159,35 @@ export class OwnerDashboard implements OnInit {
   }
 
   setTab(tab: string): void { this.activeTab = tab; }
+
+  // === COACH REQUESTS ===
+  get pendingCoachRequests(): CoachGymRequest[] {
+    return this.coachRequests.filter(r => r.statut === 'EN_ATTENTE');
+  }
+
+  acceptCoachRequest(id: string): void {
+    this.processingRequestId = id;
+    this.coachGymRequestService.accept(id).subscribe({
+      next: (updated) => {
+        this.coachRequests = this.coachRequests.map(r => r.id === id ? updated : r);
+        this.processingRequestId = null;
+        // Refresh coaches list
+        if (this.gym?.id) this.userService.getCoachesByGym(this.gym.id).subscribe({ next: c => this.coaches = c });
+      },
+      error: () => { this.processingRequestId = null; }
+    });
+  }
+
+  rejectCoachRequest(id: string): void {
+    this.processingRequestId = id;
+    this.coachGymRequestService.reject(id).subscribe({
+      next: (updated) => {
+        this.coachRequests = this.coachRequests.map(r => r.id === id ? updated : r);
+        this.processingRequestId = null;
+      },
+      error: () => { this.processingRequestId = null; }
+    });
+  }
 
   toggleDark(): void {
     this.darkMode = !this.darkMode;

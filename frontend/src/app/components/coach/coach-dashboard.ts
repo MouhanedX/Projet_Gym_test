@@ -6,11 +6,15 @@ import { AuthService } from '../../services/auth.service';
 import { ProgramService } from '../../services/program.service';
 import { BookingService } from '../../services/booking.service';
 import { ConversationService } from '../../services/conversation.service';
+import { GymService } from '../../services/gym.service';
+import { CoachGymRequestService } from '../../services/coach-gym-request.service';
 import { User } from '../../models/user';
 import { Program } from '../../models/program';
 import { Booking } from '../../models/booking';
 import { Conversation } from '../../models/conversation';
 import { Message } from '../../models/message';
+import { Gym } from '../../models/gym';
+import { CoachGymRequest } from '../../models/coach-gym-request';
 
 @Component({
   selector: 'app-coach-dashboard',
@@ -48,6 +52,7 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
     { key: 'programs', label: 'Programmes', icon: '🎯' },
     { key: 'schedule', label: 'Planning', icon: '📅' },
     { key: 'clients', label: 'Clients', icon: '👥' },
+    { key: 'salles', label: 'Salles', icon: '🏢' },
     { key: 'profile', label: 'Profil', icon: '⚙️' }
   ];
 
@@ -63,11 +68,24 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
   // Coach reservations
   coachReservations: Booking[] = [];
 
+  // Salles
+  allGyms: Gym[] = [];
+  gymSearch = '';
+  myGymRequests: CoachGymRequest[] = [];
+  showRequestModal = false;
+  selectedGymForRequest: Gym | null = null;
+  requestMessage = '';
+  submittingRequest = false;
+  requestError = '';
+  requestSuccess = '';
+
   constructor(
     private authService: AuthService,
     private programService: ProgramService,
     private bookingService: BookingService,
     private conversationService: ConversationService,
+    private gymService: GymService,
+    private coachGymRequestService: CoachGymRequestService,
     private router: Router
   ) {}
 
@@ -104,8 +122,76 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
       this.bookingService.getCoachReservations(this.user.id).subscribe({
         next: (r) => this.coachReservations = r
       });
+      this.coachGymRequestService.getByCoach(this.user.id).subscribe({
+        next: (r) => this.myGymRequests = r,
+        error: () => {}
+      });
       this.loadConversations();
     }
+    this.gymService.list().subscribe({ next: (g) => this.allGyms = g, error: () => {} });
+  }
+
+  // === SALLES / POSTULATION ===
+  get filteredGyms(): Gym[] {
+    if (!this.gymSearch) return this.allGyms;
+    const q = this.gymSearch.toLowerCase();
+    return this.allGyms.filter(g =>
+      g.name.toLowerCase().includes(q) || g.city?.toLowerCase().includes(q)
+    );
+  }
+
+  getRequestStatus(gymId: string): string | null {
+    const req = this.myGymRequests.find(r => r.gymId === gymId);
+    return req ? (req.statut || 'EN_ATTENTE') : null;
+  }
+
+  openRequestModal(gym: Gym): void {
+    this.selectedGymForRequest = gym;
+    this.requestMessage = '';
+    this.requestError = '';
+    this.requestSuccess = '';
+    this.showRequestModal = true;
+  }
+
+  closeRequestModal(): void {
+    this.showRequestModal = false;
+    this.selectedGymForRequest = null;
+  }
+
+  submitRequest(): void {
+    if (!this.user?.id || !this.selectedGymForRequest) return;
+    this.submittingRequest = true;
+    this.requestError = '';
+    const payload: CoachGymRequest = {
+      coachId: this.user.id,
+      coachName: this.user.name,
+      gymId: this.selectedGymForRequest.id!,
+      gymName: this.selectedGymForRequest.name,
+      ownerId: this.selectedGymForRequest.ownerId || '',
+      message: this.requestMessage
+    };
+    this.coachGymRequestService.create(payload).subscribe({
+      next: (r) => {
+        // Replace any existing request for same gym (covers re-apply after rejection)
+        this.myGymRequests = [...this.myGymRequests.filter(x => x.gymId !== r.gymId), r];
+        this.submittingRequest = false;
+        this.showRequestModal = false;
+        this.selectedGymForRequest = null;
+      },
+      error: (err) => {
+        this.requestError = err?.error?.error || 'Erreur lors de l\'envoi de la demande.';
+        this.submittingRequest = false;
+      }
+    });
+  }
+
+  cancelRequest(requestId: string): void {
+    this.coachGymRequestService.delete(requestId).subscribe({
+      next: () => {
+        this.myGymRequests = this.myGymRequests.filter(r => r.id !== requestId);
+      },
+      error: () => {}
+    });
   }
 
   // === CONVERSATIONS ===

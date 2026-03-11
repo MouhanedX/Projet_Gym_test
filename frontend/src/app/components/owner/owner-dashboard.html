@@ -716,6 +716,46 @@
         </div>
       </div>
 
+      <!-- Demandes en attente -->
+      <div *ngIf="pendingCoachRequests.length" style="margin-bottom:32px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <h2 style="font-size:1rem;font-weight:700;color:var(--text);margin:0;">Demandes de coachs</h2>
+          <span style="background:rgba(212,160,23,0.2);color:#d4a017;border:1px solid rgba(212,160,23,0.4);border-radius:12px;font-size:0.75rem;font-weight:700;padding:2px 10px;">
+            {{ pendingCoachRequests.length }} en attente
+          </span>
+        </div>
+        <div class="owner-coach-requests-list">
+          <div class="owner-coach-request-item" *ngFor="let r of coachRequests"
+            [class.accepted]="r.statut === 'ACCEPTEE'"
+            [class.rejected]="r.statut === 'REFUSEE'">
+            <div class="owner-request-avatar">{{ r.coachName.charAt(0).toUpperCase() }}</div>
+            <div class="owner-request-info">
+              <div class="owner-request-name">{{ r.coachName }}</div>
+              <div class="owner-request-msg" *ngIf="r.message">"{{ r.message }}"</div>
+              <div class="owner-request-date" *ngIf="r.createdAt">
+                {{ r.createdAt | date:'dd/MM/yyyy' }}
+              </div>
+            </div>
+            <div class="owner-request-actions">
+              <span class="owner-request-badge pending" *ngIf="r.statut === 'EN_ATTENTE'">En attente</span>
+              <span class="owner-request-badge accepted" *ngIf="r.statut === 'ACCEPTEE'">Acceptée</span>
+              <span class="owner-request-badge rejected" *ngIf="r.statut === 'REFUSEE'">Refusée</span>
+              <ng-container *ngIf="r.statut === 'EN_ATTENTE'">
+                <button class="owner-req-btn-accept" (click)="acceptCoachRequest(r.id!)" [disabled]="processingRequestId === r.id">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Accepter
+                </button>
+                <button class="owner-req-btn-reject" (click)="rejectCoachRequest(r.id!)" [disabled]="processingRequestId === r.id">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Refuser
+                </button>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coachs assignés -->
       <div class="owner-coach-grid" *ngIf="coaches.length">
         <div class="owner-coach-card" *ngFor="let c of coaches">
           <div class="owner-coach-avatar">{{ c.name.charAt(0) }}</div>
