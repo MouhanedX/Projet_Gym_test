@@ -80,6 +80,9 @@ public class GymController {
                     existing.setMonthlyPrice(update.getMonthlyPrice());
                     existing.setImage(update.getImage());
                     existing.setImages(update.getImages());
+                    existing.setLatitude(update.getLatitude());
+                    existing.setLongitude(update.getLongitude());
+                    existing.setCapacite(update.getCapacite());
                     if (update.getIsActive() != null) existing.setIsActive(update.getIsActive());
                     Gym saved = gymRepository.save(existing);
                     return ResponseEntity.ok(saved);

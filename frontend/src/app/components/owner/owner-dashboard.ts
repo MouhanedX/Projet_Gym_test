@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -57,7 +57,22 @@ export class OwnerDashboard implements OnInit {
   gymPhone = '';
   gymPrice = 0;
   gymOpeningHours = '06:00 - 22:00';
+  gymDisplaySchedule: { day: string; open: string; close: string; closed: boolean }[] = [];
+  gymSchedule: { day: string; open: string; close: string; closed: boolean }[] = [
+    { day: 'Lundi',    open: '06:00', close: '22:00', closed: false },
+    { day: 'Mardi',    open: '06:00', close: '22:00', closed: false },
+    { day: 'Mercredi', open: '06:00', close: '22:00', closed: false },
+    { day: 'Jeudi',    open: '06:00', close: '22:00', closed: false },
+    { day: 'Vendredi', open: '06:00', close: '22:00', closed: false },
+    { day: 'Samedi',   open: '08:00', close: '20:00', closed: false },
+    { day: 'Dimanche', open: '08:00', close: '18:00', closed: true  }
+  ];
   gymAmenities = '';
+  gymImage: string | null = null;
+  gymImagePreview: string | null = null;
+  gymLat: number | null = null;
+  gymLng: number | null = null;
+  gettingLocation = false;
 
   // Program form
   showProgramForm = false;
@@ -94,7 +109,8 @@ export class OwnerDashboard implements OnInit {
     private userService: UserService,
     private inscriptionService: InscriptionService,
     private paiementService: PaiementService,
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
@@ -108,6 +124,7 @@ export class OwnerDashboard implements OnInit {
       this.gymService.getByOwner(this.user.id).subscribe({
         next: (gyms) => {
           this.gym = gyms.length > 0 ? gyms[0] : null;
+          this.gymDisplaySchedule = this.parseScheduleString(this.gym?.openingHours || '');
           if (this.gym?.id) {
             this.programService.getByGym(this.gym.id).subscribe({ next: p => this.programs = p });
             this.bookingService.getByGym(this.gym.id).subscribe({ next: b => this.bookings = b });
@@ -141,17 +158,22 @@ export class OwnerDashboard implements OnInit {
       ownerId: this.user!.id!,
       ownerName: this.user!.name,
       monthlyPrice: this.gymPrice,
-      openingHours: this.gymOpeningHours,
-      amenities: this.gymAmenities.split(',').map(a => a.trim()).filter(a => a)
+      openingHours: this.buildScheduleString(),
+      amenities: this.gymAmenities.split(',').map(a => a.trim()).filter(a => a),
+      image: this.gymImage || undefined,
+      latitude: this.gymLat || undefined,
+      longitude: this.gymLng || undefined
     };
 
     if (this.gym?.id) {
       this.gymService.update(this.gym.id, gymData).subscribe({
-        next: (updated) => { this.gym = updated; this.showGymForm = false; }
+        next: (updated) => { this.gym = updated; this.showGymForm = false; this.loadData(); },
+        error: (err) => { console.error('Update failed:', err); alert('Erreur lors de la mise à jour'); }
       });
     } else {
       this.gymService.create(gymData).subscribe({
-        next: (created) => { this.gym = created; this.showGymForm = false; }
+        next: (created) => { this.gym = created; this.showGymForm = false; this.loadData(); },
+        error: (err) => { console.error('Create failed:', err); alert('Erreur lors de la création'); }
       });
     }
   }
@@ -165,9 +187,119 @@ export class OwnerDashboard implements OnInit {
       this.gymPhone = this.gym.phone || '';
       this.gymPrice = this.gym.monthlyPrice || 0;
       this.gymOpeningHours = this.gym.openingHours || '';
+      this.parseSchedule(this.gym.openingHours || '');
       this.gymAmenities = (this.gym.amenities || []).join(', ');
+      this.gymImage = this.gym.image || null;
+      this.gymImagePreview = this.gym.image || null;
+      this.gymLat = this.gym.latitude || null;
+      this.gymLng = this.gym.longitude || null;
     }
     this.showGymForm = true;
+  }
+
+  private parseScheduleString(hours: string): { day: string; open: string; close: string; closed: boolean }[] {
+    const defaults = [
+      { day: 'Lundi',    open: '06:00', close: '22:00', closed: false },
+      { day: 'Mardi',    open: '06:00', close: '22:00', closed: false },
+      { day: 'Mercredi', open: '06:00', close: '22:00', closed: false },
+      { day: 'Jeudi',    open: '06:00', close: '22:00', closed: false },
+      { day: 'Vendredi', open: '06:00', close: '22:00', closed: false },
+      { day: 'Samedi',   open: '08:00', close: '20:00', closed: false },
+      { day: 'Dimanche', open: '08:00', close: '18:00', closed: true  }
+    ];
+    if (!hours) return defaults;
+    // Format 1: JSON array saved by edit form
+    try {
+      const parsed = JSON.parse(hours);
+      if (Array.isArray(parsed) && parsed.length === 7) return parsed;
+    } catch (e) {}
+    // Format 2: "Monday: 06:00 - 22:00, Tuesday: ..." saved by auth registration
+    const authDayMap: Record<string, number> = {
+      monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6
+    };
+    if (/\w+:\s*\d{1,2}:\d{2}/.test(hours)) {
+      const result = defaults.map(d => ({ ...d, closed: true }));
+      let matched = false;
+      for (const entry of hours.split(',')) {
+        const m = entry.trim().match(/^(\w+):\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})$/);
+        if (m) {
+          const idx = authDayMap[m[1].toLowerCase()];
+          if (idx !== undefined) { result[idx] = { ...result[idx], open: m[2], close: m[3], closed: false }; matched = true; }
+        }
+      }
+      if (matched) return result;
+    }
+    // Format 3: simple "HH:MM - HH:MM"
+    const match = hours.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+    return match ? defaults.map(d => ({ ...d, open: match[1], close: match[2], closed: false })) : defaults;
+  }
+
+  private parseSchedule(hours: string): void {
+    this.gymSchedule = this.parseScheduleString(hours);
+  }
+
+  buildScheduleString(): string {
+    return JSON.stringify(this.gymSchedule);
+  }
+
+  getDisplayHours(): string {
+    const h = this.gym?.openingHours;
+    if (!h) return 'Non défini';
+    try {
+      const parsed = JSON.parse(h) as { day: string; open: string; close: string; closed: boolean }[];
+      if (!Array.isArray(parsed)) return h;
+      const open = parsed.filter(d => !d.closed);
+      if (open.length === 0) return 'Fermé tous les jours';
+      const uniqueTimes = [...new Set(open.map(d => `${d.open}–${d.close}`))];
+      const closed = parsed.filter(d => d.closed);
+      if (uniqueTimes.length === 1 && closed.length === 0) return uniqueTimes[0];
+      if (uniqueTimes.length === 1) return `${uniqueTimes[0]} (sauf ${closed.map(d => d.day.slice(0, 3)).join(', ')})`;
+      return open.slice(0, 3).map(d => `${d.day.slice(0, 3)}: ${d.open}–${d.close}`).join(' · ');
+    } catch (e) { return h; }
+  }
+
+  onGymImageSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      if (!file.type.startsWith('image/')) return;
+      if (file.size > 5 * 1024 * 1024) return;
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        this.gymImage = e.target?.result as string;
+        this.gymImagePreview = this.gymImage;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeGymImage(): void {
+    this.gymImage = null;
+    this.gymImagePreview = null;
+  }
+
+  getGymLocation(): void {
+    if (!navigator.geolocation) {
+      alert('La géolocalisation n\'est pas supportée par votre navigateur');
+      return;
+    }
+    this.gettingLocation = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.ngZone.run(() => {
+          this.gymLat = pos.coords.latitude;
+          this.gymLng = pos.coords.longitude;
+          this.gettingLocation = false;
+        });
+      },
+      (err) => {
+        this.ngZone.run(() => {
+          this.gettingLocation = false;
+          alert('Impossible d\'obtenir votre position. Vérifiez les permissions.');
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }
 
   // === PROGRAM METHODS ===

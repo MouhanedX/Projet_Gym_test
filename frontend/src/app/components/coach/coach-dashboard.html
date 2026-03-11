@@ -6,30 +6,25 @@
     <div class="topbar-main-row">
       <div class="topbar-brand">
         <div class="brand-icon">
-          <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-            <rect width="38" height="38" rx="10" fill="url(#coachGrad)"/>
-            <path d="M10 24l5-7 4 5 4-8 5 10" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <defs>
-              <linearGradient id="coachGrad" x1="0" y1="0" x2="38" y2="38">
-                <stop stop-color="#10b981"/><stop offset="1" stop-color="#059669"/>
-              </linearGradient>
-            </defs>
-          </svg>
+          <img src="assets/images/favicon.png" alt="E-Gym Logo" class="logo-img">
         </div>
-        <span class="brand-text">E-Gym <span>Coach</span></span>
+        <div class="brand-info">
+          <span class="brand-text">E-Gym</span>
+          <span class="account-type">Coach</span>
+        </div>
       </div>
 
       <div class="topbar-right-section">
-        <!-- Sessions badge -->
-        <div class="sessions-badge">
-          <svg class="sessions-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round">
+        <!-- Reservations badge -->
+        <div class="reservations-badge" (click)="setTab('reservations')" style="cursor:pointer;" title="Voir les réservations">
+          <svg class="reservations-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round">
             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <div class="sessions-info">
-            <span class="sessions-label">Sessions</span>
-            <span class="sessions-value">{{ upcomingBookings.length }}</span>
-          </div>
+          <span class="badge-label">Réservations</span>
+          <span class="badge-value">{{ coachReservations.length }}</span>
         </div>
+
+        <div class="topbar-separator"></div>
 
         <!-- Dark mode toggle -->
         <button class="icon-action-btn" (click)="toggleDark()" [title]="darkMode ? 'Mode clair' : 'Mode sombre'">
@@ -44,6 +39,8 @@
           </svg>
         </button>
 
+        <div class="topbar-separator"></div>
+
         <!-- User profile -->
         <div class="user-profile-section">
           <div class="user-avatar-circle">{{ user?.name?.charAt(0) || 'C' }}</div>
@@ -53,13 +50,7 @@
           </div>
         </div>
 
-        <!-- Home -->
-        <button class="icon-action-btn" routerLink="/" title="Accueil">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
-            <polyline points="9,21 9,12 15,12 15,21"/>
-          </svg>
-        </button>
+        <div class="topbar-separator"></div>
 
         <!-- Logout -->
         <button class="icon-action-btn" (click)="logout()" title="Déconnexion">
