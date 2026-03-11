@@ -71,7 +71,7 @@
       <button class="owner-nav-btn" [class.active]="activeTab === 'inscriptions'" (click)="setTab('inscriptions')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8h6m-3-3v6" stroke-linecap="round"/></svg>
         Inscriptions
-        <span class="owner-nav-badge" *ngIf="pendingInscriptions.length">{{ pendingInscriptions.length }}</span>
+        <span class="owner-nav-badge" *ngIf="inscriptions.length">{{ inscriptions.length }}</span>
       </button>
     </nav>
   </header>
@@ -460,17 +460,14 @@
       <div class="owner-page-header">
         <div>
           <h1 class="owner-page-title">Inscriptions</h1>
-          <p class="owner-subtitle">Gérez les demandes d'abonnement de vos membres</p>
+          <p class="owner-subtitle">Consultez les abonnements actifs de vos membres</p>
         </div>
       </div>
 
       <div class="owner-filters">
-        <button class="owner-filter-chip" [class.active]="inscriptionFilter === ''" (click)="inscriptionFilter = ''">Toutes ({{ inscriptions.length }})</button>
-        <button class="owner-filter-chip" [class.active]="inscriptionFilter === 'EN_ATTENTE'" (click)="inscriptionFilter = 'EN_ATTENTE'">
-          En attente ({{ pendingInscriptions.length }})
-        </button>
-        <button class="owner-filter-chip" [class.active]="inscriptionFilter === 'ACCEPTEE'" (click)="inscriptionFilter = 'ACCEPTEE'">Acceptées</button>
-        <button class="owner-filter-chip" [class.active]="inscriptionFilter === 'REFUSEE'" (click)="inscriptionFilter = 'REFUSEE'">Refusées</button>
+        <button class="owner-filter-chip" [class.active]="inscriptionFilter === ''" (click)="inscriptionFilter = ''">Tous ({{ inscriptions.length }})</button>
+        <button class="owner-filter-chip" [class.active]="inscriptionFilter === 'ACCEPTEE'" (click)="inscriptionFilter = 'ACCEPTEE'">Actifs</button>
+        <button class="owner-filter-chip" [class.active]="inscriptionFilter === 'REFUSEE'" (click)="inscriptionFilter = 'REFUSEE'">Annulés</button>
       </div>
 
       <div class="owner-list">
@@ -487,22 +484,11 @@
           </div>
           <div class="owner-list-right">
             <span class="owner-badge"
-              [class.pending]="ins.statut === 'EN_ATTENTE'"
               [class.acceptee]="ins.statut === 'ACCEPTEE'"
               [class.refusee]="ins.statut === 'REFUSEE'">
-              {{ ins.statut === 'EN_ATTENTE' ? 'En attente' : ins.statut === 'ACCEPTEE' ? 'Acceptée' : 'Refusée' }}
+              {{ ins.statut === 'ACCEPTEE' ? 'Actif' : ins.statut === 'REFUSEE' ? 'Annulé' : ins.statut }}
             </span>
-            <ng-container *ngIf="ins.statut === 'EN_ATTENTE'">
-              <button class="btn-owner-success btn-sm" (click)="acceptInscription(ins.id!)">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                Accepter
-              </button>
-              <button class="btn-owner-danger btn-sm" (click)="refuseInscription(ins.id!)">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                Refuser
-              </button>
-            </ng-container>
-            <button *ngIf="ins.statut !== 'EN_ATTENTE'" class="btn-owner-ghost btn-sm" (click)="deleteInscription(ins.id!)" title="Supprimer">
+            <button class="btn-owner-ghost btn-sm" (click)="deleteInscription(ins.id!)" title="Supprimer">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6m5 0V4h4v2"/></svg>
             </button>
           </div>

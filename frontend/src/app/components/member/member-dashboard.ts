@@ -171,11 +171,26 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   private profileMapInitialized = false;
   private needsProfileMapInit = false;
 
-  // Salles map
+    // Salles map
   showSallesMap = true;
+  mapAddressSearch = '';
+  mapLocating = false;
   private sallesMap: L.Map | null = null;
   private sallesMapInitialized = false;
   private needsSallesMapInit = false;
+  private userLocMarker: L.Marker | null = null;
+
+  // Renouvellement abonnement
+  renewDuree = 1;
+  showRenewModal = false;
+  renewTargetInscription: Inscription | null = null;
+  submittingRenew = false;
+
+  // Subscription payment
+  subscriptionDuree = 1;
+  cardFlipped = false;
+  subscriptionPaymentError = '';
+  subscriptionPaymentSuccess = '';
 
   tabs = [
     { key: 'wallet', label: 'Wallet', icon: 'wallet' },
@@ -226,6 +241,9 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     // Auto-geocode address if lat/lng missing
     if (this.user?.address && (!this.user.latitude || !this.user.longitude)) {
       this.geocodeUserAddress(this.user.address);
+    } else if (!this.user?.latitude || !this.user?.longitude) {
+      // Auto-locate via browser geolocation
+      this.autoLocateUser();
     }
   }
 
@@ -269,6 +287,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
         next: i => { this.inscriptions = i; this.loading = false; },
         error: () => { this.loading = false; }
       });
+      this.avisService.getByClient(this.user.id).subscribe({ next: a => this.avis = a, error: () => {} });
     } else {
       this.loading = false;
     }
@@ -313,14 +332,84 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   toggleSallesMap(): void {
     this.showSallesMap = !this.showSallesMap;
     if (this.showSallesMap) {
-      // Destroy old map if it exists
-      if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
+      if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; this.userLocMarker = null; }
       this.sallesMapInitialized = false;
       this.needsSallesMapInit = true;
     } else {
-      if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; }
+      if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; this.userLocMarker = null; }
       this.sallesMapInitialized = false;
     }
+  }
+
+  autoLocateUser(): void {
+    if (!('geolocation' in navigator)) return;
+    this.mapLocating = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.ngZone.run(() => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          this.mapLocating = false;
+          if (this.user?.id) {
+            this.userService.update(this.user.id, { latitude: lat, longitude: lng }).subscribe({
+              next: () => {
+                if (this.user) {
+                  this.user.latitude = lat;
+                  this.user.longitude = lng;
+                  this.authService.updateStoredUser(this.user);
+                }
+                this._refreshSallesMap();
+                this.cdr.detectChanges();
+              },
+              error: () => {}
+            });
+          } else {
+            this._refreshSallesMap();
+          }
+        });
+      },
+      () => {
+        this.ngZone.run(() => { this.mapLocating = false; this.cdr.detectChanges(); });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  searchMapAddress(): void {
+    if (!this.mapAddressSearch.trim()) return;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.mapAddressSearch)}&limit=1`;
+    fetch(url)
+      .then(r => r.json())
+      .then((results: any[]) => {
+        if (!results || results.length === 0) return;
+        const lat = parseFloat(results[0].lat);
+        const lng = parseFloat(results[0].lon);
+        if (this.user?.id) {
+          this.userService.update(this.user.id, { latitude: lat, longitude: lng }).subscribe({
+            next: () => {
+              if (this.user) {
+                this.user.latitude = lat;
+                this.user.longitude = lng;
+                this.authService.updateStoredUser(this.user);
+              }
+              this.mapAddressSearch = '';
+              this._refreshSallesMap();
+              this.cdr.detectChanges();
+            },
+            error: () => {}
+          });
+        } else {
+          this.mapAddressSearch = '';
+          this._refreshSallesMap();
+        }
+      })
+      .catch(() => {});
+  }
+
+  private _refreshSallesMap(): void {
+    if (this.sallesMap) { this.sallesMap.remove(); this.sallesMap = null; this.userLocMarker = null; }
+    this.sallesMapInitialized = false;
+    this.needsSallesMapInit = true;
   }
 
   toggleDark(): void {
@@ -367,7 +456,20 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   get totalPoints(): number { return this.user?.pointsFidelite || 0; }
   get totalWorkouts(): number { return this.workouts.length; }
   get totalCalories(): number { return this.workouts.reduce((sum, w) => sum + (w.caloriesBurned || 0), 0); }
+  get completedChallengesCount(): number { return this.challenges.filter(c => c.statut === 'TERMINE').length; }
   get confirmedPaiements(): Paiement[] { return this.paiements.filter(p => p.statut === 'CONFIRME'); }
+
+  private get todayStr(): string { return new Date().toISOString().split('T')[0]; }
+
+  get taskAbonnementDone(): boolean {
+    return this.inscriptions.some(i => i.dateDemande?.startsWith(this.todayStr));
+  }
+  get taskChallengeDone(): boolean {
+    return this.challenges.some(c => c.dateDebut?.startsWith(this.todayStr));
+  }
+  get taskAvisDone(): boolean {
+    return this.avis.some(a => a.date?.startsWith(this.todayStr));
+  }
 
   getStarArray(rating: number): number[] {
     return Array(Math.floor(rating || 0)).fill(1);
@@ -468,28 +570,89 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   // === INSCRIPTION (S'abonner) ===
   openInscription(gym: Gym): void {
     this.selectedGymForInscription = gym;
+    this.subscriptionDuree = 1;
+    this.cardNumber = '';
+    this.cardHolder = '';
+    this.cardExpiry = '';
+    this.cardCvc = '';
+    this.cardFlipped = false;
+    this.subscriptionPaymentError = '';
+    this.subscriptionPaymentSuccess = '';
     this.showInscriptionConfirm = true;
+  }
+
+  get subscriptionAmount(): number {
+    const base = this.selectedGymForInscription?.monthlyPrice || 50;
+    if (this.subscriptionDuree === 1) return Math.round(base);
+    if (this.subscriptionDuree === 3) return Math.round(base * 3 * 0.9);
+    if (this.subscriptionDuree === 6) return Math.round(base * 6 * 0.8);
+    if (this.subscriptionDuree === 12) return Math.round(base * 12 * 0.7);
+    return Math.round(base * this.subscriptionDuree);
+  }
+
+  get formattedCardDisplay(): string {
+    const raw = this.cardNumber.replace(/\s/g, '');
+    const padded = raw.padEnd(16, '\u2022');
+    return padded.match(/.{1,4}/g)?.join(' ') || '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022';
+  }
+
+  get isSubscriptionFormValid(): boolean {
+    return !!(this.cardNumber.replace(/\s/g, '').length === 16 &&
+      this.cardHolder.trim().length >= 2 &&
+      this.cardExpiry.length === 5 &&
+      this.cardCvc.length === 3);
   }
 
   submitInscription(): void {
     if (!this.selectedGymForInscription?.id || !this.user?.id) return;
-    if (this.submittingInscription) return;
+    if (this.submittingInscription || !this.isSubscriptionFormValid) return;
     this.submittingInscription = true;
-    const inscription: Inscription = {
-      clientId: this.user.id,
+    this.subscriptionPaymentError = '';
+    const digits = this.cardNumber.replace(/\s/g, '');
+    const paiement: Paiement = {
+      clientId: this.user.id!,
       clientName: this.user.name,
-      salleId: this.selectedGymForInscription.id,
-      salleName: this.selectedGymForInscription.name,
-      statut: 'EN_ATTENTE'
+      montant: this.subscriptionAmount,
+      methode: 'CARTE',
+      statut: 'CONFIRME',
+      cardLast4: digits.slice(-4),
+      cardHolder: this.cardHolder.trim(),
+      salleId: this.selectedGymForInscription.id!,
+      salleName: this.selectedGymForInscription.name
     };
-    this.inscriptionService.create(inscription).subscribe({
-      next: (saved) => {
-        this.inscriptions = [saved, ...this.inscriptions];
-        this.showInscriptionConfirm = false;
-        this.selectedGymForInscription = null;
-        this.submittingInscription = false;
+    this.paiementService.create(paiement).subscribe({
+      next: (savedPaiement) => {
+        const inscription: Inscription = {
+          clientId: this.user!.id!,
+          clientName: this.user!.name,
+          salleId: this.selectedGymForInscription!.id!,
+          salleName: this.selectedGymForInscription!.name,
+          statut: 'ACCEPTEE',
+          paiementStatut: 'PAYE',
+          dureeEnMois: this.subscriptionDuree
+        };
+        this.inscriptionService.create(inscription).subscribe({
+          next: (savedIns) => {
+            this.paiements = [savedPaiement, ...this.paiements];
+            this.inscriptions = [savedIns, ...this.inscriptions];
+            this.subscriptionPaymentSuccess = 'Abonnement activé avec succès !';
+            this.submittingInscription = false;
+            setTimeout(() => {
+              this.showInscriptionConfirm = false;
+              this.subscriptionPaymentSuccess = '';
+              this.selectedGymForInscription = null;
+            }, 2000);
+          },
+          error: () => {
+            this.submittingInscription = false;
+            this.subscriptionPaymentError = "Erreur lors de la création de l'abonnement.";
+          }
+        });
       },
-      error: () => { this.submittingInscription = false; }
+      error: () => {
+        this.submittingInscription = false;
+        this.subscriptionPaymentError = 'Paiement refusé. Vérifiez vos informations de carte.';
+      }
     });
   }
 
@@ -500,6 +663,71 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   getInscriptionStatus(gymId?: string): string {
     const ins = this.inscriptions.find(i => i.salleId === gymId);
     return ins?.statut || '';
+  }
+
+  getInscriptionEndDate(ins: Inscription): Date | null {
+    if (!ins.dateDemande) return null;
+    const start = new Date(ins.dateDemande);
+    const duree = ins.dureeEnMois || 1;
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + duree);
+    return end;
+  }
+
+  isInscriptionExpired(ins: Inscription): boolean {
+    const end = this.getInscriptionEndDate(ins);
+    if (!end) return false;
+    return end < new Date();
+  }
+
+  isInscriptionExpiringSoon(ins: Inscription): boolean {
+    const end = this.getInscriptionEndDate(ins);
+    if (!end) return false;
+    const diff = end.getTime() - Date.now();
+    return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000; // within 7 days
+  }
+
+  getDaysRemaining(insOrDate: Inscription | string | undefined): number {
+    if (!insOrDate) return 0;
+    if (typeof insOrDate === 'string') {
+      const diff = new Date(insOrDate).getTime() - Date.now();
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    }
+    const end = this.getInscriptionEndDate(insOrDate);
+    if (!end) return 0;
+    return Math.max(0, Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+  }
+
+  openRenewModal(ins: Inscription): void {
+    this.renewTargetInscription = ins;
+    this.renewDuree = 1;
+    this.showRenewModal = true;
+  }
+
+  closeRenewModal(): void {
+    this.showRenewModal = false;
+    this.renewTargetInscription = null;
+  }
+
+  submitRenew(): void {
+    if (!this.renewTargetInscription?.salleId || !this.user?.id || this.submittingRenew) return;
+    this.submittingRenew = true;
+    const inscription: Inscription = {
+      clientId: this.user.id,
+      clientName: this.user.name,
+      salleId: this.renewTargetInscription.salleId,
+      salleName: this.renewTargetInscription.salleName,
+      statut: 'EN_ATTENTE',
+      dureeEnMois: this.renewDuree
+    };
+    this.inscriptionService.create(inscription).subscribe({
+      next: (saved) => {
+        this.inscriptions = [saved, ...this.inscriptions];
+        this.submittingRenew = false;
+        this.closeRenewModal();
+      },
+      error: () => { this.submittingRenew = false; }
+    });
   }
 
   // === BOUTIQUE / ECHANGE ===
@@ -1176,12 +1404,6 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     catch { return d; }
   }
 
-  getDaysRemaining(dateFin?: string): number {
-    if (!dateFin) return 0;
-    const diff = new Date(dateFin).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-  }
-
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/']);
@@ -1360,32 +1582,40 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     const userLat = this.user?.latitude || 36.8065;
     const userLng = this.user?.longitude || 10.1815;
 
+    // User (blue) icon
     const iconDefault = L.icon({
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
       iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+      iconSize: [30, 46], iconAnchor: [15, 46], popupAnchor: [1, -40], shadowSize: [41, 41]
     });
 
+    // Gym (red) icon
     const gymIcon = L.icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
     });
 
-    this.sallesMap = L.map('salles-map', { center: [userLat, userLng], zoom: 12 });
+    this.sallesMap = L.map('salles-map', {
+      center: [userLat, userLng],
+      zoom: 12,
+      zoomControl: true
+    });
+
+    // Tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(this.sallesMap);
 
-    // User marker
+    // User position marker
     if (this.user?.latitude && this.user?.longitude) {
-      L.marker([this.user.latitude, this.user.longitude], { icon: iconDefault })
+      this.userLocMarker = L.marker([this.user.latitude, this.user.longitude], { icon: iconDefault })
         .addTo(this.sallesMap)
-        .bindPopup(`<strong>Ma position</strong><br>${this.user.address || ''}`);
+        .bindPopup(`<div style="font-family:sans-serif;min-width:140px"><b style="color:#1d4ed8">📍 Ma position</b><br><span style="color:#64748b;font-size:12px">${this.user.address || this.user.name}</span></div>`);
     }
 
-    // Gym markers
+    // Gym markers with click → open gym detail
     const bounds: L.LatLngExpression[] = [];
     if (this.user?.latitude && this.user?.longitude) {
       bounds.push([this.user.latitude, this.user.longitude]);
@@ -1393,15 +1623,30 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
     for (const gym of this.gyms) {
       if (gym.latitude && gym.longitude) {
-        const marker = L.marker([gym.latitude, gym.longitude], { icon: gymIcon })
-          .addTo(this.sallesMap)
-          .bindPopup(`<strong>${gym.name}</strong><br>${gym.address || ''}<br>${gym.monthlyPrice ? gym.monthlyPrice + ' DT/mois' : ''}`);
+        const popupHtml = `
+          <div style="font-family:sans-serif;min-width:180px;max-width:220px">
+            <b style="font-size:14px;color:#0f172a">${gym.name}</b>
+            <div style="color:#64748b;font-size:12px;margin:4px 0">${gym.address || gym.city || ''}</div>
+            ${gym.monthlyPrice ? `<div style="color:#d4a017;font-weight:700;font-size:13px">💰 ${gym.monthlyPrice} DT/mois</div>` : ''}
+            ${gym.rating ? `<div style="color:#f59e0b;font-size:12px">⭐ ${gym.rating}/5</div>` : ''}
+            <button onclick="document.dispatchEvent(new CustomEvent('openGym', {detail:'${gym.id}'}))" style="margin-top:8px;width:100%;padding:6px;background:#0f172a;color:#d4a017;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Voir les détails →</button>
+          </div>`;
+        L.marker([gym.latitude, gym.longitude], { icon: gymIcon })
+          .addTo(this.sallesMap!)
+          .bindPopup(popupHtml, { maxWidth: 240 });
         bounds.push([gym.latitude, gym.longitude]);
       }
     }
 
+    // Listen for gym detail open events from popup buttons
+    document.addEventListener('openGym', (e: Event) => {
+      const gymId = (e as CustomEvent).detail;
+      const gym = this.gyms.find(g => g.id === gymId);
+      if (gym) this.ngZone.run(() => this.openGymDetail(gym));
+    });
+
     if (bounds.length > 1) {
-      this.sallesMap.fitBounds(L.latLngBounds(bounds as L.LatLngTuple[]).pad(0.1));
+      this.sallesMap.fitBounds(L.latLngBounds(bounds as L.LatLngTuple[]).pad(0.15));
     }
 
     this.sallesMapInitialized = true;

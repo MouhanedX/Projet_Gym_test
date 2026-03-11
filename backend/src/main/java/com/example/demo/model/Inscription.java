@@ -17,6 +17,7 @@ public class Inscription {
     private Instant dateDemande;
     private String statut; // EN_ATTENTE, ACCEPTEE, REFUSEE
     private String paiementStatut; // NON_PAYE, PAYE
+    private Integer dureeEnMois; // Durée de l'abonnement en mois (1, 3, 6, 12)
 
     // Getters and Setters
     public String getId() { return id; }
@@ -45,4 +46,7 @@ public class Inscription {
 
     public String getPaiementStatut() { return paiementStatut; }
     public void setPaiementStatut(String paiementStatut) { this.paiementStatut = paiementStatut; }
+
+    public Integer getDureeEnMois() { return dureeEnMois; }
+    public void setDureeEnMois(Integer dureeEnMois) { this.dureeEnMois = dureeEnMois; }
 }

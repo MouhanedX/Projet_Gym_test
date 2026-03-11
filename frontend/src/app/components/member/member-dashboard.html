@@ -76,16 +76,39 @@
         <div class="salles-map-header">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span>Carte des salles</span>
+          <span class="map-gym-count">{{ gyms.length }} salle{{ gyms.length > 1 ? 's' : '' }}</span>
           <button class="map-toggle-btn" (click)="toggleSallesMap()">
             {{ showSallesMap ? 'Masquer' : 'Afficher' }}
           </button>
         </div>
         <div *ngIf="showSallesMap" class="salles-map-wrapper">
-          <div class="map-no-address-banner">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span *ngIf="!user?.latitude">Ajoutez votre adresse pour voir votre position sur la carte.</span>
-            <span *ngIf="user?.latitude">{{ user?.address || 'Position enregistrée' }}</span>
-            <button class="map-add-addr-btn" (click)="openProfileEdit()">{{ user?.latitude ? 'Modifier ma position' : 'Ajouter mon adresse' }}</button>
+          <!-- Barre de recherche -->
+          <div class="map-toolbar">
+            <div class="map-search-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="map-search-icon">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              <input
+                type="text"
+                [(ngModel)]="mapAddressSearch"
+                placeholder="Chercher une adresse..."
+                class="map-search-input"
+                (keydown.enter)="searchMapAddress()"
+              >
+              <button class="map-search-go" (click)="searchMapAddress()" [disabled]="!mapAddressSearch.trim()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </button>
+            </div>
+            <button class="map-locate-btn" (click)="autoLocateUser()" [class.locating]="mapLocating" title="Me localiser automatiquement">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+              <span>{{ mapLocating ? 'Localisation...' : 'Ma position' }}</span>
+            </button>
+          </div>
+          <!-- Légende -->
+          <div class="map-legend">
+            <span class="map-legend-item"><span class="legend-dot blue"></span>Vous</span>
+            <span class="map-legend-item"><span class="legend-dot red"></span>Salles de gym</span>
+            <span class="map-legend-tip">Cliquez sur un marqueur pour voir les détails</span>
           </div>
           <div id="salles-map" class="salles-map-container"></div>
         </div>
@@ -137,9 +160,8 @@
               <div class="gym-card-h-actions">
                 <button class="btn-outline-member" (click)="openGymDetail(g)">Voir détails</button>
                 <button class="btn-primary-member" *ngIf="!isSubscribed(g.id)" (click)="openInscription(g)">S'abonner</button>
-                <span class="inscription-status" *ngIf="isSubscribed(g.id)"
-                      [ngClass]="{'accepted': getInscriptionStatus(g.id)==='ACCEPTEE', 'pending-status': getInscriptionStatus(g.id)==='EN_ATTENTE'}">
-                  {{ getInscriptionStatus(g.id) === 'ACCEPTEE' ? '✓ Inscrit' : '⏳ En attente' }}
+                <span class="inscription-status accepted" *ngIf="isSubscribed(g.id)">
+                  ✓ Abonné
                 </span>
               </div>
             </div>
@@ -248,60 +270,208 @@
       <h1 class="member-page-title">Mon Wallet</h1>
 
       <div class="wallet-summary">
+        <!-- Carte principale points -->
         <div class="wallet-card-main">
-          <div class="wallet-card-bg">
-            <span class="wallet-points-big">{{ totalPoints | number }}</span>
-            <span class="wallet-points-label">Points de fidélité</span>
-          </div>
-          <div class="wallet-level">
-            <span class="wallet-level-text">Niveau {{ userLevel }}</span>
-            <div class="wallet-progress-bar">
-              <div class="wallet-progress-fill" [style.width.%]="(totalPoints % 1000) / 10"></div>
+          <div class="wallet-card-top">
+            <div class="wallet-card-left">
+              <span class="wallet-points-big">{{ totalPoints | number }}</span>
+              <span class="wallet-points-label">Points de fidélité</span>
+            </div>
+            <div class="wallet-card-right">
+              <div class="wallet-level-badge">Niv. {{ userLevel }}</div>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5">
+                <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 10H18a2 2 0 000 4h4"/>
+              </svg>
             </div>
           </div>
+          <div class="wallet-level-row">
+            <span class="wallet-level-text">Niveau {{ userLevel }}</span>
+            <span class="wallet-level-next">{{ 1000 - (totalPoints % 1000) }} pts pour le prochain niveau</span>
+          </div>
+          <div class="wallet-progress-bar">
+            <div class="wallet-progress-fill" [style.width.%]="(totalPoints % 1000) / 10"></div>
+          </div>
         </div>
+
+        <!-- 3 cartes stats -->
         <div class="wallet-stats-row">
-          <div class="wallet-stat">
-            <span class="wallet-stat-value">{{ totalWorkouts }}</span>
-            <span class="wallet-stat-label">Séances</span>
-          </div>
-          <div class="wallet-stat">
-            <span class="wallet-stat-value">{{ totalCalories | number }}</span>
-            <span class="wallet-stat-label">Calories</span>
-          </div>
-          <div class="wallet-stat">
-            <span class="wallet-stat-value">{{ echanges.length }}</span>
-            <span class="wallet-stat-label">Échanges</span>
-          </div>
-          <div class="wallet-stat">
+          <div class="wallet-stat wallet-stat-blue">
+            <div class="wallet-stat-icon-wrap blue">🏋️</div>
             <span class="wallet-stat-value">{{ inscriptions.length }}</span>
             <span class="wallet-stat-label">Abonnements</span>
           </div>
+          <div class="wallet-stat wallet-stat-green">
+            <div class="wallet-stat-icon-wrap green">🏆</div>
+            <span class="wallet-stat-value">{{ completedChallengesCount }}</span>
+            <span class="wallet-stat-label">Challenges terminés</span>
+          </div>
+          <div class="wallet-stat wallet-stat-gold">
+            <div class="wallet-stat-icon-wrap gold">🎁</div>
+            <span class="wallet-stat-value">{{ echanges.length }}</span>
+            <span class="wallet-stat-label">Échanges</span>
+          </div>
         </div>
       </div>
 
+      <!-- Tâches du jour -->
       <div class="eg-section">
         <div class="eg-section-header">
-          <span class="eg-section-title">Historique des échanges</span>
+          <span class="eg-section-title">🎯 Tâches du jour</span>
+          <span class="daily-tasks-badge">{{ (taskAbonnementDone ? 1 : 0) + (taskChallengeDone ? 1 : 0) + (taskAvisDone ? 1 : 0) }}/3 complétées</span>
         </div>
-        <div class="eg-list" *ngIf="echanges.length">
-          <div class="eg-list-item" *ngFor="let e of echanges">
-            <div class="eg-list-left">
-              <div class="eg-list-icon">🎁</div>
-              <div class="eg-list-info">
-                <div class="eg-list-title">{{ e.recompenseTitre }}</div>
-                <div class="eg-list-meta">{{ e.dateEchange }} <span *ngIf="e.codePromoGenere"> — Code: {{ e.codePromoGenere }}</span></div>
-              </div>
+        <p class="daily-tasks-subtitle">Accomplissez ces actions aujourd'hui pour gagner des points</p>
+
+        <div class="daily-tasks-list">
+          <!-- Tâche 1: Abonnement -->
+          <div class="daily-task-item" [class.task-done]="taskAbonnementDone">
+            <div class="daily-task-check" [class.checked]="taskAbonnementDone">
+              <svg *ngIf="taskAbonnementDone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="daily-task-icon-wrap">🏋️</div>
+            <div class="daily-task-body">
+              <div class="daily-task-name">Effectuer un abonnement</div>
+              <div class="daily-task-desc">Abonnez-vous à une salle de sport aujourd'hui</div>
+            </div>
+            <div class="daily-task-right">
+              <span class="daily-task-pts">+100 pts</span>
+              <span class="task-status-badge" [class.done]="taskAbonnementDone">
+                {{ taskAbonnementDone ? '✓ Fait' : 'À faire' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Tâche 2: Challenge -->
+          <div class="daily-task-item" [class.task-done]="taskChallengeDone">
+            <div class="daily-task-check" [class.checked]="taskChallengeDone">
+              <svg *ngIf="taskChallengeDone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="daily-task-icon-wrap">🏆</div>
+            <div class="daily-task-body">
+              <div class="daily-task-name">Effectuer un challenge</div>
+              <div class="daily-task-desc">Lancez ou complétez un challenge aujourd'hui</div>
+            </div>
+            <div class="daily-task-right">
+              <span class="daily-task-pts">+150 pts</span>
+              <span class="task-status-badge" [class.done]="taskChallengeDone">
+                {{ taskChallengeDone ? '✓ Fait' : 'À faire' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Tâche 3: Avis -->
+          <div class="daily-task-item" [class.task-done]="taskAvisDone">
+            <div class="daily-task-check" [class.checked]="taskAvisDone">
+              <svg *ngIf="taskAvisDone" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="daily-task-icon-wrap">⭐</div>
+            <div class="daily-task-body">
+              <div class="daily-task-name">Donner un avis</div>
+              <div class="daily-task-desc">Évaluez une salle de sport ou un coach</div>
+            </div>
+            <div class="daily-task-right">
+              <span class="daily-task-pts">+50 pts</span>
+              <span class="task-status-badge" [class.done]="taskAvisDone">
+                {{ taskAvisDone ? '✓ Fait' : 'À faire' }}
+              </span>
             </div>
           </div>
         </div>
-        <div class="eg-empty" *ngIf="!echanges.length" style="padding:24px">
-          <p>Aucun échange effectué. Visitez la boutique !</p>
+      </div>
+
+      <!-- Mes Abonnements -->
+      <div class="eg-section">
+        <div class="eg-section-header">
+          <span class="eg-section-title">🏋️ Mes Abonnements</span>
+          <span class="abonnements-count-badge">{{ inscriptions.length }}</span>
         </div>
+
+        <div class="abonnements-list" *ngIf="inscriptions.length; else noAbonnements">
+          <div class="abonnement-card" *ngFor="let ins of inscriptions"
+               [class.abonnement-expired]="isInscriptionExpired(ins)"
+               [class.abonnement-expiring]="isInscriptionExpiringSoon(ins)">
+            <!-- Icône + nom salle -->
+            <div class="abonnement-gym-icon">🏋️</div>
+            <div class="abonnement-body">
+              <div class="abonnement-gym-name">{{ ins.salleName || 'Salle inconnue' }}</div>
+              <div class="abonnement-dates">
+                <span class="abonnement-date-item">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Début : {{ ins.dateDemande | date:'dd/MM/yyyy' }}
+                </span>
+                <span class="abonnement-sep">→</span>
+                <span class="abonnement-date-item" [class.date-expired]="isInscriptionExpired(ins)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Fin : {{ getInscriptionEndDate(ins) | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+              <div class="abonnement-meta-row">
+                <span class="abonnement-duree">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                  {{ ins.dureeEnMois || 1 }} mois
+                </span>
+                <span class="abonnement-days-left" *ngIf="!isInscriptionExpired(ins) && ins.statut === 'ACCEPTEE'">
+                  {{ getDaysRemaining(ins) }} jour{{ getDaysRemaining(ins) > 1 ? 's' : '' }} restant{{ getDaysRemaining(ins) > 1 ? 's' : '' }}
+                </span>
+              </div>
+            </div>
+            <!-- Badges statuts + actions -->
+            <div class="abonnement-right">
+              <span class="abonnement-statut-badge"
+                [class.badge-accepte]="ins.statut === 'ACCEPTEE'"
+                [class.badge-attente]="ins.statut === 'EN_ATTENTE'"
+                [class.badge-refuse]="ins.statut === 'REFUSEE'">
+                {{ ins.statut === 'ACCEPTEE' ? '✓ Actif' : ins.statut === 'EN_ATTENTE' ? '⏳ En attente' : '✗ Refusé' }}
+              </span>
+              <span class="abonnement-pay-badge"
+                [class.pay-paye]="ins.paiementStatut === 'PAYE'"
+                [class.pay-impaye]="ins.paiementStatut !== 'PAYE'">
+                {{ ins.paiementStatut === 'PAYE' ? '💳 Payé' : '⚠ Non payé' }}
+              </span>
+              <button class="btn-renew"
+                *ngIf="ins.statut === 'ACCEPTEE' && (isInscriptionExpired(ins) || isInscriptionExpiringSoon(ins))"
+                (click)="openRenewModal(ins)">
+                🔄 Renouveler
+              </button>
+              <span class="abonnement-expired-label" *ngIf="isInscriptionExpired(ins)">Expiré</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noAbonnements>
+          <div class="eg-empty" style="padding:24px">
+            <span class="eg-empty-icon">🏋️</span>
+            <p>Aucun abonnement. Explorez les salles disponibles !</p>
+          </div>
+        </ng-template>
       </div>
     </div>
 
-    <!-- ==================== BOUTIQUE ==================== -->
+    <!-- Modal Renouvellement -->
+    <div class="modal-overlay" *ngIf="showRenewModal" (click)="closeRenewModal()">
+      <div class="modal-box renew-modal" (click)="$event.stopPropagation()">
+        <button class="modal-close-btn" (click)="closeRenewModal()">✕</button>
+        <div class="renew-modal-header">
+          <div class="renew-modal-icon">🔄</div>
+          <h2 class="renew-modal-title">Renouveler l'abonnement</h2>
+          <p class="renew-modal-gym">{{ renewTargetInscription?.salleName }}</p>
+        </div>
+        <div class="renew-modal-body">
+          <label class="renew-label">Choisissez la durée :</label>
+          <div class="renew-duree-grid">
+            <button class="renew-duree-btn" [class.selected]="renewDuree === 1"  (click)="renewDuree = 1">1 mois</button>
+            <button class="renew-duree-btn" [class.selected]="renewDuree === 3"  (click)="renewDuree = 3">3 mois</button>
+            <button class="renew-duree-btn" [class.selected]="renewDuree === 6"  (click)="renewDuree = 6">6 mois</button>
+            <button class="renew-duree-btn" [class.selected]="renewDuree === 12" (click)="renewDuree = 12">1 an</button>
+          </div>
+        </div>
+        <div class="renew-modal-footer">
+          <button class="btn-outline-member" (click)="closeRenewModal()">Annuler</button>
+          <button class="btn-primary-member" (click)="submitRenew()" [disabled]="submittingRenew">
+            {{ submittingRenew ? 'Envoi...' : 'Confirmer le renouvellement' }}
+          </button>
+        </div>
+      </div>
+    </div>
     <div *ngIf="activeTab === 'boutique' && !loading" class="tab-content">
       <h1 class="member-page-title">Boutique Récompenses</h1>
       <p class="member-subtitle">Échangez vos points contre des récompenses exclusives</p>
@@ -553,120 +723,10 @@
     <!-- ==================== PAIEMENTS ==================== -->
     <div *ngIf="activeTab === 'paiements' && !loading" class="tab-content">
       <div class="paiements-header">
-        <h1 class="member-page-title">Mes Paiements</h1>
-        <button class="pay-btn-primary" (click)="openPaymentForm()" *ngIf="!showPaymentForm">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nouveau paiement
-        </button>
-      </div>
-
-      <!-- PAYMENT FORM -->
-      <div class="payment-form-card" *ngIf="showPaymentForm">
-        <div class="payment-form-header">
-          <h2 class="payment-form-title">Effectuer un paiement</h2>
-          <button class="payment-close-btn" (click)="closePaymentForm()">✕</button>
-        </div>
-
-        <!-- Card visual preview -->
-        <div class="card-preview">
-          <div class="card-preview-inner">
-            <div class="card-chip"></div>
-            <div class="card-number-preview">{{ cardNumber || '•••• •••• •••• ••••' }}</div>
-            <div class="card-bottom-row">
-              <div class="card-holder-preview">
-                <span class="card-label">TITULAIRE</span>
-                <span class="card-value">{{ cardHolder || 'NOM PRÉNOM' }}</span>
-              </div>
-              <div class="card-expiry-preview">
-                <span class="card-label">EXPIRE</span>
-                <span class="card-value">{{ cardExpiry || 'MM/AA' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="payment-form-body">
-          <!-- Salle selection -->
-          <div class="pay-field" *ngIf="unpaidInscriptions.length">
-            <label class="pay-label">Salle</label>
-            <div class="pay-input-wrapper">
-              <span class="pay-input-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-              </span>
-              <select class="pay-input" [(ngModel)]="selectedInscriptionId">
-                <option value="">-- Sélectionner une salle --</option>
-                <option *ngFor="let ins of unpaidInscriptions" [value]="ins.id">{{ ins.salleName || 'Salle' }}</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Montant -->
-          <div class="pay-field">
-            <label class="pay-label">Montant (DT)</label>
-            <div class="pay-input-wrapper amount-wrapper">
-              <span class="pay-input-icon">DT</span>
-              <input type="number" class="pay-input" [(ngModel)]="paymentAmount" placeholder="0.00" min="1" step="0.01" />
-            </div>
-          </div>
-
-          <!-- Numéro de carte -->
-          <div class="pay-field">
-            <label class="pay-label">Numéro de carte</label>
-            <div class="pay-input-wrapper">
-              <span class="pay-input-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
-              </span>
-              <input type="text" class="pay-input" [(ngModel)]="cardNumber" (input)="formatCardNumber()" placeholder="1234 5678 9012 3456" maxlength="19" />
-            </div>
-          </div>
-
-          <!-- Titulaire -->
-          <div class="pay-field">
-            <label class="pay-label">Titulaire de la carte</label>
-            <div class="pay-input-wrapper">
-              <span class="pay-input-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </span>
-              <input type="text" class="pay-input" [(ngModel)]="cardHolder" placeholder="NOM PRÉNOM" />
-            </div>
-          </div>
-
-          <!-- Expiry + CVC -->
-          <div class="pay-row">
-            <div class="pay-field">
-              <label class="pay-label">Date d'expiration</label>
-              <div class="pay-input-wrapper">
-                <span class="pay-input-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                </span>
-                <input type="text" class="pay-input" [(ngModel)]="cardExpiry" (input)="formatExpiry()" placeholder="MM/AA" maxlength="5" />
-              </div>
-            </div>
-            <div class="pay-field">
-              <label class="pay-label">CVC</label>
-              <div class="pay-input-wrapper">
-                <span class="pay-input-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                </span>
-                <input type="text" class="pay-input" [(ngModel)]="cardCvc" (input)="formatCvc()" placeholder="123" maxlength="3" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Error / Success -->
-          <div class="pay-message pay-error" *ngIf="paymentError">{{ paymentError }}</div>
-          <div class="pay-message pay-success" *ngIf="paymentSuccess">{{ paymentSuccess }}</div>
-
-          <!-- Submit -->
-          <button class="pay-submit-btn" [disabled]="!isPaymentFormValid || submittingPayment" (click)="submitPayment()">
-            <span *ngIf="!submittingPayment">Payer {{ paymentAmount ? (paymentAmount | number:'1.2-2') + ' DT' : '' }}</span>
-            <span *ngIf="submittingPayment" class="pay-spinner"></span>
-          </button>
-
-          <div class="pay-secure-note">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Paiement sécurisé — Vos données sont protégées
-          </div>
+        <h1 class="member-page-title">Historique des paiements</h1>
+        <div class="paiements-header-note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Les paiements sont effectués lors de l'abonnement à une salle
         </div>
       </div>
 
@@ -693,10 +753,10 @@
             </div>
           </div>
         </div>
-        <div class="eg-empty" *ngIf="!paiements.length && !showPaymentForm">
+        <div class="eg-empty" *ngIf="!paiements.length">
           <svg width="48" height="48" fill="none" stroke="#64748b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
           <p>Aucun paiement enregistré.</p>
-          <button class="pay-btn-primary small" (click)="openPaymentForm()">Effectuer un paiement</button>
+          <p style="font-size:0.82rem;color:var(--text-2);margin-top:4px">Abonnez-vous à une salle pour effectuer votre premier paiement.</p>
         </div>
       </div>
     </div>
@@ -978,22 +1038,156 @@
   </div>
 </div>
 
-<!-- INSCRIPTION CONFIRM MODAL -->
-<div class="eg-modal-overlay" *ngIf="showInscriptionConfirm" (click)="showInscriptionConfirm = false">
-  <div class="eg-modal" (click)="$event.stopPropagation()">
-    <h3>S'abonner à {{ selectedGymForInscription?.name }}</h3>
-    <p class="eg-modal-desc">
-      📍 {{ selectedGymForInscription?.address }}<br>
-      <span *ngIf="selectedGymForInscription?.monthlyPrice">💰 {{ selectedGymForInscription?.monthlyPrice }}€/mois</span>
-    </p>
-    <p style="font-size:0.85rem;color:var(--text-2)">Votre demande d'inscription sera envoyée au propriétaire de la salle pour validation.</p>
-    <div class="eg-modal-actions">
-      <button class="btn-eg-outline" (click)="showInscriptionConfirm = false">Annuler</button>
-      <button class="btn-primary-member" (click)="submitInscription()" [disabled]="submittingInscription">
-        <span *ngIf="submittingInscription">⏳ En cours...</span>
-        <span *ngIf="!submittingInscription">Confirmer l'inscription</span>
+<!-- SUBSCRIPTION PAYMENT MODAL -->
+<div class="sub-modal-overlay" *ngIf="showInscriptionConfirm" (click)="showInscriptionConfirm = false">
+  <div class="sub-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="sub-modal-header">
+      <div>
+        <h2 class="sub-modal-title">Abonnement</h2>
+        <p class="sub-modal-gym">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          {{ selectedGymForInscription?.name }}
+        </p>
+      </div>
+      <button class="sub-close-btn" (click)="showInscriptionConfirm = false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
+
+    <!-- Plan Selection -->
+    <div class="sub-plans-label">Choisissez votre formule</div>
+    <div class="sub-plans">
+      <div class="sub-plan-card" [class.selected]="subscriptionDuree === 1" (click)="subscriptionDuree = 1">
+        <div class="sub-plan-duration">1 mois</div>
+        <div class="sub-plan-price">{{ (selectedGymForInscription?.monthlyPrice || 50) | number:'1.0-0' }} DT</div>
+      </div>
+      <div class="sub-plan-card" [class.selected]="subscriptionDuree === 3" (click)="subscriptionDuree = 3">
+        <div class="sub-plan-badge">-10%</div>
+        <div class="sub-plan-duration">3 mois</div>
+        <div class="sub-plan-price">{{ ((selectedGymForInscription?.monthlyPrice || 50) * 3 * 0.9) | number:'1.0-0' }} DT</div>
+      </div>
+      <div class="sub-plan-card" [class.selected]="subscriptionDuree === 6" (click)="subscriptionDuree = 6">
+        <div class="sub-plan-badge">-20%</div>
+        <div class="sub-plan-duration">6 mois</div>
+        <div class="sub-plan-price">{{ ((selectedGymForInscription?.monthlyPrice || 50) * 6 * 0.8) | number:'1.0-0' }} DT</div>
+      </div>
+      <div class="sub-plan-card best-value" [class.selected]="subscriptionDuree === 12" (click)="subscriptionDuree = 12">
+        <div class="sub-plan-badge best">Meilleur prix</div>
+        <div class="sub-plan-duration">12 mois</div>
+        <div class="sub-plan-price">{{ ((selectedGymForInscription?.monthlyPrice || 50) * 12 * 0.7) | number:'1.0-0' }} DT</div>
+      </div>
+    </div>
+
+    <!-- 3D Animated Credit Card -->
+    <div class="cc-scene" [class.card-flipped]="cardFlipped">
+      <div class="cc-card">
+        <!-- Front -->
+        <div class="cc-front">
+          <div class="cc-front-top">
+            <div class="cc-bank-name">E-GYM</div>
+            <div class="cc-card-type">
+              <svg width="48" height="30" viewBox="0 0 48 30">
+                <circle cx="18" cy="15" r="13" fill="#e74c3c" opacity="0.9"/>
+                <circle cx="30" cy="15" r="13" fill="#f39c12" opacity="0.9"/>
+              </svg>
+            </div>
+          </div>
+          <div class="cc-chip">
+            <div class="cc-chip-line h"></div>
+            <div class="cc-chip-line v"></div>
+          </div>
+          <div class="cc-number-display">{{ formattedCardDisplay }}</div>
+          <div class="cc-info-row">
+            <div class="cc-info-block">
+              <div class="cc-label-sm">TITULAIRE</div>
+              <div class="cc-val">{{ cardHolder || 'NOM PRÉNOM' }}</div>
+            </div>
+            <div class="cc-info-block cc-info-right">
+              <div class="cc-label-sm">EXPIRE</div>
+              <div class="cc-val">{{ cardExpiry || 'MM/AA' }}</div>
+            </div>
+          </div>
+        </div>
+        <!-- Back -->
+        <div class="cc-back">
+          <div class="cc-mag-stripe"></div>
+          <div class="cc-sig-row">
+            <div class="cc-sig-strip"></div>
+            <div class="cc-cvc-display">
+              <div class="cc-label-sm" style="color:#666;margin-bottom:2px;">CVC</div>
+              <div class="cc-cvc-val">{{ cardCvc || '•••' }}</div>
+            </div>
+          </div>
+          <div class="cc-back-note">E-GYM SECURE PLATFORM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form fields -->
+    <div class="sub-form">
+      <div class="sub-field">
+        <label class="sub-label">Numéro de carte</label>
+        <div class="sub-input-wrap">
+          <svg class="sub-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+          <input type="text" class="sub-input" [(ngModel)]="cardNumber" (input)="formatCardNumber()" placeholder="1234 5678 9012 3456" maxlength="19" />
+        </div>
+      </div>
+      <div class="sub-field">
+        <label class="sub-label">Titulaire de la carte</label>
+        <div class="sub-input-wrap">
+          <svg class="sub-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" class="sub-input" [(ngModel)]="cardHolder" placeholder="NOM PRÉNOM" />
+        </div>
+      </div>
+      <div class="sub-field-row">
+        <div class="sub-field">
+          <label class="sub-label">Expiration</label>
+          <div class="sub-input-wrap">
+            <svg class="sub-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <input type="text" class="sub-input" [(ngModel)]="cardExpiry" (input)="formatExpiry()" placeholder="MM/AA" maxlength="5" />
+          </div>
+        </div>
+        <div class="sub-field">
+          <label class="sub-label">CVC</label>
+          <div class="sub-input-wrap">
+            <svg class="sub-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="text" class="sub-input" [(ngModel)]="cardCvc" (input)="formatCvc()"
+                   (focus)="cardFlipped = true" (blur)="cardFlipped = false"
+                   placeholder="•••" maxlength="3" />
+          </div>
+        </div>
+      </div>
+
+      <div class="sub-error" *ngIf="subscriptionPaymentError">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ subscriptionPaymentError }}
+      </div>
+      <div class="sub-success" *ngIf="subscriptionPaymentSuccess">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        {{ subscriptionPaymentSuccess }}
+      </div>
+
+      <div class="sub-total-row">
+        <span class="sub-total-label">Total à payer</span>
+        <span class="sub-total-amount">{{ subscriptionAmount }} DT</span>
+      </div>
+
+      <button class="sub-pay-btn" [disabled]="!isSubscriptionFormValid || submittingInscription" (click)="submitInscription()">
+        <span *ngIf="!submittingInscription">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+          Payer {{ subscriptionAmount }} DT et s'abonner
+        </span>
+        <span *ngIf="submittingInscription" class="sub-pay-spinner"></span>
+      </button>
+
+      <div class="sub-secure-note">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Paiement 100% sécurisé — Vos données sont protégées
+      </div>
+    </div>
+
   </div>
 </div>
 
