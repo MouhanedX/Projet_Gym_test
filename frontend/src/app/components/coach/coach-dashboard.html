@@ -106,10 +106,10 @@
 
     <!-- OVERVIEW -->
     <div *ngIf="activeTab === 'overview' && !loading">
-      <div class="coach-page-header">
+      <div class="eg-section-header" style="margin-bottom:20px;">
         <div>
-          <h1 class="coach-page-title">Tableau de Bord</h1>
-          <p class="coach-subtitle">Bienvenue, {{ user?.name }} — Votre espace coach</p>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Tableau de Bord</h1>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Bienvenue, {{ user?.name }} — Votre espace coach</p>
         </div>
       </div>
 
@@ -243,10 +243,10 @@
 
     <!-- DEMANDES DE RESERVATION -->
     <div *ngIf="activeTab === 'demandes' && !loading">
-      <div class="coach-page-header">
+      <div class="eg-section-header" style="margin-bottom:20px;">
         <div>
-          <h1 class="coach-page-title">Demandes de Réservation</h1>
-          <p class="coach-subtitle">Les athlètes souhaitant réserver vos services</p>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Demandes de Réservation</h1>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Les athlètes souhaitant réserver vos services</p>
         </div>
       </div>
 
@@ -316,10 +316,10 @@
 
     <!-- PROGRAMS -->
     <div *ngIf="activeTab === 'programs' && !loading">
-      <div class="coach-page-header">
+      <div class="eg-section-header" style="margin-bottom:20px;">
         <div>
-          <h1 class="coach-page-title">Mes Programmes</h1>
-          <p class="coach-subtitle">Programmes qui vous sont assignés</p>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Mes Programmes</h1>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Programmes qui vous sont assignés</p>
         </div>
       </div>
 
@@ -356,10 +356,10 @@
 
     <!-- SCHEDULE -->
     <div *ngIf="activeTab === 'schedule' && !loading">
-      <div class="coach-page-header">
+      <div class="eg-section-header" style="margin-bottom:20px;">
         <div>
-          <h1 class="coach-page-title">Planning Hebdomadaire</h1>
-          <p class="coach-subtitle">Votre emploi du temps d'entraînement</p>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Planning Hebdomadaire</h1>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Votre emploi du temps d'entraînement</p>
         </div>
       </div>
 
@@ -381,10 +381,10 @@
 
     <!-- CLIENTS -->
     <div *ngIf="activeTab === 'clients' && !loading">
-      <div class="coach-page-header">
+      <div class="eg-section-header" style="margin-bottom:20px;">
         <div>
-          <h1 class="coach-page-title">Mes Clients</h1>
-          <p class="coach-subtitle">Membres inscrits à vos programmes</p>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Mes Clients</h1>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Membres inscrits à vos programmes</p>
         </div>
       </div>
 
@@ -502,10 +502,10 @@
 
     <!-- PROFILE -->
     <div *ngIf="activeTab === 'profile' && !loading">
-      <div class="coach-page-header">
+      <div class="eg-section-header" style="margin-bottom:20px;">
         <div>
-          <h1 class="coach-page-title">Mon Profil</h1>
-          <p class="coach-subtitle">Gérez votre profil de coach</p>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Mon Profil</h1>
+          <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Gérez votre profil de coach</p>
         </div>
         <button class="btn-coach-primary" *ngIf="!editingProfile" (click)="startEditProfile()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -629,9 +629,9 @@
     <div *ngIf="activeTab === 'salles' && !loading">
 
       <!-- Header -->
-      <div class="coach-section-header" style="margin-bottom:20px;">
+      <div class="eg-section-header" style="margin-bottom:20px;">
         <div>
-          <h2 class="coach-section-title">Associer une salle</h2>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Associer une salle</h1>
           <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Postulez pour rejoindre une salle de sport en tant que coach</p>
         </div>
       </div>
