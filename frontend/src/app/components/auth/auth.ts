@@ -223,16 +223,14 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
       }
       this.loading = true;
       console.log('Calling authService.login...');
-      this.authService.login(this.email, this.password).pipe(
-        finalize(() => this.loading = false)
-      ).subscribe({
+      this.authService.login(this.email, this.password).subscribe({
         next: (user) => {
-          console.log('Login success, user:', user);
+          this.loading = false;
           this.redirectByRole(user.role);
         },
         error: (err) => {
-          console.error('Login error:', err);
-          this.error = err.error?.message || 'Invalid email or password';
+          this.loading = false;
+          this.error = err?.error?.message || err?.message || 'Email ou mot de passe incorrect';
         }
       });
     } else {

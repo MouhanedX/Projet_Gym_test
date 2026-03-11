@@ -75,25 +75,25 @@ export class Landing {
 
   features = [
     {
-      icon: '🔥',
+      id: 'gamification',
       title: 'Gamification',
       description: 'Système de points, badges et récompenses pour rester motivé',
       bgColor: '#FEF3E2'
     },
     {
-      icon: '🤝',
+      id: 'buddy',
       title: 'Gym Buddy',
       description: 'Trouvez des partenaires d\'entraînement compatibles',
       bgColor: '#E8F4FF'
     },
     {
-      icon: '📊',
+      id: 'analytics',
       title: 'Analytics',
       description: 'Suivez vos progrès avec des stats détaillées',
       bgColor: '#E7F9F0'
     },
     {
-      icon: '🔒',
+      id: 'secure',
       title: 'Sécurisé',
       description: 'Paiements sécurisés et données protégées',
       bgColor: '#FFE8E8'
