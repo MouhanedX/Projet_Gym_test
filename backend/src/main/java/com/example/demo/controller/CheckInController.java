@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.CheckIn;
-import com.example.demo.model.User;
 import com.example.demo.repository.CheckInRepository;
 import com.example.demo.repository.UserRepository;
 import java.time.Instant;

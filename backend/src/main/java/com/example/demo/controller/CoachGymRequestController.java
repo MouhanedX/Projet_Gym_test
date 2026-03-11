@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.CoachGymRequest;
-import com.example.demo.model.User;
 import com.example.demo.repository.CoachGymRequestRepository;
 import com.example.demo.repository.UserRepository;
 import java.time.Instant;

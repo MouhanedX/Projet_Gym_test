@@ -108,7 +108,7 @@
     <div *ngIf="activeTab === 'overview' && !loading">
       <div class="eg-section-header" style="margin-bottom:20px;">
         <div>
-          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Tableau de Bord</h1>
+          <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Dashboard</h1>
           <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Bienvenue, {{ user?.name }} — Votre espace coach</p>
         </div>
       </div>
@@ -185,7 +185,7 @@
                 <div class="coach-schedule-item" *ngFor="let p of d.programs">
                   <div class="coach-schedule-time">{{ p.startTime }} — {{ p.endTime }}</div>
                   <div class="coach-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
-                  <div class="coach-schedule-meta">{{ p.gymName }} · {{ p.enrolledCount || 0 }} étudiants</div>
+                  <div class="coach-schedule-meta">{{ p.gymName }} · {{ p.enrolledCount || 0 }} clients</div>
                 </div>
               </div>
             </div>
@@ -231,7 +231,7 @@
         <div class="coach-card-body">
           <div class="coach-alert-list">
             <div class="coach-alert success" *ngIf="totalClients > 0">
-              <div class="coach-alert-title">{{ totalClients }} étudiants inscrits à vos programmes</div>
+              <div class="coach-alert-title">{{ totalClients }} clients inscrits à vos programmes</div>
               <div class="coach-alert-desc">Excellent engagement de vos élèves</div>
             </div>
             <div class="coach-alert warning" *ngIf="upcomingBookings.length">
@@ -376,7 +376,7 @@
           <div class="coach-schedule-item" *ngFor="let p of d.programs">
             <div class="coach-schedule-time">{{ p.startTime }} — {{ p.endTime }}</div>
             <div class="coach-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
-            <div class="coach-schedule-meta">{{ p.gymName }} · {{ p.enrolledCount || 0 }} étudiants</div>
+            <div class="coach-schedule-meta">{{ p.gymName }} · {{ p.enrolledCount || 0 }} clients</div>
           </div>
         </div>
       </div>

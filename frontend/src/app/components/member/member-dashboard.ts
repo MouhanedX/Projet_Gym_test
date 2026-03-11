@@ -563,9 +563,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
   get taskChallengeDone(): boolean {
-    return this.challenges.some(c =>
-      c.statut === 'TERMINE' && !this.canEarnPointsToday('challenge')
-    );
+    return this.challenges.some(c => c.statut === 'TERMINE');
   }
   get taskAvisDone(): boolean {
     return this.avis.some(a => {
@@ -1683,6 +1681,10 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
 
   completeChallenge(challenge: Challenge): void {
     challenge.statut = 'TERMINE';
+    challenge.etapes.forEach(step => {
+      step.complete = true;
+      step.exercices.forEach(e => e.done = true);
+    });
     this.challengeService.update(challenge.id!, challenge).subscribe({
       next: () => { if (this.canEarnPointsToday('challenge')) { this.updatePoints(100); this.markPointsEarned('challenge'); } },
       error: () => {}

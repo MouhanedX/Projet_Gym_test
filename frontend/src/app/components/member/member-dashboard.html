@@ -417,7 +417,7 @@
             <div class="daily-task-right">
               <span class="daily-task-pts">+50 pts</span>
               <span class="task-status-badge" [class.done]="taskAbonnementDone">
-                {{ taskAbonnementDone ? '✓ Fait' : 'À faire' }}
+                {{ taskAbonnementDone ? '✓ Complété' : 'À faire' }}
               </span>
             </div>
           </div>
@@ -439,7 +439,7 @@
             <div class="daily-task-right">
               <span class="daily-task-pts">+100 pts</span>
               <span class="task-status-badge" [class.done]="taskChallengeDone">
-                {{ taskChallengeDone ? '✓ Fait' : 'À faire' }}
+                {{ taskChallengeDone ? '✓ Complété' : 'À faire' }}
               </span>
             </div>
           </div>
@@ -461,7 +461,7 @@
             <div class="daily-task-right">
               <span class="daily-task-pts">+15 pts</span>
               <span class="task-status-badge" [class.done]="taskAvisDone">
-                {{ taskAvisDone ? '✓ Fait' : 'À faire' }}
+                {{ taskAvisDone ? '✓ Complété' : 'À faire' }}
               </span>
             </div>
           </div>
@@ -1187,10 +1187,10 @@
             <p *ngIf="ch.description" class="challenge-desc">{{ ch.description }}</p>
 
             <div class="challenge-steps-list">
-              <div class="challenge-step-item" *ngFor="let step of ch.etapes; let si = index" [class.step-complete]="step.complete">
+              <div class="challenge-step-item" *ngFor="let step of ch.etapes; let si = index" [class.step-complete]="step.complete || ch.statut === 'TERMINE'">
                 <div class="step-header" (click)="toggleStepComplete(ch, si)">
-                  <div class="step-checkbox" [class.checked]="step.complete">
-                    <svg *ngIf="step.complete" width="14" height="14" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                  <div class="step-checkbox" [class.checked]="step.complete || ch.statut === 'TERMINE'">
+                    <svg *ngIf="step.complete || ch.statut === 'TERMINE'" width="14" height="14" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
                   </div>
                   <div class="step-info">
                     <span class="step-day">{{ step.jour }}</span>
@@ -1198,13 +1198,13 @@
                   </div>
                 </div>
                 <div class="step-exercises">
-                  <div class="step-exercise" *ngFor="let ex of step.exercices; let ei = index" [class.ex-done]="ex.done">
+                  <div class="step-exercise" *ngFor="let ex of step.exercices; let ei = index" [class.ex-done]="ex.done || ch.statut === 'TERMINE'">
                     <button class="ex-check-btn" (click)="toggleExerciseDone(ch, si, ei)">
-                      <span *ngIf="!ex.done">○</span>
-                      <span *ngIf="ex.done">✓</span>
+                      <span *ngIf="!(ex.done || ch.statut === 'TERMINE')">○</span>
+                      <span *ngIf="ex.done || ch.statut === 'TERMINE'">✓</span>
                     </button>
                     <div class="ex-info">
-                      <span class="ex-name" [class.ex-strikethrough]="ex.done">{{ ex.nom }}</span>
+                      <span class="ex-name" [class.ex-strikethrough]="ex.done || ch.statut === 'TERMINE'">{{ ex.nom }}</span>
                       <span class="ex-details" *ngIf="ex.details">{{ ex.details }}</span>
                     </div>
                   </div>

@@ -1,12 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Inscription;
-import com.example.demo.model.Paiement;
 import com.example.demo.repository.InscriptionRepository;
-import com.example.demo.repository.PaiementRepository;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,11 +11,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/inscriptions")
 public class InscriptionController {
     private final InscriptionRepository inscriptionRepository;
-    private final PaiementRepository paiementRepository;
 
-    public InscriptionController(InscriptionRepository inscriptionRepository, PaiementRepository paiementRepository) {
+    public InscriptionController(InscriptionRepository inscriptionRepository) {
         this.inscriptionRepository = inscriptionRepository;
-        this.paiementRepository = paiementRepository;
     }
 
     @GetMapping
