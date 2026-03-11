@@ -3891,3 +3891,17 @@ textarea.form-input {
   padding: 8px 12px;
   margin-top: 4px;
 }
+
+/* ===== COACH RATING SECTION in profile modal ===== */
+.coach-rating-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ===== COACH RATING SECTION in profile modal ===== */
+.coach-rating-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}

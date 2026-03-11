@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Avis;
 import com.example.demo.repository.AvisRepository;
+import com.example.demo.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +12,24 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/avis")
 public class AvisController {
     private final AvisRepository avisRepository;
+    private final UserRepository userRepository;
 
-    public AvisController(AvisRepository avisRepository) {
+    public AvisController(AvisRepository avisRepository, UserRepository userRepository) {
         this.avisRepository = avisRepository;
+        this.userRepository = userRepository;
+    }
+
+    /** Recompute average rating for a coach from all their avis and save it. */
+    private void recalcCoachRating(String coachId) {
+        if (coachId == null) return;
+        List<Avis> allAvis = avisRepository.findByCoachId(coachId);
+        if (allAvis.isEmpty()) {
+            userRepository.findById(coachId).ifPresent(u -> { u.setRating(null); userRepository.save(u); });
+            return;
+        }
+        double avg = allAvis.stream().mapToInt(a -> a.getNote() != null ? a.getNote() : 0).average().orElse(0);
+        double rounded = Math.round(avg * 10.0) / 10.0;
+        userRepository.findById(coachId).ifPresent(u -> { u.setRating(rounded); userRepository.save(u); });
     }
 
     @GetMapping
@@ -46,7 +62,9 @@ public class AvisController {
     @PostMapping
     public Avis create(@RequestBody Avis avis) {
         avis.setDate(Instant.now());
-        return avisRepository.save(avis);
+        Avis saved = avisRepository.save(avis);
+        if (saved.getCoachId() != null) recalcCoachRating(saved.getCoachId());
+        return saved;
     }
 
     @PutMapping("/{id}")
@@ -62,10 +80,11 @@ public class AvisController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
-        if (avisRepository.existsById(id)) {
+        return avisRepository.findById(id).map(avis -> {
+            String coachId = avis.getCoachId();
             avisRepository.deleteById(id);
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.notFound().build();
+            if (coachId != null) recalcCoachRating(coachId);
+            return ResponseEntity.ok().<Void>build();
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

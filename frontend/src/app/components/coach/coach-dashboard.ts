@@ -8,6 +8,7 @@ import { BookingService } from '../../services/booking.service';
 import { ConversationService } from '../../services/conversation.service';
 import { GymService } from '../../services/gym.service';
 import { CoachGymRequestService } from '../../services/coach-gym-request.service';
+import { AvisService } from '../../services/avis.service';
 import { User } from '../../models/user';
 import { Program } from '../../models/program';
 import { Booking } from '../../models/booking';
@@ -15,6 +16,7 @@ import { Conversation } from '../../models/conversation';
 import { Message } from '../../models/message';
 import { Gym } from '../../models/gym';
 import { CoachGymRequest } from '../../models/coach-gym-request';
+import { Avis } from '../../models/avis';
 
 @Component({
   selector: 'app-coach-dashboard',
@@ -79,6 +81,9 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
   requestError = '';
   requestSuccess = '';
 
+  // Avis reçus
+  myAvis: Avis[] = [];
+
   constructor(
     private authService: AuthService,
     private programService: ProgramService,
@@ -86,6 +91,7 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
     private conversationService: ConversationService,
     private gymService: GymService,
     private coachGymRequestService: CoachGymRequestService,
+    private avisService: AvisService,
     private router: Router
   ) {}
 
@@ -126,9 +132,34 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
         next: (r) => this.myGymRequests = r,
         error: () => {}
       });
+      this.avisService.getByCoach(this.user.id).subscribe({
+        next: (a) => this.myAvis = a,
+        error: () => {}
+      });
       this.loadConversations();
     }
     this.gymService.list().subscribe({ next: (g) => this.allGyms = g, error: () => {} });
+  }
+
+  // === AVIS / RATING ===
+  get averageRating(): number | null {
+    if (!this.myAvis.length) return null;
+    const avg = this.myAvis.reduce((s, a) => s + (a.note || 0), 0) / this.myAvis.length;
+    return Math.round(avg * 10) / 10;
+  }
+
+  getStarArray(rating: number): number[] {
+    return Array(Math.floor(rating || 0)).fill(1);
+  }
+
+  getEmptyStarArray(rating: number): number[] {
+    return Array(5 - Math.floor(rating || 0)).fill(1);
+  }
+
+  formatAvisDate(dateStr?: string): string {
+    if (!dateStr) return '';
+    try { return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); }
+    catch { return dateStr; }
   }
 
   // === SALLES / POSTULATION ===

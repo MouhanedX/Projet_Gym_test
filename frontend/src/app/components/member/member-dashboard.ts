@@ -137,6 +137,13 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
   selectedCoach: User | null = null;
   showCoachProfile = false;
   showChatPanel = false;
+  // Coach rating
+  selectedCoachAvis: Avis[] = [];
+  showCoachRatingForm = false;
+  coachRatingNote = 5;
+  coachRatingComment = '';
+  submittingCoachRating = false;
+  coachRatingError = '';
   coachReservations: Booking[] = [];
   currentConversation: Conversation | null = null;
   conversationMessages: Message[] = [];
@@ -1298,6 +1305,68 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.selectedCoach = coach;
     this.showCoachProfile = true;
     this.showChatPanel = false;
+    this.showCoachRatingForm = false;
+    this.coachRatingError = '';
+    this.selectedCoachAvis = [];
+    if (coach.id) {
+      this.avisService.getByCoach(coach.id).subscribe({
+        next: (a) => { this.selectedCoachAvis = a; this.cdr.detectChanges(); },
+        error: () => {}
+      });
+    }
+  }
+
+  get myAvisForCoach(): Avis | null {
+    return this.selectedCoachAvis.find(a => a.clientId === this.user?.id) || null;
+  }
+
+  submitCoachRating(): void {
+    if (!this.selectedCoach?.id || !this.user?.id || this.submittingCoachRating) return;
+    this.submittingCoachRating = true;
+    this.coachRatingError = '';
+    const avis: Avis = {
+      clientId: this.user.id,
+      clientName: this.user.name,
+      note: this.coachRatingNote,
+      commentaire: this.coachRatingComment,
+      coachId: this.selectedCoach.id
+    };
+    this.avisService.create(avis).subscribe({
+      next: (saved) => {
+        this.selectedCoachAvis = [saved, ...this.selectedCoachAvis];
+        // Update coach rating displayed immediately
+        if (this.selectedCoach) {
+          const avg = this.selectedCoachAvis.reduce((s, a) => s + (a.note || 0), 0) / this.selectedCoachAvis.length;
+          this.selectedCoach = { ...this.selectedCoach, rating: Math.round(avg * 10) / 10 };
+          // also refresh in coachesList
+          const idx = this.coaches.findIndex(c => c.id === this.selectedCoach!.id);
+          if (idx >= 0) this.coaches[idx] = { ...this.coaches[idx], rating: this.selectedCoach.rating };
+        }
+        this.showCoachRatingForm = false;
+        this.submittingCoachRating = false;
+        this.coachRatingNote = 5;
+        this.coachRatingComment = '';
+      },
+      error: (err) => {
+        this.coachRatingError = err?.error?.message || 'Erreur lors de la publication.';
+        this.submittingCoachRating = false;
+      }
+    });
+  }
+
+  deleteCoachAvis(avisId: string): void {
+    this.avisService.delete(avisId).subscribe({
+      next: () => {
+        this.selectedCoachAvis = this.selectedCoachAvis.filter(a => a.id !== avisId);
+        if (this.selectedCoach && this.selectedCoachAvis.length > 0) {
+          const avg = this.selectedCoachAvis.reduce((s, a) => s + (a.note || 0), 0) / this.selectedCoachAvis.length;
+          this.selectedCoach = { ...this.selectedCoach, rating: Math.round(avg * 10) / 10 };
+        } else if (this.selectedCoach) {
+          this.selectedCoach = { ...this.selectedCoach, rating: undefined };
+        }
+      },
+      error: () => {}
+    });
   }
 
   isCoachReserved(coach: User): boolean {

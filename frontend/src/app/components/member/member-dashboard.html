@@ -1578,6 +1578,51 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           {{ showChatPanel ? 'Discussion ouverte' : 'Démarrer une discussion' }}
         </button>
+
+        <!-- COACH RATING SECTION -->
+        <div class="coach-rating-section">
+          <div class="eg-section-header" style="margin-bottom:10px;">
+            <span class="eg-section-title" style="font-size:0.95rem;">Avis ({{ selectedCoachAvis.length }})</span>
+            <ng-container *ngIf="!myAvisForCoach">
+              <button class="btn-outline-member btn-sm" (click)="showCoachRatingForm = !showCoachRatingForm">
+                {{ showCoachRatingForm ? 'Annuler' : '+ Donner un avis' }}
+              </button>
+            </ng-container>
+            <span *ngIf="myAvisForCoach" style="font-size:0.78rem;color:var(--text-2)">✓ Vous avez déjà donné un avis</span>
+          </div>
+
+          <!-- Rating form -->
+          <div class="avis-form" *ngIf="showCoachRatingForm && !myAvisForCoach">
+            <div class="avis-rating-select">
+              <button *ngFor="let n of [1,2,3,4,5]" class="avis-star-btn" [class.selected]="coachRatingNote >= n" (click)="coachRatingNote = n">⭐</button>
+              <span style="font-size:0.82rem;color:var(--text-2);margin-left:8px">{{ coachRatingNote }}/5</span>
+            </div>
+            <textarea [(ngModel)]="coachRatingComment" placeholder="Votre commentaire (optionnel)…" class="eg-input" style="min-height:70px"></textarea>
+            <div *ngIf="coachRatingError" style="color:#ef4444;font-size:0.82rem;margin-top:6px">{{ coachRatingError }}</div>
+            <button class="btn-primary-member btn-sm" (click)="submitCoachRating()" [disabled]="submittingCoachRating" style="margin-top:8px">
+              {{ submittingCoachRating ? '...' : 'Publier mon avis' }}
+            </button>
+          </div>
+
+          <!-- Existing reviews -->
+          <div class="avis-list" *ngIf="selectedCoachAvis.length">
+            <div class="avis-item" *ngFor="let a of selectedCoachAvis" [class.my-avis]="a.clientId === user?.id">
+              <div class="avis-header">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <strong>{{ a.clientName }}</strong>
+                  <span *ngIf="a.clientId === user?.id" style="font-size:0.7rem;background:var(--accent,#3b82f6);color:#fff;border-radius:4px;padding:1px 6px">Vous</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="avis-stars"><span *ngFor="let s of getStarArray(a.note)">⭐</span></span>
+                  <button *ngIf="a.clientId === user?.id" class="avis-delete-btn" (click)="deleteCoachAvis(a.id!)" title="Supprimer">✕</button>
+                </div>
+              </div>
+              <p *ngIf="a.commentaire">{{ a.commentaire }}</p>
+              <span class="avis-date">{{ formatAvisDate(a.date) }}</span>
+            </div>
+          </div>
+          <p *ngIf="!selectedCoachAvis.length && !showCoachRatingForm" style="color:var(--text-2);font-size:0.85rem;text-align:center;padding:12px 0;">Aucun avis pour ce coach.</p>
+        </div>
       </div>
 
       <!-- Right: Chat Panel -->

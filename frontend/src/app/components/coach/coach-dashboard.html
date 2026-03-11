@@ -541,7 +541,12 @@
           </div>
           <div class="coach-profile-item">
             <div class="coach-profile-label">Note</div>
-            <div class="coach-profile-value">⭐ {{ user?.rating || 'N/A' }}</div>
+            <div class="coach-profile-value" *ngIf="averageRating !== null">
+              <span *ngFor="let s of getStarArray(averageRating)" style="color:#f59e0b;">★</span><span *ngFor="let s of getEmptyStarArray(averageRating)" style="color:var(--border);">★</span>
+              <span style="margin-left:6px;font-weight:700;">{{ averageRating }}/5</span>
+              <span style="font-size:0.75rem;color:var(--text-2);margin-left:4px;">({{ myAvis.length }} avis)</span>
+            </div>
+            <div class="coach-profile-value" *ngIf="averageRating === null" style="color:var(--text-2)">Aucun avis</div>
           </div>
         </div>
         <div *ngIf="user?.bio" style="margin-bottom:16px">
@@ -553,6 +558,34 @@
           <div class="coach-specialty-chips">
             <span class="coach-specialty-chip" *ngFor="let s of user?.specialties">{{ s }}</span>
           </div>
+        </div>
+
+        <!-- AVIS REÇUS -->
+        <div class="coach-ratings-block" *ngIf="myAvis.length">
+          <div class="eg-section-header" style="margin-bottom:12px;">
+            <span class="eg-section-title" style="font-size:0.95rem;">Avis reçus ({{ myAvis.length }})</span>
+            <div class="coach-avg-badge" *ngIf="averageRating !== null">
+              <span style="color:#f59e0b;font-size:1rem;">★</span>
+              <span style="font-weight:800;margin-left:4px;">{{ averageRating }}</span>
+              <span style="color:var(--text-2);font-size:0.8rem;">/5</span>
+            </div>
+          </div>
+          <div class="avis-list">
+            <div class="avis-item" *ngFor="let a of myAvis">
+              <div class="avis-header">
+                <strong>{{ a.clientName }}</strong>
+                <span class="avis-stars">
+                  <span *ngFor="let s of getStarArray(a.note)">⭐</span>
+                  <span style="font-size:0.8rem;color:var(--text-2);margin-left:4px">{{ a.note }}/5</span>
+                </span>
+              </div>
+              <p *ngIf="a.commentaire">{{ a.commentaire }}</p>
+              <span class="avis-date">{{ formatAvisDate(a.date) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="coach-ratings-block" *ngIf="!myAvis.length">
+          <p style="color:var(--text-2);font-size:0.85rem;text-align:center;padding:12px 0;">Vous n'avez pas encore reçu d'avis de vos clients.</p>
         </div>
       </div>
 

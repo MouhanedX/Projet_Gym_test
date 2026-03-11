@@ -944,3 +944,31 @@ textarea.coach-input { min-height: 100px; resize: vertical; }
   padding: 16px 24px; border-top: 1px solid var(--border);
 }
 .coach-form-error { color: #ef4444; font-size: 0.82rem; margin-top: 8px; }
+
+/* ===== COACH RATINGS BLOCK (profile tab) ===== */
+.coach-ratings-block {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.coach-avg-badge {
+  display: flex; align-items: center;
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 0.88rem; color: var(--text);
+}
+
+/* ===== COACH RATINGS BLOCK (profile tab) ===== */
+.coach-ratings-block {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.coach-avg-badge {
+  display: flex; align-items: center;
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 0.88rem; color: var(--text);
+}
