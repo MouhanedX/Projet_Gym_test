@@ -184,7 +184,7 @@
                 <div class="coach-schedule-day-header">{{ d.day }}</div>
                 <div class="coach-schedule-item" *ngFor="let p of d.programs">
                   <div class="coach-schedule-time">{{ p.startTime }} — {{ p.endTime }}</div>
-                  <div class="coach-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
+                  <div class="coach-schedule-prog"><span class="type-icon" [innerHTML]="getTypeSvg(p.type)"></span> {{ p.title }}</div>
                   <div class="coach-schedule-meta">{{ p.gymName }} · {{ p.enrolledCount || 0 }} clients</div>
                 </div>
               </div>
@@ -332,19 +332,34 @@
 
       <div class="coach-program-grid" *ngIf="programs.length">
         <div class="coach-program-card" *ngFor="let p of programs">
+
+          <!-- Header : type SVG + titre + badge difficulté -->
           <div class="coach-program-card-top">
-            <div class="coach-program-type-icon">{{ getTypeIcon(p.type) }}</div>
+            <div class="coach-program-type-icon" [innerHTML]="getTypeSvg(p.type)"></div>
+            <div class="coach-program-card-title">{{ p.title }}</div>
             <span class="coach-badge" [ngClass]="{'beginner': p.difficulty==='BEGINNER','intermediate': p.difficulty==='INTERMEDIATE','advanced': p.difficulty==='ADVANCED'}">{{ p.difficulty }}</span>
           </div>
-          <div class="coach-program-card-body">
-            <div class="coach-program-card-title">{{ p.title }}</div>
-            <div class="coach-program-card-desc">{{ p.description }}</div>
-            <div class="coach-program-card-meta">
-              <span>📍 {{ p.gymName || 'Salle' }}</span>
-              <span>⏰ {{ p.startTime }} - {{ p.endTime }}</span>
-              <span *ngIf="p.daysOfWeek?.length">📆 {{ p.daysOfWeek?.join(', ') }}</span>
+
+          <!-- Description -->
+          <div class="coach-program-card-desc">{{ p.description }}</div>
+
+          <!-- Métadonnées -->
+          <div class="coach-program-card-meta">
+            <div class="coach-prog-meta-row">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>{{ p.gymName || 'Salle' }}</span>
+            </div>
+            <div class="coach-prog-meta-row">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>{{ p.startTime }} - {{ p.endTime }}</span>
+            </div>
+            <div class="coach-prog-meta-row" *ngIf="p.daysOfWeek?.length">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>{{ p.daysOfWeek?.join(', ') }}</span>
             </div>
           </div>
+
+          <!-- Footer : barre d'inscrits -->
           <div class="coach-program-card-footer">
             <div class="coach-enroll-bar-wrap">
               <div class="coach-enroll-bar">
@@ -353,6 +368,7 @@
               <div class="coach-enroll-text">{{ p.enrolledCount||0 }}/{{ p.capacity }} inscrits</div>
             </div>
           </div>
+
         </div>
       </div>
       <div class="coach-empty" *ngIf="!programs.length">
@@ -375,7 +391,7 @@
           <div class="coach-schedule-day-header">{{ d.day }}</div>
           <div class="coach-schedule-item" *ngFor="let p of d.programs">
             <div class="coach-schedule-time">{{ p.startTime }} — {{ p.endTime }}</div>
-            <div class="coach-schedule-prog">{{ getTypeIcon(p.type) }} {{ p.title }}</div>
+            <div class="coach-schedule-prog"><span class="type-icon" [innerHTML]="getTypeSvg(p.type)"></span> {{ p.title }}</div>
             <div class="coach-schedule-meta">{{ p.gymName }} · {{ p.enrolledCount || 0 }} clients</div>
           </div>
         </div>

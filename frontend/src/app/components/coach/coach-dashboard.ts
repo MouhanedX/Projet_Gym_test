@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked }
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../../services/auth.service';
 import { ProgramService } from '../../services/program.service';
 import { BookingService } from '../../services/booking.service';
@@ -93,7 +94,8 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
     private gymService: GymService,
     private coachGymRequestService: CoachGymRequestService,
     private avisService: AvisService,
-    private router: Router
+    private router: Router,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -401,6 +403,21 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
   getTypeIcon(type?: string): string {
     const icons: Record<string, string> = { STRENGTH: '🏋️', CARDIO: '🏃', YOGA: '🧘', HIIT: '⚡', CROSSFIT: '💥', BOXING: '🥊', SWIMMING: '🏊', MARTIAL_ARTS: '🥋' };
     return icons[type || ''] || '💪';
+  }
+
+  getTypeSvg(type?: string): SafeHtml {
+    const svgs: Record<string, string> = {
+      CARDIO: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+      STRENGTH: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="5" x2="6" y2="19"/><line x1="18" y1="5" x2="18" y2="19"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="2" y1="9" x2="6" y2="9"/><line x1="18" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="6" y2="15"/><line x1="18" y1="15" x2="22" y2="15"/></svg>`,
+      YOGA: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.5"/><path d="M8 9.5A4 4 0 0 1 8 6a4 4 0 0 1 4-4"/><path d="M6 22c0-4 2-6 6-6s6 2 6 6"/><path d="M12 16v-5"/></svg>`,
+      HIIT: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      CROSSFIT: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9" width="4" height="6" rx="1"/><rect x="18" y="9" width="4" height="6" rx="1"/><line x1="6" y1="12" x2="18" y2="12"/><rect x="9" y="7" width="6" height="10" rx="1"/></svg>`,
+      BOXING: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`,
+      SWIMMING: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c.6.5 1.2 1 2.5 1C7 13 7 11 9.5 11s2.5 2 5 2 2.5-2 5-2 2.5 2 3 2.5"/><path d="M2 17c.6.5 1.2 1 2.5 1C7 18 7 16 9.5 16s2.5 2 5 2 2.5-2 5-2 2.5 2 3 2.5"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4l3 2"/></svg>`,
+      MARTIAL_ARTS: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6v5l-3 3"/><path d="M15 14l-3-3"/><path d="M7 22l2-5"/><path d="M17 22l-2-5"/><path d="M9 17h6"/></svg>`
+    };
+    const defaultSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/><path d="M19 13H5v-2h14v2z"/></svg>`;
+    return this.sanitizer.bypassSecurityTrustHtml(svgs[type || ''] || defaultSvg);
   }
 
   getDifficultyColor(d?: string): string {
