@@ -18,7 +18,7 @@
 
 ##  Aperçu
 
-GymApp est une plateforme **multi-rôles** destinée à l'écosystème des salles de sport. Trois types d'utilisateurs interagissent avec le système :
+E-Gym est une plateforme **multi-rôles** destinée à l'écosystème des salles de sport. Trois types d'utilisateurs interagissent avec le système :
 
 | Rôle | Accès |
 |------|-------|
