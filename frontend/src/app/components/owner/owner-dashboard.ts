@@ -151,12 +151,12 @@ export class OwnerDashboard implements OnInit {
             this.paiementService.getBySalle(this.gym.id).subscribe({ next: p => this.paiements = p, error: () => {} });
             this.coachGymRequestService.getByGym(this.gym.id).subscribe({ next: r => this.coachRequests = r, error: () => {} });
           }
-          this.loading = false;
         },
-        error: () => { this.loading = false; }
+        error: () => {}
       });
     }
     this.userService.getCoaches().subscribe({ next: c => { if (!this.gym) this.coaches = c; } });
+    this.loading = false;
   }
 
   setTab(tab: string): void { this.activeTab = tab; }

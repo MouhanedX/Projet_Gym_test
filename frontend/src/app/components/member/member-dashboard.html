@@ -550,6 +550,60 @@
           </div>
         </ng-template>
       </div>
+
+      <!-- Mes Récompenses Obtenues -->
+      <div class="eg-section" *ngIf="echanges.length">
+        <div class="eg-section-header">
+          <span class="eg-section-title">
+            <span class="section-title-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/>
+                <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7"/>
+              </svg>
+            </span>
+            Mes Récompenses Obtenues
+          </span>
+          <span class="abonnements-count-badge">{{ echanges.length }}</span>
+        </div>
+        <p style="color:var(--text-2);font-size:0.82rem;margin:0 0 16px;">Présentez le code ci-dessous en boutique pour récupérer votre récompense.</p>
+
+        <div class="reward-tickets-list">
+          <div class="reward-ticket" *ngFor="let e of echanges">
+
+            <!-- Panneau gauche doré -->
+            <div class="reward-ticket-left">
+              <div class="reward-ticket-icon">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="2" y="7" width="20" height="5" rx="1.2" fill="#92400e" fill-opacity="0.18"/>
+                  <rect x="4" y="12" width="16" height="9" rx="1.2" fill="#92400e" fill-opacity="0.15"/>
+                  <line x1="12" y1="7" x2="12" y2="21" stroke="#92400e" stroke-width="1.5" stroke-opacity="0.4"/>
+                  <path d="M12 7C12 7 10.5 2 8 2C6.3 2 5 3.1 5 4.7C5 6.5 8 7 12 7Z" fill="#b91c1c" fill-opacity="0.7"/>
+                  <path d="M12 7C12 7 13.5 2 16 2C17.7 2 19 3.1 19 4.7C19 6.5 16 7 12 7Z" fill="#b91c1c" fill-opacity="0.7"/>
+                </svg>
+              </div>
+              <div class="reward-ticket-info">
+                <span class="reward-ticket-badge">Récompense</span>
+                <div class="reward-ticket-title">{{ e.recompenseTitre || 'Récompense' }}</div>
+                <div class="reward-ticket-date">{{ e.dateEchange | date:'dd MMM yyyy' }}</div>
+              </div>
+            </div>
+
+            <!-- Séparateur perforé -->
+            <div class="reward-ticket-sep">
+              <div class="reward-ticket-sep-line"></div>
+            </div>
+
+            <!-- Panneau droit sombre (code) -->
+            <div class="reward-ticket-right">
+              <div class="reward-ticket-code-label">CODE PROMO</div>
+              <div class="reward-ticket-code">{{ e.codePromoGenere || ('RWD-' + (e.id || '').slice(-8).toUpperCase()) }}</div>
+              <div class="reward-ticket-use">Valable en boutique</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Modal Renouvellement -->
@@ -586,10 +640,7 @@
           <h1 class="eg-section-title" style="font-size:1.5rem;margin:0;">Boutique Récompenses</h1>
           <p style="color:var(--text-2);font-size:0.85rem;margin-top:4px;">Échangez vos points contre des récompenses exclusives</p>
         </div>
-        <button class="btn-primary-member" (click)="openAddRecompenseForm()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:6px"><path d="M12 5v14m-7-7h14"/></svg>
-          Ajouter une récompense
-        </button>
+
       </div>
 
       <div class="boutique-grid" *ngIf="recompenses.length">

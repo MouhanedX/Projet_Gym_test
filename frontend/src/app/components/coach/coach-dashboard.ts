@@ -76,6 +76,7 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
   myGymRequests: CoachGymRequest[] = [];
   showRequestModal = false;
   selectedGymForRequest: Gym | null = null;
+  expandedGymForRequest: string | null = null;
   requestMessage = '';
   submittingRequest = false;
   requestError = '';
@@ -119,8 +120,8 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
     this.loading = true;
     if (this.user?.id) {
       this.programService.getByCoach(this.user.id).subscribe({
-        next: (p) => { this.programs = p; this.loading = false; },
-        error: () => { this.loading = false; }
+        next: (p) => { this.programs = p; },
+        error: () => {}
       });
       this.bookingService.getByCoach(this.user.id).subscribe({
         next: (b) => this.bookings = b
@@ -139,6 +140,7 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
       this.loadConversations();
     }
     this.gymService.list().subscribe({ next: (g) => this.allGyms = g, error: () => {} });
+    this.loading = false;
   }
 
   // === AVIS / RATING ===
@@ -177,15 +179,22 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   openRequestModal(gym: Gym): void {
+    if (this.expandedGymForRequest === gym.id) {
+      this.expandedGymForRequest = null;
+      this.selectedGymForRequest = null;
+      return;
+    }
     this.selectedGymForRequest = gym;
+    this.expandedGymForRequest = gym.id!;
     this.requestMessage = '';
     this.requestError = '';
     this.requestSuccess = '';
-    this.showRequestModal = true;
+    this.showRequestModal = false;
   }
 
   closeRequestModal(): void {
     this.showRequestModal = false;
+    this.expandedGymForRequest = null;
     this.selectedGymForRequest = null;
   }
 
@@ -207,6 +216,7 @@ export class CoachDashboard implements OnInit, OnDestroy, AfterViewChecked {
         this.myGymRequests = [...this.myGymRequests.filter(x => x.gymId !== r.gymId), r];
         this.submittingRequest = false;
         this.showRequestModal = false;
+        this.expandedGymForRequest = null;
         this.selectedGymForRequest = null;
       },
       error: (err) => {

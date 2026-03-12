@@ -308,13 +308,13 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
         }, error: () => {}
       });
       this.inscriptionService.getByClient(this.user.id).subscribe({
-        next: i => { this.inscriptions = i; this.loading = false; },
-        error: () => { this.loading = false; }
+        next: i => { this.inscriptions = i; },
+        error: () => {}
       });
       this.avisService.getByClient(this.user.id).subscribe({ next: a => this.avis = a, error: () => {} });
-    } else {
-      this.loading = false;
     }
+    // Unlock the page immediately — data populates as each call completes
+    this.loading = false;
   }
 
   setTab(tab: string): void {

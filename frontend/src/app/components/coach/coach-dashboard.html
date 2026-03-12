@@ -713,40 +713,32 @@
               </button>
             </ng-container>
           </div>
+
+          <!-- Formulaire inline de postulation -->
+          <div class="gym-apply-inline-form" *ngIf="expandedGymForRequest === g.id">
+            <div class="gym-apply-inline-form-header">
+              <span>Message de motivation <span style="font-weight:400;opacity:0.6">(optionnel)</span></span>
+              <button class="coach-modal-close" (click)="closeRequestModal()" title="Fermer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <textarea [(ngModel)]="requestMessage" rows="3" class="coach-form-input"
+              placeholder="Présentez-vous et expliquez pourquoi vous souhaitez rejoindre cette salle…"></textarea>
+            <div class="coach-form-error" *ngIf="requestError">{{ requestError }}</div>
+            <div class="gym-apply-inline-form-actions">
+              <button class="btn-coach-outline btn-sm" (click)="closeRequestModal()">Annuler</button>
+              <button class="btn-coach-primary btn-sm" (click)="submitRequest()" [disabled]="submittingRequest">
+                {{ submittingRequest ? 'Envoi…' : 'Envoyer la demande' }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="coach-empty" *ngIf="!filteredGyms.length">
         <p>Aucune salle trouvée.</p>
       </div>
 
-      <!-- Modal de postulation -->
-      <div class="modal-overlay" *ngIf="showRequestModal" (click)="closeRequestModal()">
-        <div class="coach-modal" (click)="$event.stopPropagation()">
-          <div class="coach-modal-header">
-            <h3>Postuler — {{ selectedGymForRequest?.name }}</h3>
-            <button class="coach-modal-close" (click)="closeRequestModal()">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-          <div class="coach-modal-body">
-            <p style="color:var(--text-2);font-size:0.88rem;margin-bottom:16px;">
-              Envoyez une demande au propriétaire de <strong>{{ selectedGymForRequest?.name }}</strong> à {{ selectedGymForRequest?.city }}.
-            </p>
-            <div class="coach-form-group">
-              <label class="coach-form-label">Message de motivation (optionnel)</label>
-              <textarea [(ngModel)]="requestMessage" rows="4" class="coach-form-input"
-                placeholder="Présentez-vous et expliquez pourquoi vous souhaitez rejoindre cette salle…"></textarea>
-            </div>
-            <div class="coach-form-error" *ngIf="requestError">{{ requestError }}</div>
-          </div>
-          <div class="coach-modal-footer">
-            <button class="btn-coach-outline" (click)="closeRequestModal()">Annuler</button>
-            <button class="btn-coach-primary" (click)="submitRequest()" [disabled]="submittingRequest">
-              {{ submittingRequest ? 'Envoi…' : 'Envoyer la demande' }}
-            </button>
-          </div>
-        </div>
-      </div>
+
 
     </div>
 

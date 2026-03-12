@@ -972,3 +972,20 @@ textarea.coach-input { min-height: 100px; resize: vertical; }
   border-radius: 20px; padding: 4px 12px;
   font-size: 0.88rem; color: var(--text);
 }
+
+/* Inline postulation form inside gym card */
+.gym-apply-inline-form {
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.gym-apply-inline-form-header {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.82rem; font-weight: 600; color: var(--text);
+}
+.gym-apply-inline-form .coach-form-input {
+  width: 100%; resize: vertical; min-height: 72px; font-size: 0.83rem;
+  border-radius: 8px; border: 1px solid var(--border); padding: 8px 10px;
+  background: var(--bg); color: var(--text); box-sizing: border-box;
+}
+.gym-apply-inline-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
