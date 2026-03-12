@@ -586,7 +586,10 @@
         </div>
         <div class="owner-form-actions">
           <button class="btn-owner-outline" (click)="showProgramForm = false">Annuler</button>
-          <button class="btn-owner-accent" (click)="saveProgram()">{{ editingProgram ? 'Mettre à jour' : 'Créer le programme' }}</button>
+          <button class="btn-owner-accent" (click)="saveProgram()" [disabled]="submittingProgram">
+            <span *ngIf="!submittingProgram">{{ editingProgram ? 'Mettre à jour' : 'Créer le programme' }}</span>
+            <span *ngIf="submittingProgram">{{ editingProgram ? 'Mise à jour...' : 'Création...' }}</span>
+          </button>
         </div>
       </div>
 

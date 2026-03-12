@@ -563,7 +563,12 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
   get taskChallengeDone(): boolean {
-    return this.challenges.some(c => c.statut === 'TERMINE');
+    const key = `pts_daily_${this.user?.id}_challenge`;
+    const last = localStorage.getItem(key);
+    if (!last) return false;
+    const lastDay = new Date(parseInt(last, 10)).toLocaleDateString('en-CA');
+    const today   = new Date().toLocaleDateString('en-CA');
+    return lastDay === today;
   }
   get taskAvisDone(): boolean {
     return this.avis.some(a => {
@@ -776,7 +781,7 @@ export class MemberDashboard implements OnInit, OnDestroy, AfterViewChecked {
             this.inscriptions = [savedIns, ...this.inscriptions];
             this.subscriptionPaymentSuccess = 'Abonnement activé avec succès !';
             this.submittingInscription = false;
-            if (this.canEarnPointsToday('inscription')) { this.updatePoints(50); this.markPointsEarned('inscription'); }
+            if (this.canEarnPointsToday('inscription')) { this.updatePoints(200); this.markPointsEarned('inscription'); }
             setTimeout(() => {
               this.showInscriptionConfirm = false;
               this.subscriptionPaymentSuccess = '';

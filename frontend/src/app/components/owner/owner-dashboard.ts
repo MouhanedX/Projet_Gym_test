@@ -94,6 +94,7 @@ export class OwnerDashboard implements OnInit {
   progPrice = 0;
   progSubmitAttempted = false;
   progError = '';
+  submittingProgram = false;
   openDropdown: string | null = null;
   readonly typeLabels: Record<string, string> = {
     STRENGTH: 'Musculation', CARDIO: 'Cardio', YOGA: 'Yoga',
@@ -398,6 +399,7 @@ export class OwnerDashboard implements OnInit {
     }
     this.progSubmitAttempted = false;
     this.progError = '';
+    this.submittingProgram = false;
     this.openDropdown = null;
     this.showProgramForm = true;
   }
@@ -422,6 +424,7 @@ export class OwnerDashboard implements OnInit {
   }
 
   saveProgram(): void {
+    if (this.submittingProgram) return;
     this.progSubmitAttempted = true;
     this.progError = '';
     const missing: string[] = [];
@@ -454,20 +457,25 @@ export class OwnerDashboard implements OnInit {
       price: this.progPrice
     };
 
+    this.submittingProgram = true;
     if (this.editingProgram?.id) {
       this.programService.update(this.editingProgram.id, prog).subscribe({
         next: (updated) => {
           const idx = this.programs.findIndex(p => p.id === updated.id);
           if (idx !== -1) this.programs[idx] = updated;
           this.showProgramForm = false;
-        }
+          this.submittingProgram = false;
+        },
+        error: () => { this.submittingProgram = false; }
       });
     } else {
       this.programService.create(prog).subscribe({
         next: (created) => {
           this.programs = [created, ...this.programs];
           this.showProgramForm = false;
-        }
+          this.submittingProgram = false;
+        },
+        error: () => { this.submittingProgram = false; }
       });
     }
   }
