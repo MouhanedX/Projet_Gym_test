@@ -1,6 +1,6 @@
 ﻿<div align="center">
 
-#  GymApp  Plateforme de Gestion de Salles de Sport
+#  E-Gym  Plateforme de Gestion de Salles de Sport
 
 **Une application web full-stack permettant aux propriétaires de salles, coachs et membres de gérer leurs activités sportives au quotidien.**
 
@@ -13,19 +13,6 @@
 </div>
 
 ---
-
-##  Table des Matières
-
-- [Aperçu](#-aperçu)
-- [Fonctionnalités](#-fonctionnalités)
-- [Architecture](#-architecture)
-- [Stack Technique](#-stack-technique)
-- [Prérequis](#-prérequis)
-- [Installation & Lancement](#-installation--lancement)
-- [Structure du Projet](#-structure-du-projet)
-- [API Backend](#-api-backend)
-- [Variables d Environnement](#-variables-denvironnement)
-- [Contribution](#-contribution)
 
 ---
 
@@ -44,7 +31,6 @@ GymApp est une plateforme **multi-rôles** destinée à l'écosystème des salle
 ##  Fonctionnalités
 
 ###  Membre
-- Inscription et connexion sécurisée
 - Consultation et renouvellement d abonnement
 - Réservation de séances et check-in
 - Suivi des workouts et défis quotidiens
@@ -55,7 +41,7 @@ GymApp est une plateforme **multi-rôles** destinée à l'écosystème des salle
 ###  Coach
 - Dashboard personnalisé avec ses salles affiliées
 - Création et gestion de programmes d entraînement
-- Postulation dans de nouvelles salles (formulaire inline)
+- Postulation dans de nouvelles salles 
 - Consultation des membres et séances
 
 ###  Propriétaire
@@ -322,61 +308,10 @@ Tous les endpoints sont prefixes par `/api`. Voici les principaux :
 
 ---
 
-##  Variables d Environnement
 
-La configuration actuelle est dans `backend/src/main/resources/application.properties`.
 
-| Parametre | Valeur par defaut |
-|-----------|------------------|
-| `server.port` | `8080` |
-| `spring.data.mongodb.database` | `gymapp` |
-| MongoDB Host | `cluster0.rctw6wm.mongodb.net` |
-| CORS allowed origin | `http://localhost:4200` |
-| Max upload size | `10MB` |
 
-> **Securite** : Pour un deploiement en production, externalisez les credentials MongoDB :
 
-```properties
-# application.properties (production)
-spring.data.mongodb.uri=${MONGODB_URI}
-spring.data.mongodb.database=${MONGODB_DATABASE:gymapp}
-server.port=${PORT:8080}
-```
 
-```powershell
-# Windows PowerShell
-$env:MONGODB_URI = "mongodb+srv://<user>:<password>@<cluster>.mongodb.net/"
-```
-
-```bash
-# Linux / macOS
-export MONGODB_URI="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/"
-```
-
----
-
-##  Contribution
-
-1. Forkez le depot
-2. Creez votre branche : `git checkout -b feature/ma-fonctionnalite`
-3. Committez vos changements : `git commit -m "feat: description"`
-4. Pushez : `git push origin feature/ma-fonctionnalite`
-5. Ouvrez une **Pull Request** sur `main`
-
-### Convention de commits
-
-| Prefixe | Usage |
-|---------|-------|
-| `feat:` | Nouvelle fonctionnalite |
-| `fix:` | Correction de bug |
-| `style:` | Changements CSS / UI uniquement |
-| `refactor:` | Refactorisation sans changement de comportement |
-| `docs:` | Documentation uniquement |
-
----
-
-<div align="center">
-
-Fait avec coeur -- GymApp 2026
 
 </div>
