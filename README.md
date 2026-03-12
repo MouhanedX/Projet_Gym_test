@@ -67,7 +67,6 @@ Avant de commencer, assurez-vous d avoir installé :
 | **Angular CLI** | 17+ | `ng version` |
 | **Git** | 2.x | `git --version` |
 
-> **MongoDB Atlas** : Le projet se connecte à un cluster Atlas distant. Assurez-vous que votre adresse IP est autorisée dans les règles réseau Atlas, ou configurez votre propre cluster (voir Variables d Environnement).
 
 **Installation rapide des prérequis Java/Maven (Windows avec Chocolatey) :**
 
