@@ -39,13 +39,13 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   gymDescription = '';
   gymPrice = 0;
   gymSchedule = [
-    { day: 'Monday', open: true, from: '06:00', to: '22:00' },
-    { day: 'Tuesday', open: true, from: '06:00', to: '22:00' },
-    { day: 'Wednesday', open: true, from: '06:00', to: '22:00' },
-    { day: 'Thursday', open: true, from: '06:00', to: '22:00' },
-    { day: 'Friday', open: true, from: '06:00', to: '22:00' },
-    { day: 'Saturday', open: true, from: '08:00', to: '20:00' },
-    { day: 'Sunday', open: false, from: '08:00', to: '18:00' }
+    { day: 'Lundi', open: true, from: '06:00', to: '22:00' },
+    { day: 'Mardi', open: true, from: '06:00', to: '22:00' },
+    { day: 'Mercredi', open: true, from: '06:00', to: '22:00' },
+    { day: 'Jeudi', open: true, from: '06:00', to: '22:00' },
+    { day: 'Vendredi', open: true, from: '06:00', to: '22:00' },
+    { day: 'Samedi', open: true, from: '08:00', to: '20:00' },
+    { day: 'Dimanche', open: false, from: '08:00', to: '18:00' }
   ];
   gymAmenities = '';
   amenitiesList: string[] = [];
@@ -61,9 +61,9 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   loading = false;
 
   roles = [
-    { value: 'MEMBER', label: 'Gym Rat', icon: '🏃', desc: 'Train & Track' },
-    { value: 'OWNER', label: 'Gym Owner', icon: '🏢', desc: 'Manage & Grow' },
-    { value: 'COACH', label: 'Coach', icon: '🏅', desc: 'Train & Inspire' }
+    { value: 'MEMBER', label: 'Athlete', desc: "S'entrainer et suivre" },
+    { value: 'OWNER', label: 'Proprietaire de salle', desc: 'Gerer et developper' },
+    { value: 'COACH', label: 'Coach', desc: 'Entrainer et inspirer' }
   ];
 
   private map: L.Map | null = null;
@@ -146,13 +146,13 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
       
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        this.error = 'Please select a valid image file';
+        this.error = 'Veuillez selectionner un fichier image valide';
         return;
       }
       
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        this.error = 'Image size must be less than 5MB';
+        this.error = 'La taille de l\'image doit etre inferieure a 5 Mo';
         return;
       }
 
@@ -173,19 +173,19 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
   nextStep(): void {
     this.error = '';
     if (!this.name || !this.email || !this.password || !this.phone) {
-      this.error = 'Please fill in all required fields';
+      this.error = 'Veuillez remplir tous les champs obligatoires';
       return;
     }
     if (!/^\d{8}$/.test(this.phone)) {
-      this.error = 'Phone number must be exactly 8 digits.';
+      this.error = 'Le numero de telephone doit contenir exactement 8 chiffres.';
       return;
     }
     if (this.password.length < 6) {
-      this.error = 'Password must be at least 6 characters long.';
+      this.error = 'Le mot de passe doit contenir au moins 6 caracteres.';
       return;
     }
     if (this.password !== this.confirmPassword) {
-      this.error = 'Passwords do not match. Please make sure both fields are identical.';
+      this.error = 'Les mots de passe ne correspondent pas.';
       return;
     }
     this.step = 2;
@@ -208,7 +208,7 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
 
     if (this.isLogin) {
       if (!this.email || !this.password) {
-        this.error = 'Please fill in all fields';
+        this.error = 'Veuillez remplir tous les champs';
         return;
       }
       this.loading = true;
@@ -231,30 +231,30 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
       }
 
       if (this.selectedRole === 'OWNER' && !this.gymName) {
-        this.error = 'Please enter your gym name';
+        this.error = 'Veuillez saisir le nom de la salle';
         return;
       }
       if (this.selectedRole === 'OWNER' && !this.gymAddress) {
-        this.error = 'Please enter your gym address';
+        this.error = 'Veuillez saisir l\'adresse de la salle';
         return;
       }
 
       // Validate basic fields for non-owner (they don't go through step 2)
       if (this.selectedRole !== 'OWNER') {
         if (!this.name || !this.email || !this.password || !this.phone) {
-          this.error = 'Please fill in all required fields';
+          this.error = 'Veuillez remplir tous les champs obligatoires';
           return;
         }
         if (!/^\d{8}$/.test(this.phone)) {
-          this.error = 'Phone number must be exactly 8 digits.';
+          this.error = 'Le numero de telephone doit contenir exactement 8 chiffres.';
           return;
         }
         if (this.password.length < 6) {
-          this.error = 'Password must be at least 6 characters long.';
+          this.error = 'Le mot de passe doit contenir au moins 6 caracteres.';
           return;
         }
         if (this.password !== this.confirmPassword) {
-          this.error = 'Passwords do not match. Please make sure both fields are identical.';
+          this.error = 'Les mots de passe ne correspondent pas.';
           return;
         }
       }
@@ -287,7 +287,7 @@ export class Auth implements OnInit, AfterViewChecked, OnDestroy {
         },
         error: (err) => {
           this.loading = false;
-          this.error = err.error?.message || 'Registration failed. Email may already be in use.';
+          this.error = err.error?.message || "L'inscription a echoue. L'email est peut-etre deja utilise.";
         }
       });
     }
