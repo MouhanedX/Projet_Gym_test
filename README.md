@@ -99,38 +99,6 @@ E-Gym est une plateforme **multi-rôles** destinée à l'écosystème des salles
 
 ---
 
-##  Stack Technique
-
-### Backend
-
-| Technologie | Version | Rôle |
-|-------------|---------|------|
-| Java | 17 | Langage |
-| Spring Boot | 3.2.2 | Framework REST |
-| Spring Data MongoDB | inclus | ORM NoSQL |
-| Spring Validation | inclus | Validation des DTOs |
-| Maven | 3.x | Build tool |
-| Tomcat | embarqué | Serveur HTTP |
-
-### Frontend
-
-| Technologie | Version | Rôle |
-|-------------|---------|------|
-| Angular | 21.1.x | Framework SPA |
-| TypeScript | ~5.9.2 | Langage |
-| RxJS | ~7.8.0 | Programmation réactive |
-| Angular SSR | inclus | Server-Side Rendering |
-| Leaflet | ^1.9.4 | Cartes interactives |
-| Vitest | ^4.0.8 | Tests unitaires |
-
-### Infrastructure
-
-| Technologie | Rôle |
-|-------------|------|
-| MongoDB Atlas | Base de données cloud NoSQL |
-| npm 11 | Gestionnaire de paquets frontend |
-
----
 
 ##  Prérequis
 
