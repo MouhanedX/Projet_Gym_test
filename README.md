@@ -52,52 +52,6 @@ E-Gym est une plateforme **multi-rôles** destinée à l'écosystème des salles
 
 ---
 
-##  Architecture
-
-```
-+------------------------------------------------------------------+
-|                         CLIENT (Browser)                         |
-|                                                                  |
-|   Angular 21 SPA (port 4200)                                     |
-|   +----------+  +-----------+  +--------------------------+      |
-|   | Landing  |  |   Auth    |  |      Dashboards          |      |
-|   |  Page    |  | (Login /  |  |  Member / Coach / Owner  |      |
-|   +----------+  | Register) |  +--------------------------+      |
-|                 +-----------+                                    |
-|   Services Angular (/api/*) ---> Proxy --> localhost:8080        |
-+------------------------------------------------------------------+
-                                  |
-                    HTTP REST /api/*
-                                  |
-+------------------------------------------------------------------+
-|                    Spring Boot 3.2.2 (port 8080)                 |
-|                                                                  |
-|   +----------------------------------------------------------+   |
-|   |                    Controllers (17)                       |   |
-|   |  Auth | User | Gym | Booking | Program | Challenge | ..  |   |
-|   +---------------------------+------------------------------+   |
-|                               |                                  |
-|   +---------------------------v------------------------------+   |
-|   |                  Repositories (17)                       |   |
-|   |         MongoRepository<Entity, String>                  |   |
-|   +---------------------------+------------------------------+   |
-|                               |                                  |
-+-------------------------------+----------------------------------+
-                                |
-                    MongoDB Driver (TLS)
-                                |
-+------------------------------------------------------------------+
-|                    MongoDB Atlas (Cloud)                          |
-|                    Database : gymapp                              |
-|                    Cluster  : cluster0.rctw6wm.mongodb.net       |
-|                                                                   |
-|  Collections: users | gyms | inscriptions | bookings |           |
-|               programs | worklogs | challenges |                  |
-|               recompenses | echanges | notifications | ...       |
-+-------------------------------------------------------------------+
-```
-
----
 
 
 ##  Prérequis
@@ -178,6 +132,55 @@ ng serve
 | `http://localhost:4200` | Application complète |
 | `http://localhost:4200/auth` | Page de connexion / inscription |
 | `http://localhost:8080/api/users` | Exemple d endpoint REST |
+
+---
+
+
+
+##  Architecture
+
+```
++------------------------------------------------------------------+
+|                         CLIENT (Browser)                         |
+|                                                                  |
+|   Angular 21 SPA (port 4200)                                     |
+|   +----------+  +-----------+  +--------------------------+      |
+|   | Landing  |  |   Auth    |  |      Dashboards          |      |
+|   |  Page    |  | (Login /  |  |  Member / Coach / Owner  |      |
+|   +----------+  | Register) |  +--------------------------+      |
+|                 +-----------+                                    |
+|   Services Angular (/api/*) ---> Proxy --> localhost:8080        |
++------------------------------------------------------------------+
+                                  |
+                    HTTP REST /api/*
+                                  |
++------------------------------------------------------------------+
+|                    Spring Boot 3.2.2 (port 8080)                 |
+|                                                                  |
+|   +----------------------------------------------------------+   |
+|   |                    Controllers (17)                       |   |
+|   |  Auth | User | Gym | Booking | Program | Challenge | ..  |   |
+|   +---------------------------+------------------------------+   |
+|                               |                                  |
+|   +---------------------------v------------------------------+   |
+|   |                  Repositories (17)                       |   |
+|   |         MongoRepository<Entity, String>                  |   |
+|   +---------------------------+------------------------------+   |
+|                               |                                  |
++-------------------------------+----------------------------------+
+                                |
+                    MongoDB Driver (TLS)
+                                |
++------------------------------------------------------------------+
+|                    MongoDB Atlas (Cloud)                          |
+|                    Database : gymapp                              |
+|                    Cluster  : cluster0.rctw6wm.mongodb.net       |
+|                                                                   |
+|  Collections: users | gyms | inscriptions | bookings |           |
+|               programs | worklogs | challenges |                  |
+|               recompenses | echanges | notifications | ...       |
++-------------------------------------------------------------------+
+```
 
 ---
 
